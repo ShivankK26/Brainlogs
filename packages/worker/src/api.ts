@@ -57,6 +57,9 @@ import {
 } from "@brainlog/connectors";
 import { ingestSpool, ingestSpoolLegacy } from "@brainlog/capture";
 import { wakeFromCapture, scheduleFastLoopDetect } from "./fast-loops.js";
+import { handleBrainlogRoute } from "./brainlog-routes.js";
+import { mkdirSync, writeFileSync as writePortFile } from "node:fs";
+import { dirname as dirOf } from "node:path";
 
 let syncLock: Promise<unknown> | null = null;
 let authLock: Promise<unknown> | null = null;
@@ -333,6 +336,12 @@ async function handle(
   }
 
   // All other /api/* routes require the per-install token
+  if (path.startsWith("/api/v1/")) {
+    if (!requireAuth(req, res)) return;
+    const handled = await handleBrainlogRoute(req, { path, query, method, readJson: () => readJson(req), reply, res });
+    if (handled) return;
+  }
+
   if (path.startsWith("/api") && !requireAuth(req, res)) {
     return;
   }
@@ -1178,6 +1187,13 @@ export function startApiServer(): void {
     });
   });
   server.listen(config.port, config.host, () => {
+    // §5: the app and the CLI discover the worker through ~/.brainlog/port.
+    try {
+      mkdirSync(dirOf(config.portFile), { recursive: true });
+      writePortFile(config.portFile, String(config.port), { mode: 0o600 });
+    } catch (e) {
+      log.warn("could not write port file", { err: String(e) });
+    }
     log.info("HTTP API + UI listening", {
       host: config.host,
       port: config.port,

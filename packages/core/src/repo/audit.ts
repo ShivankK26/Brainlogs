@@ -1,11 +1,11 @@
 /** Audit log writes. Every query/write through @brainlog/policy's gate lands here. */
-import { desc, sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import type { AuditEntry } from "@brainlog/types";
 import { getDb } from "../db/client.js";
 import { auditEntries } from "../db/brainlog-schema.js";
 import { newId } from "../jobs.js";
 
-export function writeAudit(entry: Omit<AuditEntry, "id" | "ts"> & { ts?: string }): AuditEntry {
+export function writeAudit(entry: Omit<AuditEntry, "id" | "ts" | "detail"> & { ts?: string; detail?: string }): AuditEntry {
   const full: AuditEntry = { id: newId(), ts: entry.ts ?? new Date().toISOString(), ...entry, detail: entry.detail ?? "" };
   getDb().insert(auditEntries).values(full).run();
   return full;
@@ -20,4 +20,9 @@ export function listAudit(opts: { limit?: number; actor?: string } = {}): AuditE
 
 export function countAudit(): number {
   return getDb().select({ n: sql<number>`count(*)` }).from(auditEntries).get()?.n ?? 0;
+}
+
+/** Finish an audit row after the gated call ran: attach counts or mark it as errored. */
+export function updateAudit(id: string, patch: { result?: AuditEntry["result"]; detail?: string }): void {
+  getDb().update(auditEntries).set(patch).where(eq(auditEntries.id, id)).run();
 }

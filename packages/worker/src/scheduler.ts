@@ -17,7 +17,7 @@ import {
   runGoogleAuthFlow,
   googleStatus,
 } from "@brainlog/connectors";
-import { runEnrichPipeline } from "@brainlog/enrich";
+import { embedPendingBrainlogChunks, runEnrichPipeline } from "@brainlog/enrich";
 import { ingestSpool, ingestSpoolLegacy, purgeStaleObservations } from "@brainlog/capture";
 import {
   annotateTopItems,
@@ -62,9 +62,15 @@ export async function jobCapture(): Promise<JobResult> {
 
 export async function jobEnrich(): Promise<JobResult> {
   return runJob("enrich", async () => {
+    const brain = await embedPendingBrainlogChunks();
     const r = await runEnrichPipeline();
-    return { stats: r };
+    return { stats: { ...r, brainlog: brain } };
   });
+}
+
+/** Entity + commitment extraction over new events. Implemented in Phase 4. */
+export async function jobGraph(): Promise<JobResult> {
+  return runJob("graph", async () => ({ stats: { implemented: false } }));
 }
 
 export async function jobTag(): Promise<JobResult> {

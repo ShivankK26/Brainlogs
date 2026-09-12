@@ -8,6 +8,6 @@ This document is the plain-language statement of what Brainlog does with your da
 - **No screenshots on disk.** The capture engine keeps OCR bitmaps in memory only. *(verify in Phase 6: an integration test watches the data directory.)*
 - **Secrets are encrypted** with AES-256-GCM. The key is stored in the OS keychain.
 - **Credentials are never stored.** Text tagged `credential` by the classifier is dropped before it reaches disk. *(verified: `packages/capture/src/ingest.test.ts`)*
-- **Agents cannot read sensitive text** unless you grant `readSensitive` per agent.
-- **Every read and write is audited.** Each `query` and `propose` call produces an audit entry you can export.
+- **Agents cannot read sensitive text** unless you grant `readSensitive` per agent. *(verified: `packages/query/src/api.test.ts`)*
+- **Every read and write is audited.** Each `query` and `propose` call produces exactly one audit entry, denied calls included. Export with `brainlog audit --json` or from the Audit log view. *(verified: `packages/policy/src/gate.test.ts`, `packages/query/src/api.test.ts`)*
 - **Raw text expires.** Default 30 days. The purge is idempotent and cascades to chunks and vectors. The entity graph and summaries persist. *(verified: `packages/core/src/repo/events.test.ts`)*

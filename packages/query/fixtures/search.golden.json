@@ -1,0 +1,64 @@
+{
+  "vec0 migration failed": [
+    [
+      "Terminal",
+      "zsh — brainlog",
+      "Error: no such module: vec0 — migration 0004 fai"
+    ],
+    [
+      "Terminal",
+      "zsh — brainlog",
+      "$ pnpm db:migrate"
+    ],
+    [
+      "Slack",
+      "DM · Priya",
+      "Priya: I'll block time Friday afternoon."
+    ]
+  ],
+  "pricing table": [
+    [
+      "Firefox",
+      "Nimbleops · Onboarding — week 2",
+      "Pricing table"
+    ]
+  ],
+  "spec by Friday": [
+    [
+      "Slack",
+      "DM · Priya",
+      "You: I'll get you the memory-layer spec by Frida"
+    ],
+    [
+      "Slack",
+      "DM · Priya",
+      "Priya: I'll block time Friday afternoon."
+    ]
+  ],
+  "lab results": [
+    [
+      "Safari",
+      "MyChart — Results",
+      "Your lab results: HbA1c 5.4%"
+    ]
+  ],
+  "git checkout feat/graph-edges": [
+    [
+      "Terminal",
+      "zsh — brainlog",
+      "$ git checkout feat/graph-edges"
+    ]
+  ],
+  "sqlite-vec": [
+    [
+      "Firefox",
+      "asg017/sqlite-vec — README",
+      "sqlite-vec is a small, fast vector search extens"
+    ],
+    [
+      "Firefox",
+      "asg017/sqlite-vec",
+      "asg017/sqlite-vec"
+    ]
+  ]
+}

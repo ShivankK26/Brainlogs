@@ -157,7 +157,7 @@ function isSidebarRow(line: string): RegExpMatchArray | null {
   if (!m) return null;
   // A message that happens to mention a clock ("Meeting at 10:30 AM tomorrow")
   // would match too; require the name side to look like a name, not a sentence.
-  const name = m[1].trim();
+  const name = (m[1] ?? "").trim();
   if (!name || name.length > 60) return null;
   if (name.split(/\s+/).length > 6) return null;
   return m;
@@ -240,7 +240,7 @@ export function segmentChatCapture(
 
   const rowIdx: number[] = [];
   for (let i = 0; i < lines.length; i++) {
-    if (isSidebarRow(lines[i])) rowIdx.push(i);
+    if (isSidebarRow(lines[i] ?? "")) rowIdx.push(i);
   }
 
   const anchorIdx = lines.findIndex((l) => PRESENCE_RE.test(l.trim()));
@@ -278,7 +278,7 @@ export function segmentChatCapture(
 /** The contact's name is the last substantive line above their presence line. */
 function headerAbove(lines: string[], anchorIdx: number): string | null {
   for (let i = anchorIdx - 1; i >= 0 && i >= anchorIdx - 8; i--) {
-    const line = lines[i].trim();
+    const line = (lines[i] ?? "").trim();
     if (!line) continue;
     if (ELEMENT_ID_RE.test(line)) continue;
     if (LIST_CHROME_RE.test(line)) continue;
@@ -303,11 +303,11 @@ function matchPeerRow(
   if (!header) return null;
   const want = header.toLowerCase();
   for (const i of rowIdx) {
-    const m = isSidebarRow(lines[i]);
+    const m = isSidebarRow(lines[i] ?? "");
     if (!m) continue;
-    const name = stripEmoji(m[1]);
+    const name = stripEmoji(m[1] ?? "");
     if (name.toLowerCase() !== want) continue;
-    return { name, fromMe: rowFromMe(m[3]) };
+    return { name, fromMe: rowFromMe(m[3] ?? "") };
   }
   return null;
 }

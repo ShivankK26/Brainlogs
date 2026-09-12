@@ -16,7 +16,7 @@ This repository is being built phase by phase. Honest state:
 | SQLite storage, secrets, backups | Inherited from upstream, works |
 | Brainlog data model (`packages/types`), Drizzle migrations with FTS5 + vec0 | Done (Phase 1) |
 | Capture dedup/diff/sampling + policy gate | Done (Phase 1) |
-| Query layer, policy, audit, CLI | Phase 2 |
+| Query layer (BM25 + vectors + RRF, moment), policy gate + audit, `brainlog` CLI | Done (Phase 2) |
 | In-app UI (Pulse, Memory, Commitments, Agents, Audit, Data & retention) | Phase 3 |
 | Entity graph and commitments | Phase 4 |
 | MCP server with proposed writes | Phase 5 |
@@ -49,3 +49,18 @@ Full statement: `docs/privacy.md`. Architecture: `docs/architecture.md`. Decisio
 ## License
 
 MIT. See `LICENSE` and `NOTICE.md`.
+
+## CLI
+
+```bash
+pnpm brainlog status
+pnpm brainlog search "pricing table" --app Slack
+pnpm brainlog moment <eventId>
+pnpm brainlog ask "why did I stop on feat/graph-edges?"
+pnpm brainlog commitments --status overdue
+pnpm brainlog policy block-domain mail.google.com
+pnpm brainlog audit --limit 20
+pnpm brainlog export --format csv > events.csv
+```
+
+Add `--json` to any command for machine-readable output. The CLI uses the running worker (port in `~/.brainlog/port`) and falls back to reading the database directly when the worker is down.

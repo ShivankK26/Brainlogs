@@ -144,6 +144,43 @@ importers:
         specifier: ^3.2.4
         version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.2)(jiti@1.21.7)(tsx@4.23.13)
 
+  packages/cli:
+    dependencies:
+      '@brainlog/core':
+        specifier: workspace:*
+        version: link:../core
+      '@brainlog/enrich':
+        specifier: workspace:*
+        version: link:../enrich
+      '@brainlog/query':
+        specifier: workspace:*
+        version: link:../query
+      '@brainlog/types':
+        specifier: workspace:*
+        version: link:../types
+      '@brainlog/worker':
+        specifier: workspace:*
+        version: link:../worker
+    devDependencies:
+      '@brainlog/eslint-config':
+        specifier: workspace:*
+        version: link:../../tooling/eslint
+      '@brainlog/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/tsconfig
+      eslint:
+        specifier: ^9.28.0
+        version: 9.39.5(jiti@1.21.7)
+      tsx:
+        specifier: ^4.19.4
+        version: 4.23.13
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.2)(jiti@1.21.7)(tsx@4.23.13)
+
   packages/connectors:
     dependencies:
       '@brainlog/core':
@@ -192,6 +229,9 @@ importers:
       '@brainlog/core':
         specifier: workspace:*
         version: link:../core
+      '@brainlog/types':
+        specifier: workspace:*
+        version: link:../types
       '@xenova/transformers':
         specifier: ^2.17.2
         version: 2.17.2
@@ -261,6 +301,46 @@ importers:
         specifier: ^3.2.4
         version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.2)(jiti@1.21.7)(tsx@4.23.13)
 
+  packages/query:
+    dependencies:
+      '@brainlog/core':
+        specifier: workspace:*
+        version: link:../core
+      '@brainlog/enrich':
+        specifier: workspace:*
+        version: link:../enrich
+      '@brainlog/policy':
+        specifier: workspace:*
+        version: link:../policy
+      '@brainlog/types':
+        specifier: workspace:*
+        version: link:../types
+      drizzle-orm:
+        specifier: ^0.40.1
+        version: 0.40.1(@types/better-sqlite3@7.6.13)(better-sqlite3@11.10.0)(gel@2.2.0)
+      zod:
+        specifier: ^3.24.4
+        version: 3.25.76
+    devDependencies:
+      '@brainlog/capture':
+        specifier: workspace:*
+        version: link:../capture
+      '@brainlog/eslint-config':
+        specifier: workspace:*
+        version: link:../../tooling/eslint
+      '@brainlog/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/tsconfig
+      eslint:
+        specifier: ^9.28.0
+        version: 9.39.5(jiti@1.21.7)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.2)(jiti@1.21.7)(tsx@4.23.13)
+
   packages/types:
     dependencies:
       zod:
@@ -305,12 +385,24 @@ importers:
       '@brainlog/evals':
         specifier: workspace:*
         version: link:../evals
+      '@brainlog/policy':
+        specifier: workspace:*
+        version: link:../policy
+      '@brainlog/query':
+        specifier: workspace:*
+        version: link:../query
+      '@brainlog/types':
+        specifier: workspace:*
+        version: link:../types
       drizzle-orm:
         specifier: ^0.40.1
         version: 0.40.1(@types/better-sqlite3@7.6.13)(better-sqlite3@11.10.0)(gel@2.2.0)
       node-cron:
         specifier: ^3.0.3
         version: 3.0.3
+      zod:
+        specifier: ^3.24.4
+        version: 3.25.76
     devDependencies:
       '@types/node-cron':
         specifier: ^3.0.11

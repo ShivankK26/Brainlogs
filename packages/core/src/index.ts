@@ -113,4 +113,4 @@ export {
   type RegionState,
 } from "./repo/capture-state.js";
 export { getPolicy, setPolicy, exportEngineRules } from "./repo/policy.js";
-export { writeAudit, listAudit, countAudit } from "./repo/audit.js";
+export { writeAudit, updateAudit, listAudit, countAudit } from "./repo/audit.js";

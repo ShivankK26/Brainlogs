@@ -9,3 +9,15 @@ export {
   recordFeedback,
   type RetrievalHit,
 } from "./scoring.js";
+export {
+  CANONICAL_DIMS,
+  embedForBrainlog,
+  embedPendingBrainlogChunks,
+  hashEmbedder,
+  modelEmbedder,
+  setDefaultEmbedder,
+  getDefaultEmbedder,
+  quantizeInt8,
+  truncateAndNormalize,
+  type Embedder,
+} from "./brainlog-embed.js";

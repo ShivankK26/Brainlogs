@@ -19,9 +19,14 @@
     "@brainlog/capture": "workspace:*",
     "@brainlog/evals": "workspace:*",
     "node-cron": "^3.0.3",
-    "drizzle-orm": "^0.40.1"
+    "drizzle-orm": "^0.40.1",
+    "@brainlog/query": "workspace:*",
+    "@brainlog/policy": "workspace:*",
+    "@brainlog/types": "workspace:*",
+    "zod": "^3.24.4"
   },
   "devDependencies": {
     "@types/node-cron": "^3.0.11"
-  }
+  },
+  "license": "MIT"
 }
