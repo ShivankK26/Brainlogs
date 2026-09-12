@@ -42,7 +42,7 @@ function expiresAt(ts: string, retentionDays: number): string {
 }
 
 /**
- * Tail the JSONL spool written by the capture engine and turn records into Brainlog events.
+ * Tail the JSONL spool written by the capture engine and turn records into Brainlogs events.
  * Order per record: validate → policy gate (drop before disk) → sampler (dedup/diff/session) → insert.
  * Logs counts only, never captured text (§16).
  */

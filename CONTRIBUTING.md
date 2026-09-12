@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping. Brainlog is a local-first Windows desktop agent. Please keep that product law intact. By participating you agree to the [Code of Conduct](CODE_OF_CONDUCT.md).
+Thanks for helping. Brainlogs is a local-first Windows desktop agent. Please keep that product law intact. By participating you agree to the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Product law
 

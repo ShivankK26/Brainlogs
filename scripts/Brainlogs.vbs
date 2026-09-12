@@ -1,4 +1,4 @@
-' One-click launch: start Brainlog desktop app only.
+' One-click launch: start Brainlogs desktop app only.
 ' The .exe starts core + widget + capture. No npm, no browser.
 Option Explicit
 

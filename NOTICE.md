@@ -1,6 +1,6 @@
 # Notice
 
-Brainlog is built on top of **second-brain** by Karan Pargal and contributors,
+Brainlogs is built on top of **second-brain** by Karan Pargal and contributors,
 released under the MIT License.
 
 - Upstream: https://github.com/karanpargal/second-brain
@@ -14,6 +14,6 @@ The following parts of this repository are derived from upstream and keep its li
 - `apps/app` — originally `apps/web`
 - `scripts/`, `packaging/`, `flake.nix`
 
-Brainlog-specific additions (`packages/types`, `packages/ui`, `packages/graph`, `packages/query`, `packages/policy`, `packages/cli`, `apps/site`, `tooling/`, `docs/`) are © 2026 Brainlog contributors, also MIT.
+Brainlogs-specific additions (`packages/types`, `packages/ui`, `packages/graph`, `packages/query`, `packages/policy`, `packages/cli`, `apps/site`, `tooling/`, `docs/`) are © 2026 Brainlogs contributors, also MIT.
 
 The full license text is in `LICENSE`.

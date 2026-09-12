@@ -87,7 +87,7 @@ export {
   type LearnClassifyInput,
 } from "./learn-graph.js";
 
-// ---- Brainlog (ADR 0003) ----
+// ---- Brainlogs (ADR 0003) ----
 export * as brainlogSchema from "./db/brainlog-schema.js";
 export { assertVecLoaded, SqliteVecNotLoadedError } from "./db/client.js";
 export { migrationsFolder } from "./db/migrate.js";

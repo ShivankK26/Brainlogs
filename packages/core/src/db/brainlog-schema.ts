@@ -1,5 +1,5 @@
 /**
- * Brainlog canonical tables (ADR 0003). Mirrors the zod models in @brainlog/types.
+ * Brainlogs canonical tables (ADR 0003). Mirrors the zod models in @brainlog/types.
  * FTS5 (`chunks_fts`) and vec0 (`chunk_vec`) virtual tables live in custom migrations
  * under packages/core/drizzle because drizzle-kit cannot describe them.
  */

@@ -1,8 +1,8 @@
 {
   "name": "@brainlog/cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
-  "description": "brainlog — command-line access to your local Brainlog memory.",
+  "description": "brainlog — command-line access to your local Brainlogs memory.",
   "type": "module",
   "bin": {
     "brainlog": "./bin/brainlog.js"

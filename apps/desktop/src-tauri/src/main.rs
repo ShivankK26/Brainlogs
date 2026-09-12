@@ -275,7 +275,7 @@ border-radius:50%;animation:spin 0.8s linear infinite}
 .t{font-size:13px;color:#a1a1aa}
 @keyframes spin{to{transform:rotate(360deg)}}
 </style></head><body><div class="wrap"><div class="spinner"></div>
-<div class="t">Starting Brainlog...</div></div></body></html>"#,
+<div class="t">Starting Brainlogs...</div></div></body></html>"#,
     )
 }
 
@@ -290,7 +290,7 @@ justify-content:center;gap:12px;padding:24px;text-align:center}
 button{margin-top:6px;padding:8px 16px;border:0;border-radius:8px;
 background:#4f46e5;color:#fff;font-size:13px;cursor:pointer}
 </style></head><body><div class="wrap">
-<div class="t">Brainlog's local engine did not start in time.<br>
+<div class="t">Brainlogs's local engine did not start in time.<br>
 It may still be warming up.</div>
 <button onclick="location.reload()">Retry</button>
 </div></body></html>"#,
@@ -382,7 +382,7 @@ fn main() {
             let engine_tray = engine_for_setup.clone();
             let _tray = TrayIconBuilder::new()
                 .menu(&menu)
-                .tooltip("Brainlog widget")
+                .tooltip("Brainlogs widget")
                 .icon(app.default_window_icon().unwrap().clone())
                 .on_menu_event(move |app, event| match event.id.as_ref() {
                     "show" => show_main(app),
@@ -440,14 +440,14 @@ fn main() {
                         let title = first
                             .and_then(|n| n.get("title"))
                             .and_then(|t| t.as_str())
-                            .unwrap_or("Brainlog")
+                            .unwrap_or("Brainlogs")
                             .to_string();
                         let body = first
                             .and_then(|n| n.get("body"))
                             .and_then(|b| b.as_str())
                             .unwrap_or("Reminder")
                             .to_string();
-                        let _ = notify_tray.set_tooltip(Some(&format!("Brainlog — {body}")));
+                        let _ = notify_tray.set_tooltip(Some(&format!("Brainlogs — {body}")));
                         let app = notify_app.clone();
                         let toast_title = title.clone();
                         let toast_body = body.clone();

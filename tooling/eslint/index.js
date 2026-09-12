@@ -1,4 +1,4 @@
-// Shared ESLint flat config for every Brainlog workspace.
+// Shared ESLint flat config for every Brainlogs workspace.
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 

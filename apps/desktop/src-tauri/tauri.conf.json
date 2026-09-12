@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Brainlog",
-  "version": "1.0.0",
+  "productName": "Brainlogs",
+  "version": "1.0.1",
   "identifier": "io.brainlog.desktop",
   "build": {
     "beforeDevCommand": "pnpm dev",
@@ -14,7 +14,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Brainlog",
+        "title": "Brainlogs",
         "width": 400,
         "height": 680,
         "minWidth": 56,

@@ -7,9 +7,9 @@ import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 const shot = existsSync(fileURLToPath(new URL("../../public/app-memory.webp", import.meta.url)));
 ---
-<div class="frame" aria-label="Brainlog app preview">
+<div class="frame" aria-label="Brainlogs app preview">
   {shot ? (
-    <img src="/app-memory.webp" width="1080" height="675" alt="Brainlog memory view: a day's captured events, with the selected terminal error and everything that was on screen at that moment" loading="eager" fetchpriority="high" />
+    <img src="/app-memory.webp" width="1080" height="675" alt="Brainlogs memory view: a day's captured events, with the selected terminal error and everything that was on screen at that moment" loading="eager" fetchpriority="high" />
   ) : (
   <div class="app">
     <div class="sb">

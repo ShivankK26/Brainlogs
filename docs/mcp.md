@@ -1,4 +1,4 @@
-# Brainlog over MCP
+# Brainlogs over MCP
 
 Coding agents connect to the same memory you use in the app. Every tool call runs as the agent's own identity, is gated by the policy you set in **Agents**, and lands in the audit log. Writes are held as *proposed* until you approve them.
 
@@ -22,7 +22,7 @@ Codex (writes `~/.codex/config.toml`):
 brainlog mcp install codex
 ```
 
-Any other MCP client: run `npx -y @brainlog/mcp --agent <your-id>` over stdio, or connect to the local socket `~/.brainlog/mcp.sock` (`\\.\pipe\brainlog-mcp` on Windows) that the Brainlog worker opens. The socket speaks newline-delimited JSON-RPC, the same framing as stdio, and derives the agent id from `clientInfo.name` when no `--agent` is given.
+Any other MCP client: run `npx -y @brainlog/mcp --agent <your-id>` over stdio, or connect to the local socket `~/.brainlog/mcp.sock` (`\\.\pipe\brainlog-mcp` on Windows) that the Brainlogs worker opens. The socket speaks newline-delimited JSON-RPC, the same framing as stdio, and derives the agent id from `clientInfo.name` when no `--agent` is given.
 
 ## Tools
 
@@ -37,7 +37,7 @@ Names are stable. If your client only accepts `[A-Za-z0-9_-]` in tool names, sta
 | `brainlog.commitments` | readGraph | Promises and requests with lifecycle status. |
 | `brainlog.summary` | readGraph | Day or week narrative with sentence provenance. |
 | `brainlog.ask` | readTimeline, readGraph | A cited answer from the local model, or the closest moments when none runs. |
-| `brainlog.remember` | write | Saves a note, decision or failed attempt as **proposed**. Returns the id and "Saved as proposed — approve in Brainlog to keep it." |
+| `brainlog.remember` | write | Saves a note, decision or failed attempt as **proposed**. Returns the id and "Saved as proposed — approve in Brainlogs to keep it." |
 | `brainlog.whoami` | — | The agent id, its permissions and the retention window. |
 
 ## Permissions

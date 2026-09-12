@@ -425,7 +425,7 @@ function ensureColumn(
   }
 }
 
-/** Brainlog migrations live next to the package so dist/ and src/ resolve the same folder. */
+/** Brainlogs migrations live next to the package so dist/ and src/ resolve the same folder. */
 export function migrationsFolder(): string {
   return join(dirname(fileURLToPath(import.meta.url)), "..", "..", "drizzle");
 }
@@ -433,7 +433,7 @@ export function migrationsFolder(): string {
 /**
  * Run all migrations. Order matters:
  * 1. open the connection and load sqlite-vec (getSqlite does both), then assert it loaded;
- * 2. Drizzle migrations for the Brainlog tables, including the custom FTS5 / vec0 migration;
+ * 2. Drizzle migrations for the Brainlogs tables, including the custom FTS5 / vec0 migration;
  * 3. upstream idempotent DDL for the legacy tables (ADR 0003).
  */
 export function migrate(): void {

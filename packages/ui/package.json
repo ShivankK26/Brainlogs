@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
-  "description": "Brainlog design tokens and shared React components.",
+  "description": "Brainlogs design tokens and shared React components.",
   "type": "module",
   "exports": {
     "./tokens.css": "./tokens.css",

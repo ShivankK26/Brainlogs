@@ -1,8 +1,8 @@
-# Brainlog
+# Brainlogs
 
 **It's your second brain.**
 
-Brainlog runs quietly on your computer, keeps the *text* of what you see (window titles, pages, messages, terminal output) and turns it into a searchable memory with people, projects and commitments. Ask a question in plain language and get back the moment: what was on screen and what you did next. Coding agents can query the same memory over a local MCP socket. Nothing leaves your machine.
+Brainlogs runs quietly on your computer, keeps the *text* of what you see (window titles, pages, messages, terminal output) and turns it into a searchable memory with people, projects and commitments. Ask a question in plain language and get back the moment: what was on screen and what you did next. Coding agents can query the same memory over a local MCP socket. Nothing leaves your machine.
 
 Built on the MIT-licensed [second-brain](https://github.com/karanpargal/second-brain). See `NOTICE.md`.
 
@@ -14,7 +14,7 @@ This repository is being built phase by phase. Honest state:
 |---|---|
 | Rust capture engine (macOS AX, Windows OCR-in-memory, Linux AT-SPI) | Inherited from upstream, works |
 | SQLite storage, secrets, backups | Inherited from upstream, works |
-| Brainlog data model (`packages/types`), Drizzle migrations with FTS5 + vec0 | Done (Phase 1) |
+| Brainlogs data model (`packages/types`), Drizzle migrations with FTS5 + vec0 | Done (Phase 1) |
 | Capture dedup/diff/sampling + policy gate | Done (Phase 1) |
 | Query layer (BM25 + vectors + RRF, moment), policy gate + audit, `brainlog` CLI | Done (Phase 2) |
 | In-app UI (Pulse, Memory, Commitments, Agents, Audit, Data & retention) | Done (Phase 3) |
@@ -22,7 +22,7 @@ This repository is being built phase by phase. Honest state:
 | MCP server (stdio + local socket) with proposed writes and per-agent permissions | Done (Phase 5) |
 | Landing site + docs (`apps/site`), GitHub Releases workflow (.dmg, .msi, .deb, .AppImage), keychain-backed key, §14 checklist tests | Done (Phase 6) |
 
-Upstream features not yet ported to the Brainlog model (open loops, morning brief, voice, connectors) still run in `packages/agents` and `packages/worker`. They are experimental in this repository.
+Upstream features not yet ported to the Brainlogs model (open loops, morning brief, voice, connectors) still run in `packages/agents` and `packages/worker`. They are experimental in this repository.
 
 ## Develop
 

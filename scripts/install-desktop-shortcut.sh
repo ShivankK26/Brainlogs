@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One-click Linux launcher: install a .desktop entry for Brainlog.
+# One-click Linux launcher: install a .desktop entry for Brainlogs.
 # Points at the built bundle/binary (exe-first, like install-desktop-shortcut.ps1).
 # Usage: bash scripts/install-desktop-shortcut.sh [--autostart]
 set -euo pipefail
@@ -39,7 +39,7 @@ echo "Launcher points at: $target"
 cat > "$DESKTOP" <<EOF
 [Desktop Entry]
 Type=Application
-Name=Brainlog
+Name=Brainlogs
 Comment=Local-first ambient memory widget
 Exec="$target"
 Icon=$ICON
@@ -58,5 +58,5 @@ fi
 command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database "$APP_DIR" || true
 
 echo "Installed: $DESKTOP"
-echo "Launch Brainlog from your app menu - no npm commands required."
+echo "Launch Brainlogs from your app menu - no npm commands required."
 echo "Note (Wayland): tray icon needs an AppIndicator extension; the widget works without it."

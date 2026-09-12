@@ -1,8 +1,8 @@
 {
   "name": "@brainlog/mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
-  "description": "Brainlog MCP server: gives Claude Code, Cursor and Codex a memory of your week over stdio or a local socket. Writes are held as proposed until you approve them.",
+  "description": "Brainlogs MCP server: gives Claude Code, Cursor and Codex a memory of your week over stdio or a local socket. Writes are held as proposed until you approve them.",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",

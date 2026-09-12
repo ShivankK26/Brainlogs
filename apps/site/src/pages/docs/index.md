@@ -1,12 +1,12 @@
 ---
 layout: ../../layouts/Docs.astro
 title: Docs
-description: Install Brainlog, connect a coding agent, and verify the privacy claims yourself.
+description: Install Brainlogs, connect a coding agent, and verify the privacy claims yourself.
 ---
 
-# Brainlog docs
+# Brainlogs docs
 
-Brainlog runs on your computer, keeps the text of what you see, and turns it into a searchable memory with people, projects and commitments. Nothing leaves your machine.
+Brainlogs runs on your computer, keeps the text of what you see, and turns it into a searchable memory with people, projects and commitments. Nothing leaves your machine.
 
 - [Install](/docs/install) — desktop app, permissions, first run.
 - [MCP setup](/docs/mcp) — give Claude Code, Cursor or Codex a memory of your week.

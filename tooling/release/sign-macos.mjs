@@ -61,6 +61,6 @@ for (const app of apps) {
 
 console.log(
   "[sign-macos] done. Ad-hoc signatures change on every rebuild, so macOS " +
-    "drops the Accessibility grant each time — re-approve Brainlog in " +
+    "drops the Accessibility grant each time — re-approve Brainlogs in " +
     "System Settings after a rebuild.",
 );

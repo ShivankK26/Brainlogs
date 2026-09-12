@@ -34,8 +34,8 @@ Re-signing the app with a different identity resets that grant (macOS keys the p
 Gatekeeper blocks unsigned apps. For local use:
 
 ```bash
-codesign --force --deep --sign - "Brainlog.app"
-xattr -cr "Brainlog.app"   # clear quarantine if right-click Open still fails
+codesign --force --deep --sign - "Brainlogs.app"
+xattr -cr "Brainlogs.app"   # clear quarantine if right-click Open still fails
 ```
 
 Or right-click the `.app` → **Open** the first time.

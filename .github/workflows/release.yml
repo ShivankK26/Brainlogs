@@ -5,19 +5,23 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Existing tag to (re)build, e.g. v1.0.0"
+        description: "Existing tag to (re)build, e.g. v1.0.1"
         required: true
         type: string
 
 permissions:
   contents: write
-  id-token: write
+
+env:
+  TAG: ${{ inputs.tag || github.ref_name }}
 
 jobs:
   verify:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref_name }}
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -33,10 +37,13 @@ jobs:
       matrix:
         include:
           - os: macos-latest
+            name: macos
             args: --target universal-apple-darwin
           - os: windows-latest
+            name: windows
             args: ""
           - os: ubuntu-22.04
+            name: linux
             args: ""
     runs-on: ${{ matrix.os }}
     steps:
@@ -92,17 +99,53 @@ jobs:
             if [ -n "${!v}" ]; then echo "$v<<EOF" >> "$GITHUB_ENV"; echo "${!v}" >> "$GITHUB_ENV"; echo "EOF" >> "$GITHUB_ENV"; fi
           done
           [ -n "$APPLE_SIGNING_IDENTITY" ] || echo "::warning::No Apple signing identity configured; macOS bundle will be unsigned (see tooling/release/README.md)"
+      # Build only. Publishing happens once, in the `publish` job, so three runners never race to create the release.
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: apps/desktop
-          tagName: ${{ inputs.tag || github.ref_name }}
-          releaseName: Brainlog ${{ inputs.tag || github.ref_name }}
-          releaseBody: See CHANGELOG.md. Nothing leaves your machine.
-          releaseDraft: true
-          prerelease: ${{ contains(inputs.tag || github.ref_name, '-') }}
           args: ${{ matrix.args }}
+      - name: Collect bundles
+        shell: bash
+        run: |
+          mkdir -p out
+          find apps/desktop/src-tauri/target -path '*/release/bundle/*' -type f \
+            \( -name '*.dmg' -o -name '*.msi' -o -name '*.exe' -o -name '*.deb' -o -name '*.AppImage' -o -name '*.rpm' \) \
+            -exec cp {} out/ \;
+          ls -la out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ matrix.name }}
+          path: out/*
+          if-no-files-found: error
+
+  publish:
+    needs: desktop
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref_name }}
+      - uses: actions/download-artifact@v4
+        with:
+          path: bundles
+          merge-multiple: true
+      - name: Checksums
+        run: cd bundles && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+      - name: Create or update the draft release
+        env:
+          # A classic PAT with `repo` scope in RELEASE_TOKEN is used when set; the built-in token otherwise.
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --draft --verify-tag --title "Brainlogs $TAG" \
+              --notes "See CHANGELOG.md. Nothing leaves your machine. macOS builds are unsigned until Apple credentials are configured: right-click → Open on first launch." \
+              $([[ "$TAG" == *-* ]] && echo --prerelease)
+          fi
+          gh release upload "$TAG" bundles/* --clobber
+          gh release view "$TAG" --json assets --jq '.assets[].name'
 
   npm:
     needs: verify
@@ -110,6 +153,8 @@ jobs:
     if: ${{ !contains(inputs.tag || github.ref_name, '-') }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref_name }}
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:

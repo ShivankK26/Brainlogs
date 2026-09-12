@@ -115,7 +115,7 @@ export async function runGoogleAuthFlow(): Promise<void> {
         }
         res.writeHead(200, { "Content-Type": "text/html" });
         res.end(
-          "<h1>Google connected</h1><p>You can close this tab and return to Brainlog.</p>",
+          "<h1>Google connected</h1><p>You can close this tab and return to Brainlogs.</p>",
         );
         resolve(c);
         server.close();

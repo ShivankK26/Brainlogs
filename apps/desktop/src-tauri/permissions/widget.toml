@@ -1,6 +1,6 @@
 [[permission]]
 identifier = "allow-widget-commands"
-description = "Allow Brainlog widget IPC (hide, quit, pin, mode, capture)"
+description = "Allow Brainlogs widget IPC (hide, quit, pin, mode, capture)"
 commands.allow = [
   "hide_widget",
   "quit_app",

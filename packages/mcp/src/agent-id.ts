@@ -1,6 +1,6 @@
 import { AgentId } from "@brainlog/types";
 
-/** Map an MCP clientInfo.name (or a --agent flag) onto a Brainlog agent id. */
+/** Map an MCP clientInfo.name (or a --agent flag) onto a Brainlogs agent id. */
 export function resolveAgentId(input: { explicit?: string | null; clientName?: string | null }): string {
   const raw = (input.explicit ?? input.clientName ?? "").trim().toLowerCase();
   if (!raw) return "unknown-agent";

@@ -4,7 +4,7 @@
 
 ## Context
 
-The build brief starts from the MIT-licensed `second-brain` repository. It ships a Tauri shell, a Rust capture engine for three platforms, a Node worker, connectors and an eval suite. Brainlog changes the product name, the package manager, the data model and most of the UI.
+The build brief starts from the MIT-licensed `second-brain` repository. It ships a Tauri shell, a Rust capture engine for three platforms, a Node worker, connectors and an eval suite. Brainlogs changes the product name, the package manager, the data model and most of the UI.
 
 ## Decision
 

@@ -1,4 +1,4 @@
-# Maintainer: Brainlog contributors
+# Maintainer: Brainlogs contributors
 # Native Arch package (source build). AppImage is intentionally not used:
 # linuxdeploy's bundled binutils cannot strip Arch's DT_RELR binaries and
 # its GTK plugin assumes gdk-pixbuf loaders Arch no longer ships, so
@@ -64,7 +64,7 @@ package() {
   install -Dm644 /dev/stdin "$pkgdir/usr/share/applications/brainlog.desktop" <<'EOF'
 [Desktop Entry]
 Type=Application
-Name=Brainlog
+Name=Brainlogs
 Comment=Local-first ambient memory widget
 Exec=/usr/bin/brainlog-desktop
 Icon=brainlog-desktop

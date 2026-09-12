@@ -1,6 +1,6 @@
-# Brainlog architecture
+# Brainlogs architecture
 
-Brainlog runs quietly on a user's computer, captures the **text** of what they see (window titles, URLs, on-screen text via accessibility APIs, terminal output) and stores it locally in SQLite. A small local model turns that stream into an **entity graph** (people, projects, repos, commitments) linked back to source events. The user can search their past in plain language and get back the **moment**: what was on screen and what they did next. Coding agents query the same memory over a local **MCP** socket and write notes back, held as *proposed* until the user approves. Nothing leaves the machine.
+Brainlogs runs quietly on a user's computer, captures the **text** of what they see (window titles, URLs, on-screen text via accessibility APIs, terminal output) and stores it locally in SQLite. A small local model turns that stream into an **entity graph** (people, projects, repos, commitments) linked back to source events. The user can search their past in plain language and get back the **moment**: what was on screen and what they did next. Coding agents query the same memory over a local **MCP** socket and write notes back, held as *proposed* until the user approves. Nothing leaves the machine.
 
 ## Principles (non-negotiable)
 

@@ -1,7 +1,7 @@
 ---
 layout: ../../layouts/Docs.astro
 title: MCP setup
-description: Connect Claude Code, Cursor or Codex to your Brainlog memory in one line.
+description: Connect Claude Code, Cursor or Codex to your Brainlogs memory in one line.
 ---
 
 # MCP setup
@@ -32,7 +32,7 @@ This appends an `[mcp_servers.brainlog]` block to `~/.codex/config.toml`.
 
 ## Any other client
 
-Run `npx -y @brainlog/mcp --agent <your-id>` over stdio, or connect to the local socket the Brainlog worker opens at `~/.brainlog/mcp.sock` (`\\.\pipe\brainlog-mcp` on Windows). The socket speaks newline-delimited JSON-RPC, the same framing as stdio.
+Run `npx -y @brainlog/mcp --agent <your-id>` over stdio, or connect to the local socket the Brainlogs worker opens at `~/.brainlog/mcp.sock` (`\\.\pipe\brainlog-mcp` on Windows). The socket speaks newline-delimited JSON-RPC, the same framing as stdio.
 
 ## Tools
 

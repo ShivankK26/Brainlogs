@@ -1,5 +1,5 @@
 /**
- * Canonical Brainlog embeddings: 384 dims, int8 (ADR 0005).
+ * Canonical Brainlogs embeddings: 384 dims, int8 (ADR 0005).
  * Backends: Ollama nomic-embed-text (Matryoshka-truncated), transformers.js bge-small,
  * and a deterministic feature-hashing embedder used as a last resort and in tests.
  */
@@ -100,6 +100,6 @@ export async function embedPendingBrainlogChunks(opts: { limit?: number; embedde
     insert.run(c.id, Buffer.from(vec.buffer, vec.byteOffset, vec.byteLength));
     db.update(brainlogSchema.chunks).set({ embedded: true }).where(eq(brainlogSchema.chunks.id, c.id)).run();
   }
-  if (pending.length) log.info("Brainlog chunks embedded", { embedded, reused, failed });
+  if (pending.length) log.info("Brainlogs chunks embedded", { embedded, reused, failed });
   return { embedded, reused, failed };
 }

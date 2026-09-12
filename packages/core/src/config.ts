@@ -149,7 +149,7 @@ export const config = {
     fallbackModel: "Xenova/bge-small-en-v1.5",
     fallbackDims: 384,
     dims: Number(process.env.EMBED_DIMS ?? 768),
-    /** Brainlog chunk vectors: int8, 384 dims. nomic-embed-text (Matryoshka) is truncated to 384; bge-small is 384 native. ADR 0005. */
+    /** Brainlogs chunk vectors: int8, 384 dims. nomic-embed-text (Matryoshka) is truncated to 384; bge-small is 384 native. ADR 0005. */
     canonicalDims: 384,
   },
   scoring: {

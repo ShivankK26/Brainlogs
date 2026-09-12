@@ -1,4 +1,4 @@
-/** Upstream ingester (observations / activity_blocks / artifacts). Kept running alongside the Brainlog ingester until Phase 4 retires it (ADR 0003). */
+/** Upstream ingester (observations / activity_blocks / artifacts). Kept running alongside the Brainlogs ingester until Phase 4 retires it (ADR 0003). */
 import {
   readdirSync,
   existsSync,

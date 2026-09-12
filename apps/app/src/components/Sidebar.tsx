@@ -15,7 +15,7 @@ export function Sidebar({ status, entities }: { status: Status | null; entities:
   return (
     <nav className="sb" aria-label="Primary">
       <button className="wsbtn">
-        <span className="mark">B</span>Brainlog<IcChev /><span className="u">{status?.user.initials ?? "··"}</span>
+        <span className="mark">B</span>Brainlogs<IcChev /><span className="u">{status?.user.initials ?? "··"}</span>
       </button>
       <button className="sb-search" id="openPal" onClick={openPalette}>
         <IcSearch />Search or jump to<kbd>⌘K</kbd>

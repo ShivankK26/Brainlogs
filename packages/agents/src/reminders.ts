@@ -92,7 +92,7 @@ export function fireDueReminders(): {
     }
 
     notifications.push({
-      title: "Brainlog",
+      title: "Brainlogs",
       body: r.title,
       loopId: r.loopId,
     });

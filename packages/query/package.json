@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
-  "description": "The single read/write API over Brainlog memory. Every consumer (app, MCP, CLI, digest) goes through here; every call is gated and audited by @brainlog/policy.",
+  "description": "The single read/write API over Brainlogs memory. Every consumer (app, MCP, CLI, digest) goes through here; every call is gated and audited by @brainlog/policy.",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",

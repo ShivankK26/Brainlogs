@@ -12,7 +12,7 @@ labels: bug
 
 ## Environment
 
-- Brainlog version / commit:
+- Brainlogs version / commit:
 - Windows version:
 - How you launched it: Desktop app / `pnpm start` (dev only)
 - Ollama model(s):

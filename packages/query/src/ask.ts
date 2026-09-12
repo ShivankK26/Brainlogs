@@ -5,7 +5,7 @@ import type { AskResult, SearchFilters } from "./types.js";
 
 export type AskDeps = SearchDeps & { chat?: (system: string, user: string) => Promise<string | null> };
 
-const SYSTEM = `You are Brainlog, the user's local memory. Answer the question from the numbered evidence only.
+const SYSTEM = `You are Brainlogs, the user's local memory. Answer the question from the numbered evidence only.
 Be plain and short. Cite evidence inline as [n]. If the evidence does not answer the question, say so in one sentence.`;
 
 /** Local Ollama chat. Returns null when Ollama is unreachable so callers can fall back. */

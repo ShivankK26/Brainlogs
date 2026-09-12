@@ -4,7 +4,7 @@
 
 
 
-Brainlog is local-first the way a notebook is: there is no server to trust because there is no server. Every claim below names how you can check it on your own machine.
+Brainlogs is local-first the way a notebook is: there is no server to trust because there is no server. Every claim below names how you can check it on your own machine.
 
 ## Nothing leaves your machine
 
@@ -46,7 +46,7 @@ Each query and each proposed write produces exactly one audit entry, by you, by 
 
 Raw captured text expires after 30 days by default (change it under **Data & retention**). The purge is idempotent and cascades to search indexes and vectors. The entity graph, commitments and summaries persist; their links to expired events are kept as "expired" markers.
 
-## What Brainlog never does
+## What Brainlogs never does
 
 - No account. No telemetry. No crash reports unless you send them.
 - No cloud model unless you enable **Cloud Ask** yourself, and never for captured chat text.

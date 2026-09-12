@@ -300,7 +300,7 @@ export async function runAdvisor(opts?: {
     toolName?: string;
   }> = [];
 
-  const system = `You are a personal advisor for Brainlog. You turn real signals into concrete next steps.
+  const system = `You are a personal advisor for Brainlogs. You turn real signals into concrete next steps.
 Rules:
 - Prefer evidence from tool results when tools are available.
 - Every recommendation needs a clear nextStep doable in ≤60 minutes.

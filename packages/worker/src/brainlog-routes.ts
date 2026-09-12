@@ -1,5 +1,5 @@
 /**
- * /api/v1 — the Brainlog HTTP surface for the in-app UI and the CLI.
+ * /api/v1 — the Brainlogs HTTP surface for the in-app UI and the CLI.
  * Every handler goes through @brainlog/query, which gates and audits as actor "user"
  * (HTTP callers are the local user; agents connect over MCP, not HTTP).
  */

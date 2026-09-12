@@ -10,4 +10,4 @@ labels: enhancement
 
 Keep the product law: **opening the desktop app is the full product.** Users must not need extra terminals for daily use.
 
-## Why this belongs in Brainlog
+## Why this belongs in Brainlogs

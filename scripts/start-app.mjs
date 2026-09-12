@@ -92,11 +92,11 @@ function findDesktopExe() {
   const names =
     process.platform === "darwin"
       ? [
-          "Brainlog.app/Contents/MacOS/brainlog-desktop",
+          "Brainlogs.app/Contents/MacOS/brainlog-desktop",
           "brainlog-desktop",
         ]
       : process.platform === "win32"
-        ? ["brainlog-desktop.exe", "Brainlog.exe"]
+        ? ["brainlog-desktop.exe", "Brainlogs.exe"]
         : ["brainlog-desktop"];
   const dirs = [
     join(ROOT, "apps", "desktop", "src-tauri", "target", "release"),

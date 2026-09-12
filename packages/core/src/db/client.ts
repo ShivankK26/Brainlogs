@@ -97,7 +97,7 @@ export function isVecReady(): boolean {
 export class SqliteVecNotLoadedError extends Error {
   constructor() {
     super(
-      "sqlite-vec extension is not loaded. Brainlog loads it on the SQLite connection before running migrations; " +
+      "sqlite-vec extension is not loaded. Brainlogs loads it on the SQLite connection before running migrations; " +
         "install the sqlite-vec package for your platform or set SQLITE_VEC_EXT to the vec0 loadable path.",
     );
     this.name = "SqliteVecNotLoadedError";

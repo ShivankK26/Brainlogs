@@ -62,7 +62,7 @@ export function Pulse() {
                   <p className="muted">
                     {p && p.eventCount > 0
                       ? "No narrative for this week yet. The graph job writes one from your timeline once entities and commitments are extracted."
-                      : "Nothing captured this week yet. Brainlog fills this in as you work."}
+                      : "Nothing captured this week yet. Brainlogs fills this in as you work."}
                   </p>
                 )}
               </div>

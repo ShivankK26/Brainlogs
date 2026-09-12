@@ -55,7 +55,7 @@ export function keychainSet(dataDir: string, key: string): boolean {
     case "macos-keychain":
       return run("security", ["add-generic-password", "-U", "-s", KEYCHAIN_SERVICE, "-a", ACCOUNT, "-w", key, "-T", "/usr/bin/security"]) !== null;
     case "linux-secret-service":
-      return run("secret-tool", ["store", "--label", "Brainlog master key", "service", KEYCHAIN_SERVICE, "account", ACCOUNT], key) !== null;
+      return run("secret-tool", ["store", "--label", "Brainlogs master key", "service", KEYCHAIN_SERVICE, "account", ACCOUNT], key) !== null;
     case "windows-dpapi": {
       const script = `ConvertTo-SecureString -String '${key}' -AsPlainText -Force | ConvertFrom-SecureString`;
       const blob = run("powershell", ["-NoProfile", "-NonInteractive", "-Command", script]);

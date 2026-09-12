@@ -3,9 +3,9 @@
 <plist version="1.0">
   <dict>
     <key>NSMicrophoneUsageDescription</key>
-    <string>Brainlog uses the microphone for push-to-talk Ask in the floating widget.</string>
+    <string>Brainlogs uses the microphone for push-to-talk Ask in the floating widget.</string>
     <key>NSAppleEventsUsageDescription</key>
-    <string>Brainlog may use Apple Events for local automation when you ask it to.</string>
+    <string>Brainlogs may use Apple Events for local automation when you ask it to.</string>
     <key>LSHandlerRank</key>
     <string>None</string>
   </dict>

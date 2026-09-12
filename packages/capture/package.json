@@ -21,7 +21,7 @@
     "@brainlog/types": "workspace:*",
     "drizzle-orm": "^0.40.1"
   },
-  "description": "Spool ingestion for Brainlog: policy gate, region dedup, line diffs, sampling.",
+  "description": "Spool ingestion for Brainlogs: policy gate, region dedup, line diffs, sampling.",
   "license": "MIT",
   "devDependencies": {
     "@brainlog/eslint-config": "workspace:*",

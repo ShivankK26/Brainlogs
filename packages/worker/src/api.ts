@@ -250,7 +250,7 @@ async function handle(
   if (!path.startsWith("/api") && (method === "GET" || method === "HEAD")) {
     if (tryServeStatic(req, res)) return;
     reply(404, {
-      error: "Desktop UI is not available. Reopen the Brainlog app.",
+      error: "Desktop UI is not available. Reopen the Brainlogs app.",
       path,
     });
     return;

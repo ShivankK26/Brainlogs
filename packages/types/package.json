@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
-  "description": "Zod schemas and TypeScript types shared by every Brainlog package. Zero runtime dependencies except zod.",
+  "description": "Zod schemas and TypeScript types shared by every Brainlogs package. Zero runtime dependencies except zod.",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",

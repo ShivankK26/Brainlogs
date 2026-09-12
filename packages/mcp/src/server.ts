@@ -1,5 +1,5 @@
 /**
- * The Brainlog MCP server (§10). A thin adapter: every tool calls @brainlog/query as the
+ * The Brainlogs MCP server (§10). A thin adapter: every tool calls @brainlog/query as the
  * connected agent, so policy gating and audit rows carry the agent's identity.
  */
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -9,8 +9,8 @@ import { PolicyDeniedError, resolvePermissions } from "@brainlog/policy";
 import { createQueryApi, type QueryApi } from "@brainlog/query";
 import { resolveAgentId } from "./agent-id.js";
 
-export const VERSION = "1.0.0";
-export const REMEMBER_TEXT = "Saved as proposed — approve in Brainlog to keep it.";
+export const VERSION = "1.0.1";
+export const REMEMBER_TEXT = "Saved as proposed — approve in Brainlogs to keep it.";
 
 /** Canonical (dotted) names are the documented ones; some clients only accept `[A-Za-z0-9_-]`, so an underscore style exists (ADR 0010). */
 export type ToolStyle = "dotted" | "underscore";
@@ -107,7 +107,7 @@ export function createBrainlogMcpServer(opts: ServerOptions = {}): McpServer {
 
   server.registerTool(t("remember"), {
     title: "Remember",
-    description: `Write a note, decision or failed attempt into the user's memory. Held as proposed until the user approves it in Brainlog.`,
+    description: `Write a note, decision or failed attempt into the user's memory. Held as proposed until the user approves it in Brainlogs.`,
     inputSchema: { text: z.string().min(1).max(4000), kind: z.enum(["note", "decision", "failed_attempt"]).optional(), repo: z.string().optional(), entityIds: z.array(z.string()).optional() },
   }, ({ text: body, kind, repo, entityIds }) => call(async (a) => {
     const note = await a.propose({ note: { text: body, kind: kind ?? "note", ...(repo ? { repo } : {}), entityIds: entityIds ?? [] } });
@@ -116,7 +116,7 @@ export function createBrainlogMcpServer(opts: ServerOptions = {}): McpServer {
 
   server.registerTool(t("whoami"), {
     title: "Who am I",
-    description: "The agent id Brainlog sees this connection as, the permissions granted to it, and the retention window.",
+    description: "The agent id Brainlogs sees this connection as, the permissions granted to it, and the retention window.",
     inputSchema: {},
   }, async () => {
     const policy = getPolicy();

@@ -37,7 +37,7 @@ export function installMcp(agent: string, opts: { home?: string; dryRun?: boolea
     case "cursor": {
       const path = join(home, ".cursor", "mcp.json");
       if (!opts.dryRun) upsertJson(path, "brainlog", { command: SERVER.command, args });
-      return { agent, wrote: path, command: null, note: "Restart Cursor. Brainlog appears under MCP servers with the brainlog.* tools." };
+      return { agent, wrote: path, command: null, note: "Restart Cursor. Brainlogs appears under MCP servers with the brainlog.* tools." };
     }
     case "codex": {
       const path = join(home, ".codex", "config.toml");
