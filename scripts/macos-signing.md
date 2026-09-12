@@ -9,7 +9,7 @@ pnpm install
 pnpm package:app
 ```
 
-Open `apps/desktop/src-tauri/target/release/bundle/macos/Brainlog.app` (or the `.dmg` beside it). Drag the `.app` to `/Applications`. Day-to-day: open **Brainlogs** — no npm terminals.
+Open `apps/desktop/src-tauri/target/release/bundle/macos/Brainlogs.app` (or the `.dmg` beside it). Drag the `.app` to `/Applications`. Day-to-day: open **Brainlogs** — no npm terminals.
 
 ## Icons
 
