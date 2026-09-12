@@ -19,6 +19,7 @@ import {
 } from "@brainlog/connectors";
 import { embedPendingBrainlogChunks, runEnrichPipeline } from "@brainlog/enrich";
 import { runGraphJob } from "@brainlog/graph";
+import { startMcpSocketServer } from "@brainlog/mcp";
 import { ingestSpool, ingestSpoolLegacy, purgeStaleObservations } from "@brainlog/capture";
 import {
   annotateTopItems,
@@ -209,6 +210,7 @@ export async function startScheduler() {
   seed();
   await ensureWebBuild();
   startApiServer();
+  startMcpSocketServer().catch((e) => log.warn("MCP socket not started", { err: String(e) }));
 
   const s = config.schedule;
   const safe = (name: string, fn: () => Promise<unknown>) => {

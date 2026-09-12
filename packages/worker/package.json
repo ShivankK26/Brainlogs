@@ -24,7 +24,8 @@
     "@brainlog/policy": "workspace:*",
     "@brainlog/types": "workspace:*",
     "zod": "^3.24.4",
-    "@brainlog/graph": "workspace:*"
+    "@brainlog/graph": "workspace:*",
+    "@brainlog/mcp": "workspace:*"
   },
   "devDependencies": {
     "@types/node-cron": "^3.0.11"

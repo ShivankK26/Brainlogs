@@ -3,6 +3,7 @@ import type { Commitment, Event, Policy } from "@brainlog/types";
 import { flagStr, parseArgs, parseDuration } from "./args.js";
 import { detectTransport, http, type Transport } from "./client.js";
 import { commitmentRow, eventRow, table, when } from "./format.js";
+import { installMcp } from "./mcp-install.js";
 
 const HELP = `brainlog — it's your second brain.
 
@@ -22,6 +23,8 @@ Usage: brainlog <command> [options]
   audit [--limit 50] [--actor X]
   export --format json|csv [--from ISO] [--to ISO]
   policy show | policy block-app <name> | policy block-domain <domain> | policy retention <days>
+  mcp install claude-code|cursor|codex   one-line MCP setup for a coding agent
+  mcp serve [--agent X]                  run the MCP server on stdio
 
   --json    machine-readable output for any command`;
 
@@ -278,6 +281,22 @@ export async function main(argv: string[]): Promise<void> {
         ].join("\n"),
       );
       return;
+    }
+    case "mcp": {
+      const sub = rest[0];
+      if (sub === "install") {
+        const agent = rest[1];
+        if (!agent) throw new Error("usage: brainlog mcp install claude-code|cursor|codex");
+        const r = installMcp(agent);
+        out(ctx, r, () => [r.wrote ? `Wrote ` : null, r.command ? `Run:\n  ` : null, r.note].filter(Boolean).join("\n"));
+        return;
+      }
+      if (sub === "serve") {
+        process.argv = [process.argv[0]!, "brainlog-mcp", ...(flagStr(flags, "agent") ? ["--agent", flagStr(flags, "agent")!] : [])];
+        await import("@brainlog/mcp/stdio");
+        return;
+      }
+      throw new Error("usage: brainlog mcp install <agent> | mcp serve");
     }
     default:
       throw new Error(`Unknown command "${cmd}". Run brainlog help.`);

@@ -19,7 +19,7 @@ This repository is being built phase by phase. Honest state:
 | Query layer (BM25 + vectors + RRF, moment), policy gate + audit, `brainlog` CLI | Done (Phase 2) |
 | In-app UI (Pulse, Memory, Commitments, Agents, Audit, Data & retention) | Done (Phase 3) |
 | Entity graph and commitments (extraction, resolution, auto-close, weekly narrative) | Done (Phase 4) |
-| MCP server with proposed writes | Phase 5 |
+| MCP server (stdio + local socket) with proposed writes and per-agent permissions | Done (Phase 5) |
 | Landing site, signed releases | Phase 6 |
 
 Upstream features not yet ported to the Brainlog model (open loops, morning brief, voice, connectors) still run in `packages/agents` and `packages/worker`. They are experimental in this repository.
@@ -50,6 +50,15 @@ Full statement: `docs/privacy.md`. Architecture: `docs/architecture.md`. Decisio
 ## License
 
 MIT. See `LICENSE` and `NOTICE.md`.
+
+## Agents over MCP
+
+```bash
+claude mcp add --scope user brainlog -- npx -y @brainlog/mcp --agent claude-code
+pnpm brainlog mcp install cursor    # or codex
+```
+
+Tools, permissions and the approval flow are described in `docs/mcp.md`.
 
 ## CLI
 

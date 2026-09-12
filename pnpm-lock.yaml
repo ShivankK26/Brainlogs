@@ -167,6 +167,9 @@ importers:
       '@brainlog/enrich':
         specifier: workspace:*
         version: link:../enrich
+      '@brainlog/mcp':
+        specifier: workspace:*
+        version: link:../mcp
       '@brainlog/query':
         specifier: workspace:*
         version: link:../query
@@ -312,21 +315,49 @@ importers:
 
   packages/mcp:
     dependencies:
-      '@brainlog/agents':
-        specifier: workspace:*
-        version: link:../agents
       '@brainlog/core':
         specifier: workspace:*
         version: link:../core
+      '@brainlog/policy':
+        specifier: workspace:*
+        version: link:../policy
+      '@brainlog/query':
+        specifier: workspace:*
+        version: link:../query
+      '@brainlog/types':
+        specifier: workspace:*
+        version: link:../types
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.30.0
+        version: 1.30.0(zod@3.25.76)
+      zod:
+        specifier: ^3.24.4
+        version: 3.25.76
+    devDependencies:
+      '@brainlog/capture':
+        specifier: workspace:*
+        version: link:../capture
       '@brainlog/enrich':
         specifier: workspace:*
         version: link:../enrich
-      '@modelcontextprotocol/sdk':
-        specifier: ^1.12.1
-        version: 1.30.0(zod@3.25.76)
-      zod:
-        specifier: ^3.24.2
-        version: 3.25.76
+      '@brainlog/eslint-config':
+        specifier: workspace:*
+        version: link:../../tooling/eslint
+      '@brainlog/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/tsconfig
+      eslint:
+        specifier: ^9.28.0
+        version: 9.39.5(jiti@1.21.7)
+      tsx:
+        specifier: ^4.19.4
+        version: 4.23.13
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.2)(jiti@1.21.7)(tsx@4.23.13)
 
   packages/policy:
     dependencies:
@@ -440,6 +471,9 @@ importers:
       '@brainlog/graph':
         specifier: workspace:*
         version: link:../graph
+      '@brainlog/mcp':
+        specifier: workspace:*
+        version: link:../mcp
       '@brainlog/policy':
         specifier: workspace:*
         version: link:../policy

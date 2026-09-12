@@ -6,6 +6,7 @@ import type { AuditEntry, Status } from "../lib/types";
 import { useStore } from "../state/store";
 import { Header } from "../components/Header";
 import { Pill, Switch } from "../components/Bits";
+import { ProposedList } from "./ProposedList";
 
 const KNOWN = ["claude-code", "cursor", "codex"];
 
@@ -76,6 +77,7 @@ export function Agents({ status }: { status: Status | null }) {
               </div>
             </div>
           </div>
+          <ProposedList agent={agent} />
         </div>
       </div>
     </>
