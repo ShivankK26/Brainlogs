@@ -1,4 +1,7 @@
-import { getSqlite, ensureEmbeddingTables } from "./client.js";
+import { migrate as drizzleMigrate } from "drizzle-orm/better-sqlite3/migrator";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { assertVecLoaded, ensureEmbeddingTables, getDb, getSqlite } from "./client.js";
 import { log } from "../log.js";
 import { config } from "../config.js";
 
@@ -422,7 +425,20 @@ function ensureColumn(
   }
 }
 
+/** Brainlog migrations live next to the package so dist/ and src/ resolve the same folder. */
+export function migrationsFolder(): string {
+  return join(dirname(fileURLToPath(import.meta.url)), "..", "..", "drizzle");
+}
+
+/**
+ * Run all migrations. Order matters:
+ * 1. open the connection and load sqlite-vec (getSqlite does both), then assert it loaded;
+ * 2. Drizzle migrations for the Brainlog tables, including the custom FTS5 / vec0 migration;
+ * 3. upstream idempotent DDL for the legacy tables (ADR 0003).
+ */
 export function migrate(): void {
+  assertVecLoaded();
+  drizzleMigrate(getDb(), { migrationsFolder: migrationsFolder() });
   const sqlite = getSqlite();
   sqlite.exec(MIGRATION_SQL);
   // Existing installs: add columns if missing
@@ -452,7 +468,7 @@ export function migrate(): void {
     "tags_json TEXT NOT NULL DEFAULT '[]'",
   );
   ensureEmbeddingTables(sqlite);
-  log.info("Migrations applied", { db: config.dbPath });
+  log.info("Migrations applied", { db: config.dbPath, migrations: migrationsFolder() });
 }
 
 const isMain =

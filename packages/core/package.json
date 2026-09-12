@@ -12,16 +12,25 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "db:migrate": "tsx src/db/migrate.ts",
-    "db:seed": "tsx src/db/seed.ts"
+    "db:seed": "tsx src/db/seed.ts",
+    "test": "vitest run",
+    "db:generate": "drizzle-kit generate",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1",
     "drizzle-orm": "^0.40.0",
     "sqlite-vec": "^0.1.9",
-    "zod": "^3.24.2"
+    "zod": "^3.24.2",
+    "@brainlog/types": "workspace:*"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.12",
-    "drizzle-kit": "^0.30.5"
-  }
+    "drizzle-kit": "^0.30.5",
+    "vitest": "^3.2.4"
+  },
+  "files": [
+    "dist",
+    "drizzle"
+  ]
 }

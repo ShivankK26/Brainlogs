@@ -7,6 +7,8 @@ import {
   runJob,
   backupDb,
   log,
+  purgeExpiredEvents,
+  purgeRegionStates,
   type JobResult,
 } from "@brainlog/core";
 import {
@@ -16,7 +18,7 @@ import {
   googleStatus,
 } from "@brainlog/connectors";
 import { runEnrichPipeline } from "@brainlog/enrich";
-import { ingestSpool, purgeStaleObservations } from "@brainlog/capture";
+import { ingestSpool, ingestSpoolLegacy, purgeStaleObservations } from "@brainlog/capture";
 import {
   annotateTopItems,
   extractTasksFromTopItems,
@@ -49,11 +51,12 @@ export async function jobIngest(source?: string): Promise<JobResult> {
 
 export async function jobCapture(): Promise<JobResult> {
   return runJob("capture", async () => {
-    const r = await ingestSpool();
+    const brain = await ingestSpool();
+    const r = await ingestSpoolLegacy();
     if ((r.inserted ?? 0) > 0) {
       scheduleFastLoopDetect("spool");
     }
-    return { stats: r as unknown as Record<string, unknown> };
+    return { stats: { events: brain.inserted, dropped: brain.dropped, legacy: r } as unknown as Record<string, unknown> };
   });
 }
 
@@ -101,8 +104,10 @@ export async function jobBrief(): Promise<JobResult> {
 
 export async function jobPurge(): Promise<JobResult> {
   return runJob("purge", async () => {
+    const events = purgeExpiredEvents();
+    const regions = purgeRegionStates(new Date(Date.now() - 7 * 86_400_000));
     const r = purgeStaleObservations();
-    return { stats: r as unknown as Record<string, unknown> };
+    return { stats: { ...events, regions, legacy: r } as unknown as Record<string, unknown> };
   });
 }
 

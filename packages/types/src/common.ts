@@ -7,7 +7,7 @@ export type Id = z.infer<typeof Id>;
 /** ISO-8601 timestamp with timezone (what SQLite stores and what JS Date.toISOString emits). */
 export const IsoTimestamp = z
   .string()
-  .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?(Z|[+-]\d{2}:\d{2})$/, "expected ISO-8601 timestamp");
+  .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/, "expected ISO-8601 timestamp");
 export type IsoTimestamp = z.infer<typeof IsoTimestamp>;
 
 /** Calendar day, YYYY-MM-DD. */

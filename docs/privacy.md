@@ -7,7 +7,7 @@ This document is the plain-language statement of what Brainlog does with your da
 - **Nothing leaves your machine.** Every listener binds to `127.0.0.1`. *(verify in Phase 6: a test scans bound sockets.)*
 - **No screenshots on disk.** The capture engine keeps OCR bitmaps in memory only. *(verify in Phase 6: an integration test watches the data directory.)*
 - **Secrets are encrypted** with AES-256-GCM. The key is stored in the OS keychain.
-- **Credentials are never stored.** Text tagged `credential` by the classifier is dropped before it reaches disk.
+- **Credentials are never stored.** Text tagged `credential` by the classifier is dropped before it reaches disk. *(verified: `packages/capture/src/ingest.test.ts`)*
 - **Agents cannot read sensitive text** unless you grant `readSensitive` per agent.
 - **Every read and write is audited.** Each `query` and `propose` call produces an audit entry you can export.
-- **Raw text expires.** Default 30 days. The purge is idempotent and cascades to chunks and vectors. The entity graph and summaries persist.
+- **Raw text expires.** Default 30 days. The purge is idempotent and cascades to chunks and vectors. The entity graph and summaries persist. *(verified: `packages/core/src/repo/events.test.ts`)*

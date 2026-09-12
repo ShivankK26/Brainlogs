@@ -64,4 +64,7 @@ export const Policy = z.object({
 });
 export type Policy = z.infer<typeof Policy>;
 
-export const DEFAULT_POLICY: Policy = Policy.parse({});
+/** Password managers are blocked out of the box; everything else is opt-in. */
+export const DEFAULT_POLICY: Policy = Policy.parse({
+  blockedApps: ["1Password", "Bitwarden", "KeePassXC", "Keychain Access", "Dashlane", "LastPass"],
+});

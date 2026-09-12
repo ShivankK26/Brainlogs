@@ -6,7 +6,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { config, ensureDataDir } from "../config.js";
 import { log } from "../log.js";
-import * as schema from "./schema.js";
+import * as legacySchema from "./schema.js";
+import * as brainlogSchema from "./brainlog-schema.js";
+
+const schema = { ...legacySchema, ...brainlogSchema };
 
 export type BrainDb = ReturnType<typeof createDb>;
 
@@ -89,6 +92,22 @@ function tryLoadSqliteVec(sqlite: Database.Database): boolean {
 
 export function isVecReady(): boolean {
   return _vecReady;
+}
+
+export class SqliteVecNotLoadedError extends Error {
+  constructor() {
+    super(
+      "sqlite-vec extension is not loaded. Brainlog loads it on the SQLite connection before running migrations; " +
+        "install the sqlite-vec package for your platform or set SQLITE_VEC_EXT to the vec0 loadable path.",
+    );
+    this.name = "SqliteVecNotLoadedError";
+  }
+}
+
+/** Call before any migration that creates vec0 tables (§6 pitfall). */
+export function assertVecLoaded(): void {
+  getSqlite();
+  if (!_vecReady) throw new SqliteVecNotLoadedError();
 }
 
 export function getSqlite(): Database.Database {

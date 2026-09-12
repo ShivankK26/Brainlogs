@@ -14,8 +14,8 @@ This repository is being built phase by phase. Honest state:
 |---|---|
 | Rust capture engine (macOS AX, Windows OCR-in-memory, Linux AT-SPI) | Inherited from upstream, works |
 | SQLite storage, secrets, backups | Inherited from upstream, works |
-| Brainlog data model (`packages/types`) | Done (Phase 0) |
-| Capture dedup/diff/sampling + policy gate | Phase 1 |
+| Brainlog data model (`packages/types`), Drizzle migrations with FTS5 + vec0 | Done (Phase 1) |
+| Capture dedup/diff/sampling + policy gate | Done (Phase 1) |
 | Query layer, policy, audit, CLI | Phase 2 |
 | In-app UI (Pulse, Memory, Commitments, Agents, Audit, Data & retention) | Phase 3 |
 | Entity graph and commitments | Phase 4 |

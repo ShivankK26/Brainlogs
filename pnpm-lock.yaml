@@ -118,9 +118,31 @@ importers:
       '@brainlog/core':
         specifier: workspace:*
         version: link:../core
+      '@brainlog/policy':
+        specifier: workspace:*
+        version: link:../policy
+      '@brainlog/types':
+        specifier: workspace:*
+        version: link:../types
       drizzle-orm:
         specifier: ^0.40.1
         version: 0.40.1(@types/better-sqlite3@7.6.13)(better-sqlite3@11.10.0)(gel@2.2.0)
+    devDependencies:
+      '@brainlog/eslint-config':
+        specifier: workspace:*
+        version: link:../../tooling/eslint
+      '@brainlog/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/tsconfig
+      eslint:
+        specifier: ^9.28.0
+        version: 9.39.5(jiti@1.21.7)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.2)(jiti@1.21.7)(tsx@4.23.13)
 
   packages/connectors:
     dependencies:
@@ -139,6 +161,9 @@ importers:
 
   packages/core:
     dependencies:
+      '@brainlog/types':
+        specifier: workspace:*
+        version: link:../types
       better-sqlite3:
         specifier: ^11.8.1
         version: 11.10.0
@@ -158,6 +183,9 @@ importers:
       drizzle-kit:
         specifier: ^0.30.5
         version: 0.30.6
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.2)(jiti@1.21.7)(tsx@4.23.13)
 
   packages/enrich:
     dependencies:
@@ -207,6 +235,31 @@ importers:
       zod:
         specifier: ^3.24.2
         version: 3.25.76
+
+  packages/policy:
+    dependencies:
+      '@brainlog/core':
+        specifier: workspace:*
+        version: link:../core
+      '@brainlog/types':
+        specifier: workspace:*
+        version: link:../types
+    devDependencies:
+      '@brainlog/eslint-config':
+        specifier: workspace:*
+        version: link:../../tooling/eslint
+      '@brainlog/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/tsconfig
+      eslint:
+        specifier: ^9.28.0
+        version: 9.39.5(jiti@1.21.7)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.2)(jiti@1.21.7)(tsx@4.23.13)
 
   packages/types:
     dependencies:

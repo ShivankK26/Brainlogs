@@ -55,7 +55,7 @@ import {
   installGithubCli,
   ingestAll,
 } from "@brainlog/connectors";
-import { ingestSpool } from "@brainlog/capture";
+import { ingestSpool, ingestSpoolLegacy } from "@brainlog/capture";
 import { wakeFromCapture, scheduleFastLoopDetect } from "./fast-loops.js";
 
 let syncLock: Promise<unknown> | null = null;
@@ -441,7 +441,8 @@ async function handle(
       }
       syncLock = (async () => {
         await tryLoadGhCliToken();
-        const spool = await ingestSpool();
+        await ingestSpool();
+        const spool = await ingestSpoolLegacy();
         if ((spool.inserted ?? 0) > 0) scheduleFastLoopDetect("sync");
         const ingest = await ingestAll();
         const loops = await detectOpenLoops();

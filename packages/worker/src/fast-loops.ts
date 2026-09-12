@@ -1,5 +1,5 @@
 import { runJob, log } from "@brainlog/core";
-import { ingestSpool } from "@brainlog/capture";
+import { ingestSpool, ingestSpoolLegacy } from "@brainlog/capture";
 import { detectOpenLoops } from "@brainlog/agents";
 
 let fastLoopsTimer: ReturnType<typeof setTimeout> | null = null;
@@ -37,7 +37,8 @@ export async function wakeFromCapture(): Promise<{
   inserted: number;
   scheduled: boolean;
 }> {
-  const r = await ingestSpool();
+  await ingestSpool();
+  const r = await ingestSpoolLegacy();
   if ((r.inserted ?? 0) > 0) {
     scheduleFastLoopDetect("wake");
   }

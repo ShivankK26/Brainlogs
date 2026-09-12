@@ -63,7 +63,20 @@ function defaultDataDir(): string {
 }
 
 export const config = {
-  dataDir: defaultDataDir(),
+  /** Resolved lazily so tests and the CLI can point BRAIN_DATA_DIR at a temp dir before first use. */
+  get dataDir() {
+    return defaultDataDir();
+  },
+  /** Small handshake files (port, mcp.sock) live in ~/.brainlog on every platform (ADR 0004). */
+  get homeDir() {
+    return process.env.BRAINLOG_HOME ?? join(homedir(), ".brainlog");
+  },
+  get portFile() {
+    return join(this.homeDir, "port");
+  },
+  get mcpSocketPath() {
+    return process.platform === "win32" ? "\\\\.\\pipe\\brainlog-mcp" : join(this.homeDir, "mcp.sock");
+  },
   get dbPath() {
     return join(this.dataDir, "brain.db");
   },
@@ -135,6 +148,8 @@ export const config = {
     fallbackModel: "Xenova/bge-small-en-v1.5",
     fallbackDims: 384,
     dims: Number(process.env.EMBED_DIMS ?? 768),
+    /** Brainlog chunk vectors: int8, 384 dims. nomic-embed-text (Matryoshka) is truncated to 384; bge-small is 384 native. ADR 0005. */
+    canonicalDims: 384,
   },
   scoring: {
     topNForLlm: 30,

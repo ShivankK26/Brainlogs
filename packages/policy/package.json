@@ -1,7 +1,9 @@
 {
-  "name": "@brainlog/capture",
+  "name": "@brainlog/policy",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
+  "description": "Blocklists, sensitivity classification, agent permissions and the audit-writing gate. Consulted on every capture write and every query read.",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
@@ -17,12 +19,8 @@
   },
   "dependencies": {
     "@brainlog/core": "workspace:*",
-    "@brainlog/policy": "workspace:*",
-    "@brainlog/types": "workspace:*",
-    "drizzle-orm": "^0.40.1"
+    "@brainlog/types": "workspace:*"
   },
-  "description": "Spool ingestion for Brainlog: policy gate, region dedup, line diffs, sampling.",
-  "license": "MIT",
   "devDependencies": {
     "@brainlog/eslint-config": "workspace:*",
     "@brainlog/tsconfig": "workspace:*",

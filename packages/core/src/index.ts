@@ -86,3 +86,31 @@ export {
   type ChatTopic,
   type LearnClassifyInput,
 } from "./learn-graph.js";
+
+// ---- Brainlog (ADR 0003) ----
+export * as brainlogSchema from "./db/brainlog-schema.js";
+export { assertVecLoaded, SqliteVecNotLoadedError } from "./db/client.js";
+export { migrationsFolder } from "./db/migrate.js";
+export { chunkText } from "./text/chunk.js";
+export {
+  insertEvent,
+  getEventById,
+  getEventsByIds,
+  countEvents,
+  hasTextHash,
+  purgeExpiredEvents,
+  deleteEvent,
+  rowToEvent,
+  type EventRow,
+  type PurgeResult,
+} from "./repo/events.js";
+export {
+  loadRegionStates,
+  saveRegionStates,
+  purgeRegionStates,
+  loadIngestCursors,
+  saveIngestCursors,
+  type RegionState,
+} from "./repo/capture-state.js";
+export { getPolicy, setPolicy, exportEngineRules } from "./repo/policy.js";
+export { writeAudit, listAudit, countAudit } from "./repo/audit.js";
