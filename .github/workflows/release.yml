@@ -2,6 +2,12 @@ name: release
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to (re)build, e.g. v1.0.0"
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -35,6 +41,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref_name }}
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -68,28 +76,38 @@ jobs:
           security unlock-keychain -p ci build.keychain
           security import cert.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple: -s -k ci build.keychain
-      - uses: tauri-apps/tauri-action@v0
+      # Tauri treats an *empty* APPLE_SIGNING_IDENTITY as "sign with this identity" and fails with
+      # "no identity found", so signing variables are exported only when the secrets are set.
+      - name: Export signing secrets when present
+        shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          for v in APPLE_SIGNING_IDENTITY APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID TAURI_SIGNING_PRIVATE_KEY TAURI_SIGNING_PRIVATE_KEY_PASSWORD; do
+            if [ -n "${!v}" ]; then echo "$v<<EOF" >> "$GITHUB_ENV"; echo "${!v}" >> "$GITHUB_ENV"; echo "EOF" >> "$GITHUB_ENV"; fi
+          done
+          [ -n "$APPLE_SIGNING_IDENTITY" ] || echo "::warning::No Apple signing identity configured; macOS bundle will be unsigned (see tooling/release/README.md)"
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: apps/desktop
-          tagName: ${{ github.ref_name }}
-          releaseName: Brainlog ${{ github.ref_name }}
+          tagName: ${{ inputs.tag || github.ref_name }}
+          releaseName: Brainlog ${{ inputs.tag || github.ref_name }}
           releaseBody: See CHANGELOG.md. Nothing leaves your machine.
           releaseDraft: true
-          prerelease: ${{ contains(github.ref_name, '-') }}
+          prerelease: ${{ contains(inputs.tag || github.ref_name, '-') }}
           args: ${{ matrix.args }}
 
   npm:
     needs: verify
     runs-on: ubuntu-24.04
-    if: ${{ !contains(github.ref_name, '-') }}
+    if: ${{ !contains(inputs.tag || github.ref_name, '-') }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
