@@ -3,7 +3,7 @@ import {
   getDb,
   calendarBlocks,
   newId,
-} from "@second-brain/core";
+} from "@brainlog/core";
 import { eq } from "drizzle-orm";
 import { getAuthedClient, googleStatus } from "./google-auth.js";
 import {

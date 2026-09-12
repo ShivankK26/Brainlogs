@@ -12,9 +12,9 @@ labels: bug
 
 ## Environment
 
-- Second Brain version / commit:
+- Brainlog version / commit:
 - Windows version:
-- How you launched it: Desktop app / `npm start` (dev only)
+- How you launched it: Desktop app / `pnpm start` (dev only)
 - Ollama model(s):
 
 ## How to reproduce
@@ -25,4 +25,4 @@ labels: bug
 
 ## Notes
 
-Do not paste `%LOCALAPPDATA%\second-brain\` files, `.env`, or API tokens.
+Do not paste `%LOCALAPPDATA%\brainlog\` files, `.env`, or API tokens.

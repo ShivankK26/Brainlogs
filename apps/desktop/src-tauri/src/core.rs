@@ -18,13 +18,13 @@ pub fn data_dir() -> PathBuf {
     #[cfg(windows)]
     {
         if let Ok(local) = std::env::var("LOCALAPPDATA") {
-            return PathBuf::from(local).join("second-brain");
+            return PathBuf::from(local).join("brainlog");
         }
         if let Ok(home) = std::env::var("USERPROFILE") {
             return PathBuf::from(home)
                 .join("AppData")
                 .join("Local")
-                .join("second-brain");
+                .join("brainlog");
         }
     }
     #[cfg(target_os = "macos")]
@@ -33,7 +33,7 @@ pub fn data_dir() -> PathBuf {
             return PathBuf::from(home)
                 .join("Library")
                 .join("Application Support")
-                .join("second-brain");
+                .join("brainlog");
         }
     }
     #[cfg(all(unix, not(target_os = "macos")))]
@@ -42,10 +42,10 @@ pub fn data_dir() -> PathBuf {
             return PathBuf::from(home)
                 .join(".local")
                 .join("share")
-                .join("second-brain");
+                .join("brainlog");
         }
     }
-    PathBuf::from("second-brain")
+    PathBuf::from("brainlog")
 }
 
 fn port() -> u16 {
@@ -443,7 +443,7 @@ pub fn ensure_core_running() -> Result<(), String> {
     }
 
     let root = repo_root().ok_or_else(|| {
-        "Could not find second-brain repo (set BRAIN_REPO_ROOT)".to_string()
+        "Could not find brainlog repo (set BRAIN_REPO_ROOT)".to_string()
     })?;
     let node = find_node().ok_or_else(|| {
         format!(

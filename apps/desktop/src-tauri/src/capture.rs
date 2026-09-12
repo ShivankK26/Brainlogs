@@ -242,7 +242,7 @@ impl CaptureEngine {
         };
         let exe_l = exe.to_lowercase();
         // Remember the real app under the floating widget
-        if !exe_l.contains("second-brain") {
+        if !exe_l.contains("brainlog") {
             let pid = foreground_pid().unwrap_or(0);
             let mut s = self.shared.lock();
             s.last_user_title = title.clone();
@@ -273,7 +273,7 @@ impl CaptureEngine {
                 emit = true;
             }
         }
-        if emit && !exe_l.contains("second-brain") {
+        if emit && !exe_l.contains("brainlog") {
             let chat = is_chat_surface(&app, &exe, &title);
             self.append_obs(json!({
                 "ts": Utc::now().to_rfc3339(),
@@ -416,7 +416,7 @@ impl CaptureEngine {
             // Widget is always-on-top — OCR the last real app underneath it
             let (title, exe, app, target_pid) = {
                 let mut s = self.shared.lock();
-                if fg_exe.to_lowercase().contains("second-brain") {
+                if fg_exe.to_lowercase().contains("brainlog") {
                     if s.last_user_exe.is_empty() {
                         return;
                     }
@@ -525,7 +525,7 @@ impl CaptureEngine {
             // Widget is always-on-top — read the last real app underneath it
             let (title, exe, app, target_pid) = {
                 let mut s = self.shared.lock();
-                if fg_exe.to_lowercase().contains("second-brain") {
+                if fg_exe.to_lowercase().contains("brainlog") {
                     if s.last_user_exe.is_empty() {
                         return;
                     }
@@ -643,7 +643,7 @@ impl CaptureEngine {
             // A focused widget also proves nothing is exclusive-fullscreen.
             let (title, exe, app, target_pid, fullscreen) = {
                 let mut s = self.shared.lock();
-                if fg_exe.to_lowercase().contains("second-brain") {
+                if fg_exe.to_lowercase().contains("brainlog") {
                     if s.last_user_exe.is_empty() {
                         return;
                     }
@@ -806,9 +806,9 @@ fn default_data_dir() -> PathBuf {
     }
     if let Some(base) = BaseDirs::new() {
         // Windows: LocalAppData; macOS: Application Support — both via data_local_dir()
-        return base.data_local_dir().join("second-brain");
+        return base.data_local_dir().join("brainlog");
     }
-    PathBuf::from("second-brain")
+    PathBuf::from("brainlog")
 }
 
 fn is_paused(s: &Shared, control: Option<&String>) -> bool {
@@ -1415,7 +1415,7 @@ fn capture_window_ocr(pid: u32, title: &str, crop_thread: bool) -> Option<(Strin
                 && !w
                     .app_name()
                     .to_lowercase()
-                    .contains("second-brain")
+                    .contains("brainlog")
         })
         .collect();
     if candidates.is_empty() {

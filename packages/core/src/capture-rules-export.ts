@@ -3,7 +3,7 @@
  */
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { config, getDb, captureRules, ensureDataDir } from "@second-brain/core";
+import { config, getDb, captureRules, ensureDataDir } from "@brainlog/core";
 
 export function exportCaptureRulesFile(): string {
   ensureDataDir();

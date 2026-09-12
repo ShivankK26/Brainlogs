@@ -34,13 +34,13 @@ function defaultDataDir() {
   if (process.platform === "win32") {
     return join(
       process.env.LOCALAPPDATA ?? join(homedir(), "AppData", "Local"),
-      "second-brain",
+      "brainlog",
     );
   }
   if (process.platform === "darwin") {
-    return join(homedir(), "Library", "Application Support", "second-brain");
+    return join(homedir(), "Library", "Application Support", "brainlog");
   }
-  return join(homedir(), ".local", "share", "second-brain");
+  return join(homedir(), ".local", "share", "brainlog");
 }
 
 const PID_FILE = join(defaultDataDir(), "core.pid");
@@ -92,12 +92,12 @@ function findDesktopExe() {
   const names =
     process.platform === "darwin"
       ? [
-          "Second Brain.app/Contents/MacOS/second-brain-desktop",
-          "second-brain-desktop",
+          "Brainlog.app/Contents/MacOS/brainlog-desktop",
+          "brainlog-desktop",
         ]
       : process.platform === "win32"
-        ? ["second-brain-desktop.exe", "Second Brain.exe"]
-        : ["second-brain-desktop"];
+        ? ["brainlog-desktop.exe", "Brainlog.exe"]
+        : ["brainlog-desktop"];
   const dirs = [
     join(ROOT, "apps", "desktop", "src-tauri", "target", "release"),
     join(ROOT, "apps", "desktop", "src-tauri", "target", "release", "bundle", "macos"),
@@ -211,10 +211,10 @@ function webUiStale() {
 
 async function ensureWebUi() {
   if (!webUiStale()) return;
-  console.warn("[second-brain] building UI (source newer than dist)…");
+  console.warn("[brainlog] building UI (source newer than dist)…");
   const build = spawn(
-    process.platform === "win32" ? "npm.cmd" : "npm",
-    ["run", "build", "-w", "@second-brain/web"],
+    process.platform === "win32" ? "pnpm.cmd" : "pnpm",
+    ["--filter", "@brainlog/app", "build"],
     { cwd: ROOT, stdio: "inherit", shell: true },
   );
   await new Promise((resolve) => {
@@ -227,15 +227,15 @@ async function main() {
 
   let h = await health();
   if (!h?.ok) {
-    console.log(`[second-brain] starting core on ${BASE}…`);
+    console.log(`[brainlog] starting core on ${BASE}…`);
     startCore();
     h = await waitForHealthy(120_000);
     if (!h?.ok) {
-      console.error("[second-brain] core failed to start");
+      console.error("[brainlog] core failed to start");
       process.exit(1);
     }
   } else {
-    console.log(`[second-brain] core already running`);
+    console.log(`[brainlog] core already running`);
   }
 
   // Daemon also rebuilds on boot; this covers already-running cores + missing dist.
@@ -244,12 +244,12 @@ async function main() {
   const desktop = startDesktopWidget();
   if (desktop) {
     console.log(
-      `[second-brain] floating widget starting (${desktop.mode})`,
+      `[brainlog] floating widget starting (${desktop.mode})`,
     );
     console.log("  Tip: Ctrl+Shift+Space toggles the widget");
   } else {
     console.warn(
-      "[second-brain] desktop widget not available — falling back to browser /widget",
+      "[brainlog] desktop widget not available — falling back to browser /widget",
     );
     openUrl(`${BASE}/widget`);
   }

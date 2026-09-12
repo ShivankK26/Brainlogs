@@ -7,7 +7,7 @@ import {
   type FixtureSource,
 } from "./score-fixture.js";
 import { evaluateAiGoldens, type AiEvalReport } from "./ai-eval.js";
-import { saveEvalLearn, type EvalLearnMiss } from "@second-brain/agents";
+import { saveEvalLearn, type EvalLearnMiss } from "@brainlog/agents";
 
 export type Metrics = {
   tp: number;

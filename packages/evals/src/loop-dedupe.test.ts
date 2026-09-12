@@ -4,7 +4,7 @@ import {
   sourceThreadKey,
   senderKey,
   titleSim,
-} from "@second-brain/agents";
+} from "@brainlog/agents";
 
 describe("loop dedupe", () => {
   it("treats Gmail messages in the same thread as one task", () => {

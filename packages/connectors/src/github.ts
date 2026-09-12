@@ -25,7 +25,7 @@ async function ghFetch(path: string, etag?: string) {
   const headers: Record<string, string> = {
     Accept: "application/vnd.github+json",
     Authorization: `Bearer ${token}`,
-    "User-Agent": "second-brain",
+    "User-Agent": "brainlog",
     "X-GitHub-Api-Version": "2022-11-28",
   };
   if (etag) headers["If-None-Match"] = etag;

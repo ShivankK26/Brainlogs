@@ -1,6 +1,6 @@
-import { runJob, log } from "@second-brain/core";
-import { ingestSpool } from "@second-brain/capture";
-import { detectOpenLoops } from "@second-brain/agents";
+import { runJob, log } from "@brainlog/core";
+import { ingestSpool } from "@brainlog/capture";
+import { detectOpenLoops } from "@brainlog/agents";
 
 let fastLoopsTimer: ReturnType<typeof setTimeout> | null = null;
 let fastLoopsRunning = false;

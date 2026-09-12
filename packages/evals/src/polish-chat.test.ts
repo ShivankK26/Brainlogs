@@ -7,8 +7,8 @@ import {
   scoreChatAction,
   parseDueHint,
   heuristicChatClass,
-} from "@second-brain/agents";
-import type { LoopCandidate } from "@second-brain/agents";
+} from "@brainlog/agents";
+import type { LoopCandidate } from "@brainlog/agents";
 
 function baseCand(over: Partial<LoopCandidate> = {}): LoopCandidate {
   return {

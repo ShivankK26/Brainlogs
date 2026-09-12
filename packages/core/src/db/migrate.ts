@@ -4,7 +4,7 @@ import { config } from "../config.js";
 
 /**
  * Schema v2 — ambient memory (idempotent CREATE IF NOT EXISTS).
- * Disposable pre-v2 DBs: delete %LOCALAPPDATA%/second-brain/brain.db to rebuild clean.
+ * Disposable pre-v2 DBs: delete %LOCALAPPDATA%/brainlog/brain.db to rebuild clean.
  */
 const MIGRATION_SQL = `
 CREATE TABLE IF NOT EXISTS sources (

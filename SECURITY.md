@@ -2,7 +2,7 @@
 
 ## This is a local-first app
 
-Second Brain stores capture, mail snippets, and secrets on the machine that runs it. Treat any issue that lets **other websites or processes** read `127.0.0.1:3000` as high severity.
+Brainlog stores capture, mail snippets, and secrets on the machine that runs it. Treat any issue that lets **other websites or processes** read `127.0.0.1:3000` as high severity.
 
 ## Please report privately
 
@@ -16,7 +16,7 @@ Use [GitHub private vulnerability reporting](https://docs.github.com/en/code-sec
 
 Include:
 
-- Second Brain version / commit
+- Brainlog version / commit
 - Windows version
 - Whether the desktop app or `npm start` was used
 - Steps to reproduce (no real mailbox dumps)

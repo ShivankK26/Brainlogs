@@ -4,7 +4,7 @@ import {
   getDb,
   usageEvents,
   newId,
-} from "@second-brain/core";
+} from "@brainlog/core";
 
 type Pipeline = (
   texts: string[],

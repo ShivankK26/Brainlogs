@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { extractFocusVoice } from "@second-brain/agents";
+import { extractFocusVoice } from "@brainlog/agents";
 
 describe("extractFocusVoice", () => {
   it("takes the first 2–3 Focus bullets", () => {

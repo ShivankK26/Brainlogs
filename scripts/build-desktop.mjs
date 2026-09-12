@@ -41,7 +41,7 @@ if (process.platform === "linux" && isArchLinux() && !hasBundles) {
   console.log("[build-desktop] Arch-based distro: bundling deb+rpm (AppImage needs an Ubuntu build host; Arch installs via packaging/arch/PKGBUILD)");
 }
 
-const r = spawnSync("npm", ["run", "tauri", "build", "-w", "@second-brain/desktop", "--", ...finalArgs], {
+const r = spawnSync(process.platform === "win32" ? "pnpm.cmd" : "pnpm", ["--filter", "@brainlog/desktop", "tauri", "build", ...finalArgs], {
   stdio: "inherit",
   shell: process.platform === "win32",
 });

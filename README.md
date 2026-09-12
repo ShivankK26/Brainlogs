@@ -1,102 +1,51 @@
-# Second Brain
+# Brainlog
 
-Local-first ambient memory for **Windows, macOS, and Linux**. The desktop app captures what you work on (windows, browser history, on-screen text), finds **open loops**, and keeps context searchable — mostly on-device via [Ollama](https://ollama.com/). Optional Gmail / Calendar / GitHub are **read-only**. Optional cloud models apply only to **Ask**, if you turn them on.
+**It's your second brain.**
 
-**Propose-only** — nothing is sent or modified in external accounts unless you explicitly connect that provider. Detected loops wait for you (or auto-close when evidence says they’re done).
+Brainlog runs quietly on your computer, keeps the *text* of what you see (window titles, pages, messages, terminal output) and turns it into a searchable memory with people, projects and commitments. Ask a question in plain language and get back the moment: what was on screen and what you did next. Coding agents can query the same memory over a local MCP socket. Nothing leaves your machine.
 
-[Getting started](GETTING_STARTED.md) · [Contributing](CONTRIBUTING.md) · [Code of conduct](CODE_OF_CONDUCT.md) · [Security](SECURITY.md) · [License (MIT)](LICENSE)
+Built on the MIT-licensed [second-brain](https://github.com/karanpargal/second-brain). See `NOTICE.md`.
 
-## Use the app (one click)
+## Status
 
-**Daily use: open Second Brain.** Do not run npm commands every morning.
+This repository is being built phase by phase. Honest state:
 
-### Windows
+| Area | State |
+|---|---|
+| Rust capture engine (macOS AX, Windows OCR-in-memory, Linux AT-SPI) | Inherited from upstream, works |
+| SQLite storage, secrets, backups | Inherited from upstream, works |
+| Brainlog data model (`packages/types`) | Done (Phase 0) |
+| Capture dedup/diff/sampling + policy gate | Phase 1 |
+| Query layer, policy, audit, CLI | Phase 2 |
+| In-app UI (Pulse, Memory, Commitments, Agents, Audit, Data & retention) | Phase 3 |
+| Entity graph and commitments | Phase 4 |
+| MCP server with proposed writes | Phase 5 |
+| Landing site, signed releases | Phase 6 |
 
-```powershell
-npm install
-npm run package:app    # build the desktop .exe
-npm run shortcut       # Desktop icon → that .exe
-```
+Upstream features not yet ported to the Brainlog model (open loops, morning brief, voice, connectors) still run in `packages/agents` and `packages/worker`. They are experimental in this repository.
 
-### macOS
+## Develop
 
-Build on a Mac (Tauri does not cross-compile from Windows):
-
-```bash
-npm install
-npm run package:app    # build Second Brain.app / .dmg
-# Drag the .app to /Applications — that is the shortcut
-```
-
-Grant **Accessibility** when prompted (System Settings → Privacy & Security → Accessibility). Capture uses the Accessibility tree for on-screen text — no screenshots. See [scripts/macos-signing.md](scripts/macos-signing.md) for signing / Gatekeeper notes.
-
-### Linux
+Requirements: Node 22 (`.nvmrc`), pnpm 11, Rust stable for the desktop app, Ollama on `127.0.0.1:11434` for local models.
 
 ```bash
-npm install
-npm run package:app    # .deb / .AppImage under apps/desktop/src-tauri/target/release/bundle/
-npm run shortcut:linux # app-menu entry → that bundle (--autostart for login)
+pnpm install
+pnpm build
+pnpm test
+pnpm typecheck
+pnpm dev:worker     # core daemon on 127.0.0.1
+pnpm dev:app        # in-app UI
+pnpm dev:desktop    # Tauri shell + capture engine
 ```
 
-Needs webkit2gtk + build tools (see [Getting started](GETTING_STARTED.md)); NixOS via `nix develop`. Capture is window titles + browser history + AT-SPI on-screen text (Hyprland/Sway/X11).
+## Verify the privacy claims yourself
 
-The app starts local core, the floating widget, and capture by itself.
+- Listeners: `lsof -iTCP -sTCP:LISTEN -P | grep -i node` shows only `127.0.0.1`.
+- No images: `find "$HOME/Library/Application Support/brainlog" -name '*.png' -o -name '*.jpg'` returns nothing.
+- Data directory: see `docs/decisions/0004-env-prefix-and-data-dirs.md`.
 
-Full walkthrough (Ollama, Google, voice, cloud Ask): **[GETTING_STARTED.md](GETTING_STARTED.md)**.
-
-## Architecture
-
-| Package | Role |
-|---------|------|
-| `packages/core` | Config, AES-GCM secrets, SQLite + Drizzle schema, jobs, backups |
-| `packages/connectors` | Gmail, Calendar, GitHub (read-only), MCP **client** |
-| `packages/capture` | Ingest JSONL spool from the desktop capture engine |
-| `packages/enrich` | Local embeddings (Ollama / transformers.js) + retrieval scoring |
-| `packages/agents` | Ollama (and optional hosted Ask): loops, digests, advisor, voice I/O |
-| `packages/worker` | Scheduler + HTTP API + static UI |
-| `packages/mcp` | Optional stdio MCP **server** for Cursor |
-| `apps/web` | Vite + React SPA (`/widget` is the floating surface) |
-| `apps/desktop` | Tauri tray app + Rust capture engine |
-
-**Runtime data (not in git):**
-
-- Windows: `%LOCALAPPDATA%\second-brain\`
-- macOS: `~/Library/Application Support/second-brain/`
-- Linux: `~/.local/share/second-brain/`
-
-## Developer terminals
-
-These are for engineering only — never the documented user path.
-
-```bash
-npm run dev:worker   # API only
-npm run dev:web      # Vite HMR
-npm run dev:desktop  # Tauri
-npm test
-npm run typecheck
-```
-
-UI once core is up: `http://127.0.0.1:3000/widget`
-
-### CLI
-
-```bash
-npm run brain -- help
-npm run brain -- ingest
-npm run brain -- capture
-npm run brain -- enrich
-npm run brain -- loops
-npm run brain -- status
-```
-
-## Privacy
-
-- Capture gate: exe/bundle blocklist, domain blocklist, idle suppression, tray pause
-- On Windows, OCR bitmaps are never written to disk; on macOS, Accessibility text is used instead of screenshots. Text is purged after 30 days (configurable)
-- Secrets encrypted with a per-install master key (AES-256-GCM)
-- API binds to `127.0.0.1` only
-- Enabling a **hosted Ask model** sends Ask context (including open-loop titles) to that provider — leave it off to stay fully local
+Full statement: `docs/privacy.md`. Architecture: `docs/architecture.md`. Decisions: `docs/decisions/`.
 
 ## License
 
-[MIT](LICENSE)
+MIT. See `LICENSE` and `NOTICE.md`.

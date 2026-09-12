@@ -8,7 +8,7 @@ import {
   config,
   log,
   newId,
-} from "@second-brain/core";
+} from "@brainlog/core";
 import { eq } from "drizzle-orm";
 import { cosine, embedText, lastEmbedMeta } from "./embeddings.js";
 
@@ -308,7 +308,7 @@ export async function recordFeedback(
   signal: 1 | -1,
 ): Promise<void> {
   try {
-    const { feedbackEvents, newId, getDb } = await import("@second-brain/core");
+    const { feedbackEvents, newId, getDb } = await import("@brainlog/core");
     getDb()
       .insert(feedbackEvents)
       .values({

@@ -8,15 +8,15 @@ import {
   backupDb,
   log,
   type JobResult,
-} from "@second-brain/core";
+} from "@brainlog/core";
 import {
   connectors,
   ingestAll,
   runGoogleAuthFlow,
   googleStatus,
-} from "@second-brain/connectors";
-import { runEnrichPipeline } from "@second-brain/enrich";
-import { ingestSpool, purgeStaleObservations } from "@second-brain/capture";
+} from "@brainlog/connectors";
+import { runEnrichPipeline } from "@brainlog/enrich";
+import { ingestSpool, purgeStaleObservations } from "@brainlog/capture";
 import {
   annotateTopItems,
   extractTasksFromTopItems,
@@ -28,8 +28,8 @@ import {
   generateWeeklyInsights,
   listInsights,
   runAdvisor,
-} from "@second-brain/agents";
-import { runFullEval } from "@second-brain/evals";
+} from "@brainlog/agents";
+import { runFullEval } from "@brainlog/evals";
 import { startApiServer } from "./api.js";
 import { scheduleFastLoopDetect } from "./fast-loops.js";
 import { ensureWebBuild } from "./web-build.js";
@@ -304,7 +304,7 @@ export async function runCli(argv: string[]) {
       break;
     case "help":
     default:
-      console.log(`second-brain CLI
+      console.log(`brainlog CLI
 
 Usage:
   brain daemon              Start API + scheduler

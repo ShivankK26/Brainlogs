@@ -31,3 +31,10 @@ api-token
 spool/
 core.pid
 scripts/_patch-*.mjs
+
+# pnpm / turbo
+.turbo/
+.pnpm-store/
+apps/site/.astro/
+test-results/
+playwright-report/

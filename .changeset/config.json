@@ -1,0 +1,31 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.0.0/schema.json",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [],
+  "linked": [],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": [
+    "brainlog",
+    "@brainlog/app",
+    "@brainlog/desktop",
+    "@brainlog/site",
+    "@brainlog/core",
+    "@brainlog/capture",
+    "@brainlog/enrich",
+    "@brainlog/graph",
+    "@brainlog/query",
+    "@brainlog/agents",
+    "@brainlog/policy",
+    "@brainlog/worker",
+    "@brainlog/connectors",
+    "@brainlog/evals",
+    "@brainlog/types",
+    "@brainlog/ui",
+    "@brainlog/tsconfig",
+    "@brainlog/eslint-config",
+    "@brainlog/release-tooling"
+  ]
+}

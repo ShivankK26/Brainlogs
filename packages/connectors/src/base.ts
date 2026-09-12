@@ -8,7 +8,7 @@ import {
   log,
   withBackoff,
   isSpam,
-} from "@second-brain/core";
+} from "@brainlog/core";
 import { eq } from "drizzle-orm";
 
 export type ConnectorResult = {

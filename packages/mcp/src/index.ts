@@ -12,7 +12,7 @@ import {
   ensureDataDir,
   migrate,
   seed,
-} from "@second-brain/core";
+} from "@brainlog/core";
 import {
   searchMemory,
   timeline,
@@ -20,14 +20,14 @@ import {
   whatDidIDo,
   whereDidILeaveOff,
   findArtifact,
-} from "@second-brain/agents";
+} from "@brainlog/agents";
 
 ensureDataDir();
 migrate();
 seed();
 
 const server = new Server(
-  { name: "second-brain", version: "0.2.0" },
+  { name: "brainlog", version: "0.2.0" },
   { capabilities: { tools: {} } },
 );
 

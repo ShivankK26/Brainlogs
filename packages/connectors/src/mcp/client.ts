@@ -4,7 +4,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
-import { getSecret, log } from "@second-brain/core";
+import { getSecret, log } from "@brainlog/core";
 import type { McpServerConfig } from "./registry.js";
 
 const DEFAULT_TIMEOUT_MS = 45_000;
@@ -42,7 +42,7 @@ export async function withMcpClient<T>(
 ): Promise<T> {
   const timeoutMs = opts?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const client = new Client(
-    { name: "second-brain", version: "0.2.0" },
+    { name: "brainlog", version: "0.2.0" },
     { capabilities: {} },
   );
 

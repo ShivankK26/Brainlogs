@@ -35,7 +35,7 @@ import { syncGmail } from "./gmail.js";
 import { syncGcal } from "./gcal.js";
 import { syncGithub } from "./github.js";
 import type { ConnectorResult } from "./base.js";
-import { getDb, sources } from "@second-brain/core";
+import { getDb, sources } from "@brainlog/core";
 import { eq } from "drizzle-orm";
 
 export const connectors: Record<

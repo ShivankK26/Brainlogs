@@ -1,9 +1,9 @@
 {
   "mcpServers": {
-    "second-brain": {
+    "brainlog": {
       "command": "npx",
       "args": ["tsx", "packages/mcp/src/index.ts"],
-      "cwd": "/absolute/path/to/second-brain",
+      "cwd": "/absolute/path/to/brainlog",
       "env": {}
     }
   }

@@ -23,7 +23,7 @@ import {
   isSpam,
   segmentChatCapture,
   type ChatSegment,
-} from "@second-brain/core";
+} from "@brainlog/core";
 import { eq, and, lt } from "drizzle-orm";
 
 export type SpoolObservation = {
@@ -405,7 +405,7 @@ export async function ingestSpool(): Promise<CaptureResult> {
   let artCount = 0;
   const seenHashes = new Set<string>();
   try {
-    const { getSqlite } = await import("@second-brain/core");
+    const { getSqlite } = await import("@brainlog/core");
     const rows = getSqlite()
       .prepare(
         `SELECT text_hash FROM observations ORDER BY rowid DESC LIMIT 50000`,

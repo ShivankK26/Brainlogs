@@ -5,7 +5,7 @@ import {
   BANNED_GENERIC_TITLES,
   isSelfGeneratedObservation,
   formatDue,
-} from "@second-brain/agents";
+} from "@brainlog/agents";
 
 describe("loop-validate banned titles", () => {
   for (const bad of BANNED_GENERIC_TITLES.slice(0, 5)) {

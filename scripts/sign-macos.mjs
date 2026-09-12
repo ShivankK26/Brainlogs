@@ -9,7 +9,7 @@
  * to the signing identity, so the random identifier could never hold a grant.
  *
  * Re-signing binds Info.plist, seals resources, and gives the bundle its real
- * identifier (com.local.second-brain).
+ * identifier (io.brainlog.desktop).
  *
  * No-op off macOS. For distribution, sign with a Developer ID and notarize
  * instead — see scripts/macos-signing.md.
@@ -61,6 +61,6 @@ for (const app of apps) {
 
 console.log(
   "[sign-macos] done. Ad-hoc signatures change on every rebuild, so macOS " +
-    "drops the Accessibility grant each time — re-approve Second Brain in " +
+    "drops the Accessibility grant each time — re-approve Brainlog in " +
     "System Settings after a rebuild.",
 );

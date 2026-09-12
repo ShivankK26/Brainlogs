@@ -1,5 +1,5 @@
 {
-  "name": "@second-brain/capture",
+  "name": "@brainlog/capture",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -12,6 +12,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@second-brain/core": "*"
+    "@brainlog/core": "workspace:*",
+    "drizzle-orm": "^0.40.1"
   }
 }

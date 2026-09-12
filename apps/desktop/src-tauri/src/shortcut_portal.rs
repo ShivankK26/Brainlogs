@@ -23,7 +23,7 @@ const SHORTCUT_ID: &str = "toggle-widget";
 /// GTK accelerator notation, as the portal expects for preferred_trigger.
 const TRIGGER: &str = "<Control><Shift>space";
 
-/// Token-safe sender stem: ":1.42" -> "second_brain_1_42". Portal tokens
+/// Token-safe sender stem: ":1.42" -> "brainlog_1_42". Portal tokens
 /// must be valid object-path components (no leading ':', no dots).
 fn sender_token(unique_name: &str) -> String {
     let clean: String = unique_name
@@ -31,7 +31,7 @@ fn sender_token(unique_name: &str) -> String {
         .chars()
         .map(|c| if c.is_ascii_alphanumeric() { c } else { '_' })
         .collect();
-    format!("second_brain_{clean}")
+    format!("brainlog_{clean}")
 }
 
 fn portal_proxy<'a>(
@@ -65,7 +65,7 @@ fn await_response(
 }
 
 fn log_once(line: &str) {
-    eprint!("[second-brain] portal-shortcut: {line}\n");
+    eprint!("[brainlog] portal-shortcut: {line}\n");
     let log = crate::core::data_dir().join("desktop.log");
     let _ = std::fs::create_dir_all(log.parent().unwrap_or(std::path::Path::new(".")));
     let _ = std::fs::OpenOptions::new()
@@ -216,8 +216,8 @@ mod tests {
 
     #[test]
     fn token_is_path_safe() {
-        assert_eq!(sender_token(":1.42"), "second_brain_1_42");
-        assert_eq!(sender_token(":1.2.3"), "second_brain_1_2_3");
+        assert_eq!(sender_token(":1.42"), "brainlog_1_42");
+        assert_eq!(sender_token(":1.2.3"), "brainlog_1_2_3");
     }
 
     #[test]

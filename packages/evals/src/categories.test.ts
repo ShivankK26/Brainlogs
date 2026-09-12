@@ -4,7 +4,7 @@ import {
   isGenericTitle,
   isSentCloseOut,
   polishLoopTitle,
-} from "@second-brain/agents";
+} from "@brainlog/agents";
 
 describe("mail categories", () => {
   it("turns a sent job application into a follow-up, never reply", () => {

@@ -1,5 +1,5 @@
 {
-  "name": "@second-brain/evals",
+  "name": "@brainlog/evals",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,8 +10,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@second-brain/agents": "*",
-    "vitest": "^3.0.9"
+    "@brainlog/agents": "workspace:*",
+    "vitest": "^3.0.9",
+    "@brainlog/core": "workspace:*"
   },
   "devDependencies": {
     "tsx": "^4.19.3",

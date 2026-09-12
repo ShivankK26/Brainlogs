@@ -1,0 +1,34 @@
+/* Base typography for the in-app UI (§3): Inter Variable, 13px, tonal dark. */
+@import "./tokens.css";
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: -0.006em;
+  color: var(--t1);
+  background: var(--bg-app);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv01", "cv03", "cv04", "ss03";
+  color-scheme: dark;
+}
+h1, h2, h3, h4 { letter-spacing: -0.025em; }
+button, input { font: inherit; color: inherit; letter-spacing: inherit; }
+button { background: none; border: 0; cursor: default; padding: 0; border-radius: var(--r); }
+:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--brand); }
+kbd {
+  font-family: var(--font);
+  font-size: 11px;
+  color: var(--t3);
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--bg-active);
+  border: 1px solid var(--line-2);
+  line-height: 1.3;
+  min-width: 18px;
+  text-align: center;
+  display: inline-block;
+}
+svg { display: block; }

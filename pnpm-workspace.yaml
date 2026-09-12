@@ -1,0 +1,14 @@
+packages:
+  - apps/*
+  - packages/*
+  - tooling/*
+
+# Native modules whose postinstall must run. Everything else is blocked.
+allowBuilds:
+  better-sqlite3: true
+  sqlite-vec: true
+  esbuild: true
+  onnxruntime-node: true
+  sharp: true
+  protobufjs: true
+  "@tauri-apps/cli": true

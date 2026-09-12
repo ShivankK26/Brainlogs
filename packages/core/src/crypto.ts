@@ -14,7 +14,7 @@ const LEGACY_DEFAULT_KEY = "dev-insecure-key-change-me-please";
 
 function deriveKey(secret?: string): Buffer {
   const s = secret ?? (config.masterKey || ensureMasterKey());
-  return scryptSync(s, "second-brain-salt-v1", 32);
+  return scryptSync(s, "brainlog-salt-v1", 32);
 }
 
 export function encrypt(plaintext: string): string {

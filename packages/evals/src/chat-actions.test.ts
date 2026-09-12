@@ -4,7 +4,7 @@ import {
   detectChatApp,
   chatFollowUpTitle,
   scoreChatAction,
-} from "@second-brain/agents";
+} from "@brainlog/agents";
 
 describe("chat window titles", () => {
   it("parses WhatsApp desktop peer titles", () => {

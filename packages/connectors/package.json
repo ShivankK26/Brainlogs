@@ -1,5 +1,5 @@
 {
-  "name": "@second-brain/connectors",
+  "name": "@brainlog/connectors",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -14,7 +14,8 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
-    "@second-brain/core": "*",
-    "googleapis": "^146.0.0"
+    "@brainlog/core": "workspace:*",
+    "googleapis": "^146.0.0",
+    "drizzle-orm": "^0.40.1"
   }
 }

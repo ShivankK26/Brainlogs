@@ -6,7 +6,7 @@ import { existsSync, readdirSync, statSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
-import { config, log } from "@second-brain/core";
+import { config, log } from "@brainlog/core";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, "../../..");
@@ -92,7 +92,7 @@ export async function ensureWebBuild(): Promise<{ built: boolean; skipped: boole
   log.info("Web UI source newer than dist — rebuilding…");
   const npm = process.platform === "win32" ? "npm.cmd" : "npm";
   const code = await new Promise<number>((resolve) => {
-    const child = spawn(npm, ["run", "build", "-w", "@second-brain/web"], {
+    const child = spawn(npm, ["run", "build", "-w", "@brainlog/app"], {
       cwd: REPO_ROOT,
       stdio: "inherit",
       shell: true,

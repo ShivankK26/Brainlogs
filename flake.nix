@@ -1,8 +1,8 @@
 # Dev shell for Linux with all Tauri system deps (webkit, tray, TLS).
 # The .deb bundle does not install on NixOS, so develop from this shell:
-#   nix develop          # then: npm install, npm run dev:desktop
+#   nix develop          # then: pnpm install, pnpm dev:desktop
 {
-  description = "Second Brain dev shell (Tauri system deps for Linux, incl. NixOS)";
+  description = "Brainlog dev shell (Tauri system deps for Linux, incl. NixOS)";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 

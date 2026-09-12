@@ -1,12 +1,12 @@
 import http from "node:http";
 import { URL } from "node:url";
-import { google } from "googleapis";
+import { google, type Auth } from "googleapis";
 import {
   config,
   getSecret,
   setSecret,
   log,
-} from "@second-brain/core";
+} from "@brainlog/core";
 
 const TOKEN_KEY = "google_tokens";
 
@@ -18,7 +18,7 @@ export type GoogleTokens = {
   expiry_date?: number | null;
 };
 
-export function createOAuthClient() {
+export function createOAuthClient(): Auth.OAuth2Client {
   if (!config.google.clientId || !config.google.clientSecret) {
     throw new Error(
       "GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are required. See .env.example",
@@ -54,7 +54,7 @@ export function storeTokens(tokens: GoogleTokens): void {
   );
 }
 
-export async function getAuthedClient() {
+export async function getAuthedClient(): Promise<Auth.OAuth2Client> {
   const client = createOAuthClient();
   const tokens = getStoredTokens();
   if (!tokens?.refresh_token && !tokens?.access_token) {
@@ -115,7 +115,7 @@ export async function runGoogleAuthFlow(): Promise<void> {
         }
         res.writeHead(200, { "Content-Type": "text/html" });
         res.end(
-          "<h1>Google connected</h1><p>You can close this tab and return to Second Brain.</p>",
+          "<h1>Google connected</h1><p>You can close this tab and return to Brainlog.</p>",
         );
         resolve(c);
         server.close();

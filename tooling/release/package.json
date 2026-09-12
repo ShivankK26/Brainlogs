@@ -1,0 +1,8 @@
+{
+  "name": "@brainlog/release-tooling",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "Tauri signing, notarization and GitHub Releases helpers. Populated in Phase 6."
+}

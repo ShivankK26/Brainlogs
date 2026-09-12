@@ -15,7 +15,7 @@ import {
   redactPii,
   sessionizeByApp,
   topicMatches,
-} from "@second-brain/agents";
+} from "@brainlog/agents";
 
 describe("insight quality", () => {
   it("redacts emails from Gmail window titles", () => {
@@ -55,14 +55,14 @@ describe("insight quality", () => {
       isWorkArtifact({
         kind: "window",
         key: "cursor:insights.ts",
-        title: "insights.ts - second-brain - Cursor",
+        title: "insights.ts - brainlog - Cursor",
       }),
     ).toBe(true);
     expect(
       isWorkArtifact({
         kind: "url",
-        key: "https://github.com/example/second-brain",
-        title: "second-brain pull request",
+        key: "https://github.com/example/brainlog",
+        title: "brainlog pull request",
       }),
     ).toBe(true);
   });
@@ -118,11 +118,11 @@ describe("insight quality", () => {
         github: [
           {
             title: "fix widget",
-            url: "https://github.com/example/second-brain/pull/1",
+            url: "https://github.com/example/brainlog/pull/1",
           },
         ],
       }),
-    ).toBe("example/second-brain");
+    ).toBe("example/brainlog");
   });
 
   it("extracts learning topics from search titles, not Friends or Gmail", () => {

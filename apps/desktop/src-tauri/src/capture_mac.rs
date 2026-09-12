@@ -201,7 +201,7 @@ fn frontmost_app() -> Option<objc2::rc::Retained<NSRunningApplication>> {
 }
 
 /// `(title, exe_or_bundle_id, app_name)` — bundle id goes in `exe` so blocklists
-/// and the `second-brain` self-check keep working (`com.local.second-brain`).
+/// and the `brainlog` self-check keep working (`io.brainlog.desktop`).
 pub fn foreground_window_info() -> Option<(String, String, String)> {
     let app = frontmost_app()?;
     let pid = unsafe { app.processIdentifier() };

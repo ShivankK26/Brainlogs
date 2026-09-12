@@ -49,17 +49,17 @@ export function normalizeOllamaKeepAlive(
 
 function defaultDataDir(): string {
   if (process.env.BRAIN_DATA_DIR) return process.env.BRAIN_DATA_DIR;
-  // Windows: %LOCALAPPDATA%\second-brain — never inside OneDrive
+  // Windows: %LOCALAPPDATA%\brainlog — never inside OneDrive
   if (process.platform === "win32") {
     const local =
       process.env.LOCALAPPDATA ?? join(homedir(), "AppData", "Local");
-    return join(local, "second-brain");
+    return join(local, "brainlog");
   }
-  // macOS: ~/Library/Application Support/second-brain (matches Tauri BaseDirs)
+  // macOS: ~/Library/Application Support/brainlog (matches Tauri BaseDirs)
   if (process.platform === "darwin") {
-    return join(homedir(), "Library", "Application Support", "second-brain");
+    return join(homedir(), "Library", "Application Support", "brainlog");
   }
-  return join(homedir(), ".local", "share", "second-brain");
+  return join(homedir(), ".local", "share", "brainlog");
 }
 
 export const config = {
@@ -83,7 +83,7 @@ export const config = {
   get webDist() {
     return (
       process.env.WEB_DIST ??
-      join(dirname(fileURLToPath(import.meta.url)), "../../../apps/web/dist")
+      join(dirname(fileURLToPath(import.meta.url)), "../../../apps/app/dist")
     );
   },
   /** Default timezone — prefer explicit TZ / user profile over a locale guess */

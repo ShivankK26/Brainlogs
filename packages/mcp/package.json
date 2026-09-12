@@ -1,5 +1,5 @@
 {
-  "name": "@second-brain/mcp",
+  "name": "@brainlog/mcp",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,9 +10,9 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
-    "@second-brain/core": "*",
-    "@second-brain/agents": "*",
-    "@second-brain/enrich": "*",
+    "@brainlog/core": "workspace:*",
+    "@brainlog/agents": "workspace:*",
+    "@brainlog/enrich": "workspace:*",
     "zod": "^3.24.2"
   }
 }

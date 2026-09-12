@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildAskContext } from "@second-brain/agents";
+import { buildAskContext } from "@brainlog/agents";
 import {
   cartesiaSpeak,
   cartesiaTranscribe,
@@ -7,7 +7,7 @@ import {
   CARTESIA_STT_MODEL,
   CARTESIA_TTS_MODEL,
   CARTESIA_VERSION,
-} from "@second-brain/agents";
+} from "@brainlog/agents";
 
 describe("isWeakVoiceTranscript", () => {
   it("rejects courtesy STT hallucinations", () => {
@@ -33,7 +33,7 @@ describe("buildAskContext", () => {
       ],
       openLoops: [{ title: "Ship voice", kind: "manual", who: null, due: "today" }],
       recentArtifacts: [
-        { title: "second-brain", kind: "project", lastTouchedAt: "2026-08-20T09:00:00Z" },
+        { title: "brainlog", kind: "project", lastTouchedAt: "2026-08-20T09:00:00Z" },
       ],
       todayTimeline: [
         {
@@ -45,7 +45,7 @@ describe("buildAskContext", () => {
       ],
       whereLeftOff: [
         {
-          title: "second-brain",
+          title: "brainlog",
           kind: "project",
           lastTouchedAt: "2026-08-20T09:00:00Z",
           openLoopTitles: ["Ship voice"],

@@ -5,7 +5,7 @@
   "input": {
     "kind": "notification",
     "title": "Someone starred your repository",
-    "body": "A user starred second-brain.",
+    "body": "A user starred brainlog.",
     "author": "notifications@github.com"
   }
 }

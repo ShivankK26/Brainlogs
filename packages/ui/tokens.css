@@ -1,0 +1,41 @@
+/* Brainlog design tokens — single source of truth (§3). Dark, tonal, Linear-like. */
+:root {
+  --bg-app: #08090a;
+  --bg-sidebar: #0b0c0e;
+  --bg-main: #0f1011;
+  --bg-panel: #141516;
+  --bg-elev: #1a1b1e;
+  --bg-input: #0d0e10;
+  --bg-hover: rgba(255, 255, 255, 0.035);
+  --bg-active: rgba(255, 255, 255, 0.06);
+
+  --line: #1f2023;
+  --line-2: #2a2b2f;
+  --line-3: #36373c;
+
+  --t1: #edeef2;
+  --t2: #a8aab3;
+  --t3: #767980;
+  --t4: #55575e;
+
+  --brand: #5e6ad2;
+  --brand-2: #7b86e4;
+  --brand-soft: rgba(94, 106, 210, 0.18);
+
+  --green: #4cc38a;
+  --amber: #f2994a;
+  --red: #eb5757;
+  --purple: #b48cff;
+  --teal: #5fd3c4;
+
+  --mark: rgba(94, 106, 210, 0.35);
+
+  --r: 4px;
+  --r2: 6px;
+  --r3: 8px;
+
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.55), 0 0 0 1px var(--line-2);
+
+  --font: "Inter var", "Inter", -apple-system, "Segoe UI", system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}

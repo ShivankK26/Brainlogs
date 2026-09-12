@@ -1,5 +1,5 @@
 {
-  "name": "@second-brain/worker",
+  "name": "@brainlog/worker",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -12,13 +12,14 @@
     "brain": "tsx src/cli.ts"
   },
   "dependencies": {
-    "@second-brain/core": "*",
-    "@second-brain/connectors": "*",
-    "@second-brain/enrich": "*",
-    "@second-brain/agents": "*",
-    "@second-brain/capture": "*",
-    "@second-brain/evals": "*",
-    "node-cron": "^3.0.3"
+    "@brainlog/core": "workspace:*",
+    "@brainlog/connectors": "workspace:*",
+    "@brainlog/enrich": "workspace:*",
+    "@brainlog/agents": "workspace:*",
+    "@brainlog/capture": "workspace:*",
+    "@brainlog/evals": "workspace:*",
+    "node-cron": "^3.0.3",
+    "drizzle-orm": "^0.40.1"
   },
   "devDependencies": {
     "@types/node-cron": "^3.0.11"

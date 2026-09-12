@@ -30,7 +30,7 @@ import {
   listUserSpamRules,
   deleteUserSpamRule,
   exportCaptureRulesFile,
-} from "@second-brain/core";
+} from "@brainlog/core";
 import { eq } from "drizzle-orm";
 import {
   askMemory,
@@ -45,7 +45,7 @@ import {
   detectOpenLoops,
   extractFocusVoice,
   lastEvalLearn,
-} from "@second-brain/agents";
+} from "@brainlog/agents";
 import {
   googleStatus,
   runGoogleAuthFlow,
@@ -54,8 +54,8 @@ import {
   tryLoadGhCliToken,
   installGithubCli,
   ingestAll,
-} from "@second-brain/connectors";
-import { ingestSpool } from "@second-brain/capture";
+} from "@brainlog/connectors";
+import { ingestSpool } from "@brainlog/capture";
 import { wakeFromCapture, scheduleFastLoopDetect } from "./fast-loops.js";
 
 let syncLock: Promise<unknown> | null = null;
@@ -247,7 +247,7 @@ async function handle(
   if (!path.startsWith("/api") && (method === "GET" || method === "HEAD")) {
     if (tryServeStatic(req, res)) return;
     reply(404, {
-      error: "Desktop UI is not available. Reopen the Second Brain app.",
+      error: "Desktop UI is not available. Reopen the Brainlog app.",
       path,
     });
     return;
@@ -267,7 +267,7 @@ async function handle(
     const gcalSrc = src.find((s) => s.id === "src-gcal");
     const gmailErr = gmailSrc?.lastError ?? null;
     const githubErr = githubSrc?.lastError ?? null;
-    const { listMcpServerConfigs } = await import("@second-brain/connectors");
+    const { listMcpServerConfigs } = await import("@brainlog/connectors");
     const mcpServers = listMcpServerConfigs().map((s) => ({
       id: s.id,
       label: s.label,
@@ -549,7 +549,7 @@ async function handle(
 
     if (method === "GET" && path === "/api/loops") {
       if (query.get("auto") === "1") {
-        const { listRecentlyAutoClosed } = await import("@second-brain/agents");
+        const { listRecentlyAutoClosed } = await import("@brainlog/agents");
         reply(200, { loops: listRecentlyAutoClosed(30) });
         return;
       }
@@ -664,7 +664,7 @@ async function handle(
     }
 
     if (method === "GET" && path === "/api/ask/voice-status") {
-      const { isCartesiaConfigured } = await import("@second-brain/agents");
+      const { isCartesiaConfigured } = await import("@brainlog/agents");
       reply(200, { configured: isCartesiaConfigured() });
       return;
     }
@@ -676,7 +676,7 @@ async function handle(
         sessionId?: string;
       }>(req);
       const { isCartesiaConfigured, cartesiaTranscribe, cartesiaSpeak, isWeakVoiceTranscript } =
-        await import("@second-brain/agents");
+        await import("@brainlog/agents");
       if (!isCartesiaConfigured()) {
         reply(503, {
           error:
@@ -736,7 +736,7 @@ async function handle(
         return;
       }
       try {
-        const { saveCartesiaApiKey } = await import("@second-brain/agents");
+        const { saveCartesiaApiKey } = await import("@brainlog/agents");
         saveCartesiaApiKey(body.apiKey);
         reply(200, { ok: true, configured: true });
       } catch (e) {
@@ -748,7 +748,7 @@ async function handle(
     }
 
     if (method === "GET" && path === "/api/settings/hosted-llm") {
-      const { hostedLlmStatus } = await import("@second-brain/agents");
+      const { hostedLlmStatus } = await import("@brainlog/agents");
       reply(200, hostedLlmStatus());
       return;
     }
@@ -760,7 +760,7 @@ async function handle(
         apiKey?: string;
         useForAsk?: boolean;
       }>(req);
-      const { saveHostedLlm } = await import("@second-brain/agents");
+      const { saveHostedLlm } = await import("@brainlog/agents");
       reply(200, saveHostedLlm(body));
       return;
     }
@@ -954,13 +954,13 @@ async function handle(
 
     // --- Phase 1–4 product APIs ---
     if (method === "GET" && path === "/api/buckets") {
-      const { bucketOpenLoops } = await import("@second-brain/agents");
+      const { bucketOpenLoops } = await import("@brainlog/agents");
       reply(200, bucketOpenLoops());
       return;
     }
 
     if (method === "GET" && path === "/api/insights") {
-      const { listInsights } = await import("@second-brain/agents");
+      const { listInsights } = await import("@brainlog/agents");
       reply(200, { insights: listInsights() });
       return;
     }
@@ -981,14 +981,14 @@ async function handle(
     }
 
     if (method === "POST" && path === "/api/insights/generate") {
-      const { generateWeeklyInsights } = await import("@second-brain/agents");
+      const { generateWeeklyInsights } = await import("@brainlog/agents");
       reply(200, await generateWeeklyInsights({ replace: true }));
       return;
     }
 
     if (method === "POST" && path === "/api/insights/track") {
       const body = await readJson<{ insightId?: string; topic?: string }>(req);
-      const { trackLearningTopic } = await import("@second-brain/agents");
+      const { trackLearningTopic } = await import("@brainlog/agents");
       const r = trackLearningTopic(body);
       reply(r.ok ? 200 : 400, r);
       return;
@@ -996,20 +996,20 @@ async function handle(
 
     if (method === "DELETE" && path.startsWith("/api/insights/")) {
       const id = path.slice("/api/insights/".length);
-      const { dismissInsight } = await import("@second-brain/agents");
+      const { dismissInsight } = await import("@brainlog/agents");
       reply(200, dismissInsight(id));
       return;
     }
 
     if (method === "POST" && path === "/api/advisor/run") {
-      const { runAdvisor } = await import("@second-brain/agents");
+      const { runAdvisor } = await import("@brainlog/agents");
       const result = await runAdvisor({ persist: true, includeBrief: true });
       reply(200, result);
       return;
     }
 
     if (method === "GET" && path === "/api/mcp/servers") {
-      const { listMcpServerConfigs } = await import("@second-brain/connectors");
+      const { listMcpServerConfigs } = await import("@brainlog/connectors");
       reply(200, { servers: listMcpServerConfigs() });
       return;
     }
@@ -1031,8 +1031,8 @@ async function handle(
         reply(400, { error: "id required" });
         return;
       }
-      const { upsertMcpServerConfig } = await import("@second-brain/connectors");
-      const { setSecret } = await import("@second-brain/core");
+      const { upsertMcpServerConfig } = await import("@brainlog/connectors");
+      const { setSecret } = await import("@brainlog/core");
       const id = body.id.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "");
       const cfg = {
         id,
@@ -1066,9 +1066,9 @@ async function handle(
     ) {
       const id = path.slice("/api/mcp/servers/".length, -"/test".length);
       const { getMcpServerConfig, listMcpTools } = await import(
-        "@second-brain/connectors"
+        "@brainlog/connectors"
       );
-      const { isReadOnlyTool } = await import("@second-brain/agents");
+      const { isReadOnlyTool } = await import("@brainlog/agents");
       const cfg = getMcpServerConfig(id);
       if (!cfg) {
         reply(404, { error: "server not found" });
@@ -1100,7 +1100,7 @@ async function handle(
       !path.slice("/api/mcp/servers/".length).includes("/")
     ) {
       const id = path.slice("/api/mcp/servers/".length);
-      const { removeMcpServerConfig } = await import("@second-brain/connectors");
+      const { removeMcpServerConfig } = await import("@brainlog/connectors");
       reply(200, { servers: removeMcpServerConfig(id) });
       return;
     }
@@ -1116,34 +1116,34 @@ async function handle(
         reply(400, { error: "key and value required" });
         return;
       }
-      const { setSecret } = await import("@second-brain/core");
+      const { setSecret } = await import("@brainlog/core");
       setSecret(`mcp.${id}.${body.key}`, body.value);
       reply(200, { ok: true });
       return;
     }
 
     if (method === "GET" && path === "/api/profile") {
-      const { getUserProfile } = await import("@second-brain/agents");
+      const { getUserProfile } = await import("@brainlog/agents");
       reply(200, { profile: getUserProfile() });
       return;
     }
 
     if (method === "PATCH" && path === "/api/profile") {
       const body = await readJson<Record<string, unknown>>(req);
-      const { saveUserProfile } = await import("@second-brain/agents");
+      const { saveUserProfile } = await import("@brainlog/agents");
       reply(200, { ok: true, profile: saveUserProfile(body as any) });
       return;
     }
 
     if (method === "GET" && path === "/api/license") {
-      const { licenseStatus } = await import("@second-brain/agents");
+      const { licenseStatus } = await import("@brainlog/agents");
       reply(200, await licenseStatus());
       return;
     }
 
     if (method === "POST" && path === "/api/license") {
       const body = await readJson<{ key: string }>(req);
-      const { activateLicense } = await import("@second-brain/agents");
+      const { activateLicense } = await import("@brainlog/agents");
       reply(200, await activateLicense(body.key ?? ""));
       return;
     }
@@ -1151,7 +1151,7 @@ async function handle(
     if (method === "POST" && path.match(/^\/api\/loops\/[^/]+\/feedback$/)) {
       const id = path.split("/")[3];
       const body = await readJson<{ signal: "positive" | "negative" | "spam" | "dismiss" }>(req);
-      const { recordLoopFeedback } = await import("@second-brain/agents");
+      const { recordLoopFeedback } = await import("@brainlog/agents");
       await recordLoopFeedback(id, body.signal ?? "positive");
       reply(200, { ok: true });
       return;

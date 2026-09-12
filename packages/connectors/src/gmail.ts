@@ -14,7 +14,7 @@ import {
   log,
   withBackoff,
 } from "./base.js";
-import { getDb, settings } from "@second-brain/core";
+import { getDb, settings } from "@brainlog/core";
 import { eq } from "drizzle-orm";
 
 async function rememberGmailIdentity(

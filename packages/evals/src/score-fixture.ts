@@ -4,8 +4,8 @@
 import {
   classifyMailLoop,
   scoreChatAction,
-} from "@second-brain/agents";
-import { segmentChatCapture } from "@second-brain/core";
+} from "@brainlog/agents";
+import { segmentChatCapture } from "@brainlog/core";
 
 /** Copied from packages/agents/src/loops.ts */
 const COMMITMENT_RE =

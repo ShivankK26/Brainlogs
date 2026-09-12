@@ -994,7 +994,7 @@ pub fn note_ax_gap(data_dir: &Path, exe: &str, pid: u32) {
         return;
     };
     let line = format!("ax-gap {exe} (pid {pid}): {hint}\n");
-    eprint!("[second-brain] {line}");
+    eprint!("[brainlog] {line}");
     let log = data_dir.join("desktop.log");
     let _ = std::fs::create_dir_all(log.parent().unwrap_or(Path::new(".")));
     let _ = std::fs::OpenOptions::new()

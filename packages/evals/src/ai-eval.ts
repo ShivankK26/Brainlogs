@@ -2,7 +2,7 @@
  * Live Ollama evals for LOOP_EXTRACT. Skipped when the model is a stub.
  * Goldens include real DB failures (generic titles, market noise).
  */
-import { parseJsonFromText, runLlm } from "@second-brain/agents";
+import { parseJsonFromText, runLlm } from "@brainlog/agents";
 
 export type AiGolden = {
   id: string;

@@ -1,7 +1,7 @@
 /**
  * MCP server configs live in settings (`mcp.servers`); tokens in encrypted secrets.
  */
-import { getDb, settings, log } from "@second-brain/core";
+import { getDb, settings, log } from "@brainlog/core";
 import { eq } from "drizzle-orm";
 
 export type McpServerConfig = {

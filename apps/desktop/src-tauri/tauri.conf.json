@@ -1,12 +1,12 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Second Brain",
+  "productName": "Brainlog",
   "version": "0.2.0",
-  "identifier": "com.local.second-brain",
+  "identifier": "io.brainlog.desktop",
   "build": {
-    "beforeDevCommand": "npm run dev",
+    "beforeDevCommand": "pnpm dev",
     "devUrl": "http://127.0.0.1:1420",
-    "beforeBuildCommand": "npm run build",
+    "beforeBuildCommand": "pnpm build",
     "frontendDist": "../dist"
   },
   "app": {
@@ -14,7 +14,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Second Brain",
+        "title": "Brainlog",
         "width": 400,
         "height": 680,
         "minWidth": 56,

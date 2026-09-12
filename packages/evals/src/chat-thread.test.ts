@@ -3,7 +3,7 @@ import {
   isSelfName,
   segmentChatCapture,
   selfNamesFromSurface,
-} from "@second-brain/core";
+} from "@brainlog/core";
 import {
   AX_TELEGRAM_FULL,
   AX_TELEGRAM_SIDEBAR_ONLY,
