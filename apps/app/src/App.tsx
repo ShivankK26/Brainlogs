@@ -1,130 +1,81 @@
-import { useEffect, useState, useCallback } from "react";
-import { NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
-import clsx from "clsx";
-import { NowPage } from "./pages/NowPage";
-import { TimelinePage } from "./pages/TimelinePage";
-import { LoopsPage } from "./pages/LoopsPage";
-import { AskPage } from "./pages/AskPage";
-import { SettingsPage } from "./pages/SettingsPage";
-import { HealthPage } from "./pages/HealthPage";
-import { WidgetPage } from "./pages/WidgetPage";
-import { CommandPalette } from "./components/CommandPalette";
+import { useEffect, useRef } from "react";
+import { api } from "./lib/api";
+import { useAsync } from "./lib/useAsync";
+import { StoreProvider, useStore, type Page } from "./state/store";
+import { Sidebar } from "./components/Sidebar";
+import { Palette } from "./components/Palette";
+import { Toast } from "./components/Toast";
+import { Pulse } from "./views/Pulse";
+import { Memory } from "./views/Memory";
+import { Commitments } from "./views/Commitments";
+import { Agents } from "./views/Agents";
+import { Audit } from "./views/Audit";
+import { Privacy } from "./views/Privacy";
 
-const NAV = [
-  { to: "/", label: "Now", end: true },
-  { to: "/timeline", label: "Timeline" },
-  { to: "/loops", label: "Loops" },
-  { to: "/ask", label: "Ask" },
-  { to: "/settings", label: "Settings" },
-  { to: "/health", label: "Health" },
-];
+const G_MAP: Record<string, Page> = { p: "overview", m: "memory", c: "commitments", a: "agents" };
 
-export function App() {
-  const [paletteOpen, setPaletteOpen] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
-  const isWidget = location.pathname === "/widget";
-
-  const onKey = useCallback((e: KeyboardEvent) => {
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-      e.preventDefault();
-      setPaletteOpen((v) => !v);
-    }
-  }, []);
+function Shell() {
+  const store = useStore();
+  const { page, paletteOpen, openPalette, closePalette, go, version, setUser } = store;
+  const status = useAsync(() => api.status(), [version]);
+  useEffect(() => {
+    if (status.data) setUser(status.data.user.initials);
+  }, [status.data, setUser]);
+  const entities = useAsync(() => api.entities(6), [version]);
+  const gPending = useRef<number | null>(null);
 
   useEffect(() => {
-    if (isWidget) return;
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onKey, isWidget]);
-
-  if (isWidget) {
-    return (
-      <Routes>
-        <Route path="/widget" element={<WidgetPage />} />
-      </Routes>
-    );
-  }
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        if (paletteOpen) closePalette();
+        else openPalette();
+        return;
+      }
+      if (paletteOpen) return; // the palette handles its own keys
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+      if (e.key === "/") {
+        e.preventDefault();
+        openPalette();
+        return;
+      }
+      if (gPending.current !== null && G_MAP[e.key]) {
+        window.clearTimeout(gPending.current);
+        gPending.current = null;
+        go(G_MAP[e.key]!);
+        return;
+      }
+      if (e.key === "g") {
+        if (gPending.current !== null) window.clearTimeout(gPending.current);
+        gPending.current = window.setTimeout(() => (gPending.current = null), 800);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [paletteOpen, openPalette, closePalette, go]);
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-6xl gap-6 px-4 py-5 md:px-6">
-      <aside className="hidden w-44 shrink-0 flex-col gap-1 md:flex">
-        <div className="mb-4 px-3">
-          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-bright">
-            Brainlog
-          </div>
-          <div className="mt-1 text-[11px] text-ink-500">
-            local ambient memory
-          </div>
-        </div>
-        {NAV.map((n) => (
-          <NavLink
-            key={n.to}
-            to={n.to}
-            end={n.end}
-            className={({ isActive }) =>
-              clsx("nav-link", isActive && "nav-link-active")
-            }
-          >
-            {n.label}
-          </NavLink>
-        ))}
-        <button
-          type="button"
-          className="nav-link mt-4 text-left text-ink-500"
-          onClick={() => setPaletteOpen(true)}
-        >
-          Command <span className="kbd ml-1">Ctrl K</span>
-        </button>
-      </aside>
-
-      <main className="min-w-0 flex-1 pb-12">
-        <div className="mb-4 flex items-center justify-between md:hidden">
-          <div className="text-sm font-semibold text-accent-bright">
-            Brainlog
-          </div>
-          <button
-            type="button"
-            className="btn-ghost text-xs"
-            onClick={() => setPaletteOpen(true)}
-          >
-            Ctrl K
-          </button>
-        </div>
-        <nav className="mb-4 flex gap-1 overflow-x-auto md:hidden">
-          {NAV.map((n) => (
-            <NavLink
-              key={n.to}
-              to={n.to}
-              end={n.end}
-              className={({ isActive }) =>
-                clsx("nav-link whitespace-nowrap", isActive && "nav-link-active")
-              }
-            >
-              {n.label}
-            </NavLink>
-          ))}
-        </nav>
-
-        <Routes>
-          <Route path="/" element={<NowPage />} />
-          <Route path="/timeline" element={<TimelinePage />} />
-          <Route path="/loops" element={<LoopsPage />} />
-          <Route path="/ask" element={<AskPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/health" element={<HealthPage />} />
-          <Route path="/widget" element={<WidgetPage />} />
-        </Routes>
-      </main>
-
-      <CommandPalette
-        open={paletteOpen}
-        onClose={() => setPaletteOpen(false)}
-        onNavigate={(p) => {
-          navigate(p);
-          setPaletteOpen(false);
-        }}
-      />
+    <div className="shell">
+      <Sidebar status={status.data} entities={entities.data ?? []} />
+      <div className="main">
+        {page === "overview" && <Pulse />}
+        {page === "memory" && <Memory />}
+        {page === "commitments" && <Commitments />}
+        {page === "agents" && <Agents status={status.data} />}
+        {page === "audit" && <Audit />}
+        {page === "privacy" && <Privacy status={status.data} />}
+      </div>
+      <Palette />
+      <Toast />
     </div>
+  );
+}
+
+export function App() {
+  return (
+    <StoreProvider>
+      <Shell />
+    </StoreProvider>
   );
 }

@@ -26,7 +26,7 @@ export type SearchResult = { hits: SearchHit[]; total: number; usedVectors: bool
 
 export const MomentRequest = z.object({ eventId: z.string().min(1), windowMs: z.number().int().positive().default(15 * 60 * 1000) });
 export type MomentRequest = z.input<typeof MomentRequest>;
-export type MomentResult = { focus: Event; alsoOnScreen: Event[]; before: Event[]; after: Event[] };
+export type MomentResult = { focus: Event; entities: Entity[]; alsoOnScreen: Event[]; before: Event[]; after: Event[] };
 
 export const TimelineRequest = z.object({
   from: IsoTimestamp,

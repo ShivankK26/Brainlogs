@@ -1,6 +1,6 @@
 import { getEventById } from "@brainlog/core";
 import type { Event } from "@brainlog/types";
-import { eventsBetween } from "./store.js";
+import { entitiesForEvents, eventsBetween } from "./store.js";
 import { visible, type Perms } from "./filters.js";
 import type { MomentResult } from "./types.js";
 
@@ -32,5 +32,6 @@ export function moment(input: { eventId: string; windowMs: number }, perms: Perm
     if (!cur || dt < cur.dt) closest.set(r, { e, dt });
   }
   const alsoOnScreen = [...closest.values()].sort((a, b) => a.dt - b.dt).map((x) => x.e);
-  return { focus, alsoOnScreen, before, after };
+  const entities = entitiesForEvents([focus.id]).get(focus.id) ?? [];
+  return { focus, entities, alsoOnScreen, before, after };
 }

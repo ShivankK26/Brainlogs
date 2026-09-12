@@ -1,0 +1,10 @@
+const P = { fill: "none", stroke: "currentColor", strokeWidth: 1.4 } as const;
+export const IcSearch = () => (<svg className="ic" viewBox="0 0 16 16" {...P}><circle cx="7" cy="7" r="4.5" /><path d="M10.5 10.5L14 14" /></svg>);
+export const IcPulse = () => (<svg className="ic" viewBox="0 0 16 16" {...P}><path d="M2 12l3.5-4 3 2.5L14 4" /></svg>);
+export const IcMemory = () => (<svg className="ic" viewBox="0 0 16 16" {...P}><circle cx="8" cy="8" r="6" /><path d="M8 4.5V8l2.5 1.5" /></svg>);
+export const IcCheck = () => (<svg className="ic" viewBox="0 0 16 16" {...P}><path d="M3 8.5l3 3 7-7" /></svg>);
+export const IcAgent = () => (<svg className="ic" viewBox="0 0 16 16" {...P}><rect x="2.5" y="4.5" width="11" height="8" rx="2" /><path d="M6 8.5h.01M10 8.5h.01M8 2.5v2" /></svg>);
+export const IcAudit = () => (<svg className="ic" viewBox="0 0 16 16" {...P}><path d="M4 2h6l3 3v9H4z" /><path d="M6 8h4M6 11h3" /></svg>);
+export const IcShield = () => (<svg className="ic" viewBox="0 0 16 16" {...P}><path d="M8 2l5 2v4c0 3-2 5-5 6-3-1-5-3-5-6V4z" /></svg>);
+export const IcFilter = () => (<svg className="ic" viewBox="0 0 16 16" {...P}><path d="M2 4h12M4 8h8M6 12h4" /></svg>);
+export const IcChev = () => (<svg className="chev" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2.5 4l2.5 2.5L7.5 4" /></svg>);

@@ -4,7 +4,8 @@
  * (HTTP callers are the local user; agents connect over MCP, not HTTP).
  */
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { userInfo } from "node:os";
 import { join } from "node:path";
 import { Policy } from "@brainlog/types";
 import { config, countEvents, ensureDataDir, getPolicy, isVecReady, listAudit, purgeExpiredEvents, setPolicy, writeAudit } from "@brainlog/core";
@@ -63,7 +64,26 @@ export async function status() {
   const control = readControl();
   const pausedUntil = typeof control.paused_until === "string" ? control.paused_until : null;
   const policy = getPolicy();
+  let dbSizeBytes = 0;
+  try {
+    dbSizeBytes = statSync(config.dbPath).size;
+  } catch {
+    /* first run */
+  }
+  const name = (() => {
+    try {
+      return userInfo().username;
+    } catch {
+      return "you";
+    }
+  })();
+  const agents = new Set(Object.keys(policy.agentPermissions));
+  for (const a of listAudit({ limit: 2000 })) if (a.actor !== "user" && a.actor !== "system") agents.add(a.actor);
   return {
+    user: { name, initials: name.slice(0, 2).toUpperCase() },
+    dbSizeBytes,
+    agents: [...agents],
+    modelName: process.env.BRAINLOG_ASK_MODEL ?? "qwen2.5:7b",
     version: process.env.npm_package_version ?? "0.1.0",
     port: config.port,
     dataDir: config.dataDir,
@@ -119,6 +139,13 @@ export async function handleBrainlogRoute(_req: IncomingMessage, ctx: Ctx): Prom
       const from = query.get("from") ?? new Date(Date.parse(to) - 7 * 86_400_000).toISOString();
       const limit = Number(query.get("limit") ?? 1000);
       return reply(200, await api().timeline({ from, to, filters: filtersFrom(query), limit })), true;
+    }
+    if (method === "GET" && p === "/pulse") return reply(200, await api().pulse({ ...(query.get("date") ? { date: query.get("date")! } : {}) })), true;
+    if (method === "GET" && p === "/timeline/detailed") {
+      const to = query.get("to") ?? new Date().toISOString();
+      const from = query.get("from") ?? new Date(Date.parse(to) - 7 * 86_400_000).toISOString();
+      const limit = Number(query.get("limit") ?? 1000);
+      return reply(200, await api().timelineDetailed({ from, to, filters: filtersFrom(query), limit })), true;
     }
     if (method === "GET" && p === "/entities") return reply(200, await api().entities({ limit: Number(query.get("limit") ?? 20) })), true;
     if (method === "GET" && p === "/entity") {

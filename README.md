@@ -17,7 +17,7 @@ This repository is being built phase by phase. Honest state:
 | Brainlog data model (`packages/types`), Drizzle migrations with FTS5 + vec0 | Done (Phase 1) |
 | Capture dedup/diff/sampling + policy gate | Done (Phase 1) |
 | Query layer (BM25 + vectors + RRF, moment), policy gate + audit, `brainlog` CLI | Done (Phase 2) |
-| In-app UI (Pulse, Memory, Commitments, Agents, Audit, Data & retention) | Phase 3 |
+| In-app UI (Pulse, Memory, Commitments, Agents, Audit, Data & retention) | Done (Phase 3) |
 | Entity graph and commitments | Phase 4 |
 | MCP server with proposed writes | Phase 5 |
 | Landing site, signed releases | Phase 6 |
@@ -33,8 +33,9 @@ pnpm install
 pnpm build
 pnpm test
 pnpm typecheck
-pnpm dev:worker     # core daemon on 127.0.0.1
-pnpm dev:app        # in-app UI
+pnpm dev:worker     # core daemon on 127.0.0.1:3000 (serves the built UI too)
+pnpm dev:app        # in-app UI with hot reload, proxied to the worker
+pnpm --filter @brainlog/app test:e2e   # Playwright against a seeded worker
 pnpm dev:desktop    # Tauri shell + capture engine
 ```
 

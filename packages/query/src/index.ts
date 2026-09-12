@@ -5,3 +5,4 @@ export { highlight } from "./highlight.js";
 export { regionOf } from "./moment.js";
 export { ollamaChat } from "./ask.js";
 export { PolicyDeniedError } from "@brainlog/policy";
+export { pulse, sessionize, weekBounds, type PulseResult } from "./pulse.js";

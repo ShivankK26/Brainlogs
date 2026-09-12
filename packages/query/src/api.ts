@@ -6,8 +6,9 @@ import { moment } from "./moment.js";
 import { commitments, entity, summary, timeline } from "./graph-reads.js";
 import { ask, type AskDeps } from "./ask.js";
 import { listNotes, listProposedEdges, propose, review } from "./notes.js";
-import { stats, topEntities } from "./store.js";
-import type { Entity } from "@brainlog/types";
+import { entitiesForEvents, stats, topEntities } from "./store.js";
+import { pulse, type PulseResult } from "./pulse.js";
+import { IsoDate, type Entity } from "@brainlog/types";
 import {
   AskRequest,
   CommitmentsRequest,
@@ -72,6 +73,25 @@ export function createQueryApi(opts: QueryApiOptions) {
     timeline(input: TimelineRequest): Promise<Event[]> {
       const p = TimelineRequest.parse(input);
       return run({ action: "query", scope: `timeline ${p.from.slice(0, 10)}..${p.to.slice(0, 10)}`, needs: ["readTimeline"] }, (perms) => timeline(p, perms), (r) => `${r.length} events`);
+    },
+    /** Timeline plus the entities linked to each event, for list rows that show labels. */
+    timelineDetailed(input: TimelineRequest): Promise<{ events: Event[]; entities: Record<string, Entity[]> }> {
+      const p = TimelineRequest.parse(input);
+      return run(
+        { action: "query", scope: `timeline ${p.from.slice(0, 10)}..${p.to.slice(0, 10)}`, needs: ["readTimeline", "readGraph"] },
+        (perms) => {
+          const events = timeline(p, perms);
+          const map = entitiesForEvents(events.map((e) => e.id));
+          const entities: Record<string, Entity[]> = {};
+          for (const [k, v] of map) entities[k] = v;
+          return { events, entities };
+        },
+        (r) => `${r.events.length} events`,
+      );
+    },
+    pulse(input: { date?: string } = {}): Promise<PulseResult> {
+      const date = IsoDate.parse(input.date ?? new Date().toISOString().slice(0, 10));
+      return run({ action: "query", scope: `pulse week of ${date}`, needs: ["readTimeline", "readGraph"] }, (perms) => pulse({ date }, perms), (r) => `${r.eventCount} events`);
     },
     entity(input: EntityRequest): Promise<EntityResult> {
       const p = EntityRequest.parse(input);
