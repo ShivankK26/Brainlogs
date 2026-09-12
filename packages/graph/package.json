@@ -1,0 +1,33 @@
+{
+  "name": "@brainlog/graph",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Entity and commitment extraction, entity resolution, edge store, commitment lifecycle and weekly narratives with sentence provenance.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "lint": "eslint src",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@brainlog/core": "workspace:*",
+    "@brainlog/query": "workspace:*",
+    "@brainlog/types": "workspace:*",
+    "drizzle-orm": "^0.40.1",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@brainlog/capture": "workspace:*",
+    "@brainlog/eslint-config": "workspace:*",
+    "@brainlog/tsconfig": "workspace:*",
+    "eslint": "^9.28.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

@@ -273,6 +273,43 @@ importers:
         specifier: ^5.8.2
         version: 5.9.3
 
+  packages/graph:
+    dependencies:
+      '@brainlog/core':
+        specifier: workspace:*
+        version: link:../core
+      '@brainlog/query':
+        specifier: workspace:*
+        version: link:../query
+      '@brainlog/types':
+        specifier: workspace:*
+        version: link:../types
+      drizzle-orm:
+        specifier: ^0.40.1
+        version: 0.40.1(@types/better-sqlite3@7.6.13)(better-sqlite3@11.10.0)(gel@2.2.0)
+      zod:
+        specifier: ^3.24.4
+        version: 3.25.76
+    devDependencies:
+      '@brainlog/capture':
+        specifier: workspace:*
+        version: link:../capture
+      '@brainlog/eslint-config':
+        specifier: workspace:*
+        version: link:../../tooling/eslint
+      '@brainlog/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/tsconfig
+      eslint:
+        specifier: ^9.28.0
+        version: 9.39.5(jiti@1.21.7)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.2)(jiti@1.21.7)(tsx@4.23.13)
+
   packages/mcp:
     dependencies:
       '@brainlog/agents':
@@ -400,6 +437,9 @@ importers:
       '@brainlog/evals':
         specifier: workspace:*
         version: link:../evals
+      '@brainlog/graph':
+        specifier: workspace:*
+        version: link:../graph
       '@brainlog/policy':
         specifier: workspace:*
         version: link:../policy

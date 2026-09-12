@@ -18,7 +18,7 @@ This repository is being built phase by phase. Honest state:
 | Capture dedup/diff/sampling + policy gate | Done (Phase 1) |
 | Query layer (BM25 + vectors + RRF, moment), policy gate + audit, `brainlog` CLI | Done (Phase 2) |
 | In-app UI (Pulse, Memory, Commitments, Agents, Audit, Data & retention) | Done (Phase 3) |
-| Entity graph and commitments | Phase 4 |
+| Entity graph and commitments (extraction, resolution, auto-close, weekly narrative) | Done (Phase 4) |
 | MCP server with proposed writes | Phase 5 |
 | Landing site, signed releases | Phase 6 |
 

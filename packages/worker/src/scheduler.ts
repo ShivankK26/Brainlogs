@@ -18,6 +18,7 @@ import {
   googleStatus,
 } from "@brainlog/connectors";
 import { embedPendingBrainlogChunks, runEnrichPipeline } from "@brainlog/enrich";
+import { runGraphJob } from "@brainlog/graph";
 import { ingestSpool, ingestSpoolLegacy, purgeStaleObservations } from "@brainlog/capture";
 import {
   annotateTopItems,
@@ -68,9 +69,12 @@ export async function jobEnrich(): Promise<JobResult> {
   });
 }
 
-/** Entity + commitment extraction over new events. Implemented in Phase 4. */
+/** Entity + commitment extraction, lifecycle and the weekly narrative (packages/graph). */
 export async function jobGraph(): Promise<JobResult> {
-  return runJob("graph", async () => ({ stats: { implemented: false } }));
+  return runJob("graph", async () => {
+    const r = await runGraphJob();
+    return { stats: r as unknown as Record<string, unknown> };
+  });
 }
 
 export async function jobTag(): Promise<JobResult> {
@@ -221,6 +225,7 @@ export async function startScheduler() {
   safe("github", () => jobIngest("github"));
   safe("capture", () => jobCapture());
   safe("enrich", () => jobEnrich());
+  safe("graph", () => jobGraph());
   safe("loops", async () => {
     await jobTag();
     await jobLoops();

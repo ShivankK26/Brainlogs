@@ -5,6 +5,12 @@ import { dateLabelUTC, hours } from "../lib/format";
 import { useStore } from "../state/store";
 import { Header } from "../components/Header";
 
+/** `**name**` in the narrative marks an entity. */
+function bold(s: string): React.ReactNode {
+  const parts = s.split(/\*\*(.+?)\*\*/g);
+  return parts.map((p, i) => (i % 2 === 1 ? <mark key={i}>{p}</mark> : p));
+}
+
 function splitSentences(md: string): string[] {
   return md.replace(/\s+/g, " ").match(/[^.!?]+[.!?]+(\s|$)|[^.!?]+$/g)?.map((s) => s.trim()).filter(Boolean) ?? [];
 }
@@ -48,7 +54,7 @@ export function Pulse() {
                   <p>
                     {sentences.map((s, i) => (
                       <span key={i} className="sent" role="button" tabIndex={0} title="Open the evidence for this sentence" onClick={() => openSentence(i)} onKeyDown={(e) => e.key === "Enter" && openSentence(i)}>
-                        {s}{" "}
+                        {bold(s)}{" "}
                       </span>
                     ))}
                   </p>

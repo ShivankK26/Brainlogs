@@ -165,6 +165,7 @@ export const config = {
     github: "*/20 * * * *",
     capture: "*/1 * * * *",
     enrich: "*/5 * * * *",
+    graph: "*/10 * * * *",
     loops: "*/30 * * * *",
     brief: "0 7 * * *",
     plan: "5 7 * * *",
