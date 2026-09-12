@@ -6,10 +6,10 @@ mod tests {
     use std::fs;
     use std::path::Path;
 
+    /// Always forbidden: disk-oriented image APIs and image file names.
     const FORBIDDEN: &[&str] = &[
         ".save(",
         "save_with_format(",
-        "write_to(",
         "ImageEncoder",
         "PngEncoder",
         "JpegEncoder",
@@ -17,7 +17,10 @@ mod tests {
         ".jpg\"",
         ".jpeg\"",
         ".bmp\"",
+        ".webp\"",
     ];
+    /// `write_to(` is allowed only into an in-memory `Cursor` created within the previous few lines.
+    const LOOKBACK: usize = 6;
 
     #[test]
     fn engine_sources_never_write_images() {
@@ -32,11 +35,19 @@ mod tests {
                 continue;
             }
             let text = fs::read_to_string(&path).expect("read source");
-            for (i, line) in text.lines().enumerate() {
+            let lines: Vec<&str> = text.lines().collect();
+            for (i, line) in lines.iter().enumerate() {
                 let code = line.split("//").next().unwrap_or("");
                 for needle in FORBIDDEN {
                     if code.contains(needle) {
                         offenders.push(format!("{}:{} {}", path.display(), i + 1, needle));
+                    }
+                }
+                if code.contains("write_to(") {
+                    let start = i.saturating_sub(LOOKBACK);
+                    let in_memory = lines[start..=i].iter().any(|l| l.contains("Cursor::new"));
+                    if !in_memory {
+                        offenders.push(format!("{}:{} write_to( outside an in-memory Cursor", path.display(), i + 1));
                     }
                 }
             }
