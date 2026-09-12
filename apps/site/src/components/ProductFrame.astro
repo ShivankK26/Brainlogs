@@ -1,0 +1,55 @@
+---
+/**
+ * The hero product frame. Uses the real app screenshot when apps/site/public/app-memory.webp
+ * exists (refresh with `pnpm --filter @brainlog/site screenshots`), otherwise the HTML mock.
+ */
+import { existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+const shot = existsSync(fileURLToPath(new URL("../../public/app-memory.webp", import.meta.url)));
+---
+<div class="frame" aria-label="Brainlog app preview">
+  {shot ? (
+    <img src="/app-memory.webp" width="1080" height="675" alt="Brainlog memory view: a day's captured events, with the selected terminal error and everything that was on screen at that moment" loading="eager" fetchpriority="high" />
+  ) : (
+  <div class="app">
+    <div class="sb">
+      <div class="ws"><i></i>Nimbleops</div>
+      <div class="q">Search or jump to <kbd>⌘K</kbd></div>
+      <div class="it">Pulse</div>
+      <div class="it on">Memory<span class="c">2.1k</span></div>
+      <div class="it">Commitments<span class="c">3</span></div>
+      <div class="it">Agents<span class="c">2</span></div>
+      <div class="h">Entities</div>
+      <div class="it"><i class="d" style="background:var(--brand)"></i>second-brain<span class="c">61</span></div>
+      <div class="it"><i class="d" style="background:var(--teal)"></i>Onboarding<span class="c">19</span></div>
+      <div class="it"><i class="d" style="background:var(--purple)"></i>Priya<span class="c">14</span></div>
+      <div class="it"><i class="d" style="background:var(--amber)"></i>feat/graph-edges<span class="c">8</span></div>
+    </div>
+    <div class="ls">
+      <div class="hd"><span>Nimbleops /</span> Memory</div>
+      <div class="fb"><b>Filter</b><b>why did I stop on feat/graph-edges ✕</b></div>
+      <div class="g">Wed, Sep 9 <span>2</span></div>
+      <div class="row on"><span class="st p"></span><span class="id">MEM-1949</span><span class="t">Error: no such module: <mark>vec0</mark> — migration 0004 failed before migrate()</span><span class="m"><span class="lb"><i style="background:var(--amber)"></i>feat/graph-edges</span>Terminal · 15:31</span></div>
+      <div class="row"><span class="st b"></span><span class="id">MEM-1951</span><span class="t">You: I'll get you the memory-layer spec by Friday.</span><span class="m"><span class="lb"><i style="background:var(--purple)"></i>Priya</span>Slack · 15:40</span></div>
+      <div class="g">Tue, Sep 8 <span>2</span></div>
+      <div class="row"><span class="st d"></span><span class="id">MEM-1902</span><span class="t">Drizzle — custom migrations for FTS5 and vector tables</span><span class="m">Firefox · 11:03</span></div>
+      <div class="row"><span class="st d"></span><span class="id">MEM-1897</span><span class="t">asg017/sqlite-vec — small, fast vector search for SQLite</span><span class="m">Firefox · 10:12</span></div>
+      <div class="g">Mon, Sep 7 <span>3</span></div>
+      <div class="row"><span class="st d"></span><span class="id">MEM-1860</span><span class="t">Platform sync — notes on capture gate and idle suppression</span><span class="m">Notion · 16:20</span></div>
+      <div class="row"><span class="st d"></span><span class="id">MEM-1851</span><span class="t">Ollama setup notes sent to Priya</span><span class="m">Slack · 17:02</span></div>
+    </div>
+    <div class="dt">
+      <div class="id">MEM-1949</div>
+      <h4>zsh — second-brain</h4>
+      <p>Error: no such module: vec0. sqlite-vec extension not loaded before migrate().</p>
+      <div class="k"><span>Status</span><span>In progress</span><span>Source</span><span>Terminal</span><span>Captured</span><span>Wed, 15:31</span></div>
+      <div class="s">Also on screen</div>
+      <div class="w f"><i>V</i><div>VS Code<small>packages/core/src/db.ts</small></div></div>
+      <div class="w"><i>F</i><div>Firefox<small>better-sqlite3 loadExtension — #742</small></div></div>
+      <div class="w"><i>S</i><div>Slack<small>DM · Priya</small></div></div>
+      <div class="s">Activity after</div>
+      <div class="w"><i>→</i><div>Read issue #742 for 6 min<small>then switched to Slack, never came back</small></div></div>
+    </div>
+  </div>
+  )}
+</div>

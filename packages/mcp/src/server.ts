@@ -9,7 +9,7 @@ import { PolicyDeniedError, resolvePermissions } from "@brainlog/policy";
 import { createQueryApi, type QueryApi } from "@brainlog/query";
 import { resolveAgentId } from "./agent-id.js";
 
-export const VERSION = "0.1.0";
+export const VERSION = "1.0.0";
 export const REMEMBER_TEXT = "Saved as proposed — approve in Brainlog to keep it.";
 
 /** Canonical (dotted) names are the documented ones; some clients only accept `[A-Za-z0-9_-]`, so an underscore style exists (ADR 0010). */

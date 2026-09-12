@@ -1,6 +1,8 @@
 // No console window on Windows (debug or release) — closing a console would kill the widget.
 #![windows_subsystem = "windows"]
 
+#[cfg(test)]
+mod no_images_test;
 mod capture;
 mod core;
 #[cfg(target_os = "macos")]

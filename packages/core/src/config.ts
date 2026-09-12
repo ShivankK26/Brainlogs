@@ -4,6 +4,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { dirname } from "node:path";
+import { keychainGet, keychainSet } from "./keychain.js";
 
 function loadDotEnv(): void {
   const candidates = [
@@ -196,18 +197,34 @@ function readStoredMasterKey(): string {
   }
 }
 
-/** Per-install secret for AES. Never fall back to a public default. */
+/**
+ * Per-install secret for AES-256-GCM. Order: env → OS keychain → legacy 0600 file (migrated into the
+ * keychain when one is available) → generate. Never a public default (§14).
+ */
 export function ensureMasterKey(): string {
   const fromEnv = process.env.BRAIN_MASTER_KEY?.trim();
   if (fromEnv) return fromEnv;
+  const dir = defaultDataDir();
+  const fromKeychain = keychainGet(dir);
+  if (fromKeychain) {
+    process.env.BRAIN_MASTER_KEY = fromKeychain;
+    return fromKeychain;
+  }
   const stored = readStoredMasterKey();
   if (stored) {
+    if (keychainSet(dir, stored)) {
+      try {
+        writeFileSync(masterKeyPath(), "", { mode: 0o600 }); // migrated: leave an empty marker, not the key
+      } catch {
+        /* */
+      }
+    }
     process.env.BRAIN_MASTER_KEY = stored;
     return stored;
   }
-  mkdirSync(defaultDataDir(), { recursive: true });
+  mkdirSync(dir, { recursive: true });
   const key = randomBytes(32).toString("hex");
-  writeFileSync(masterKeyPath(), key, { encoding: "utf8", mode: 0o600 });
+  if (!keychainSet(dir, key)) writeFileSync(masterKeyPath(), key, { encoding: "utf8", mode: 0o600 });
   process.env.BRAIN_MASTER_KEY = key;
   return key;
 }

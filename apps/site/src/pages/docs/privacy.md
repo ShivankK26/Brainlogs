@@ -1,8 +1,10 @@
+---
+layout: ../../layouts/Docs.astro
+title: Privacy
+description: What Brainlog does with your data, in plain language, and how to verify each claim yourself.
+---
+
 # Privacy
-
-> This is the repository copy of the privacy statement published at `apps/site/src/pages/docs/privacy.md`. Keep both in sync.
-
-
 
 Brainlog is local-first the way a notebook is: there is no server to trust because there is no server. Every claim below names how you can check it on your own machine.
 

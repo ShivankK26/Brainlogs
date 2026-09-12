@@ -15,6 +15,7 @@ process.env.PORT = process.env.E2E_PORT ?? "3123";
 process.env.HOST = "127.0.0.1";
 process.env.WEB_DIST = join(here, "..", "dist");
 process.env.LOG_LEVEL = "warn";
+process.env.BRAINLOG_NO_KEYCHAIN = "1";
 process.env.OLLAMA_BASE_URL = "http://127.0.0.1:1"; // nothing listens: forces the extractive ask path
 
 const core = await import("@brainlog/core");

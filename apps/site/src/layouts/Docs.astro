@@ -1,0 +1,22 @@
+---
+import Base from "./Base.astro";
+const { frontmatter } = Astro.props;
+const path = Astro.url.pathname.replace(/\/$/, "");
+const nav = [
+  { h: "Get started" },
+  { href: "/docs", t: "Overview" },
+  { href: "/docs/install", t: "Install" },
+  { h: "Reference" },
+  { href: "/docs/mcp", t: "MCP setup" },
+  { href: "/docs/cli", t: "CLI" },
+  { href: "/docs/privacy", t: "Privacy" },
+];
+---
+<Base title={`${frontmatter.title} — Brainlog docs`} description={frontmatter.description}>
+  <div class="wrap docs">
+    <aside aria-label="Docs">
+      {nav.map((n) => (n.h ? <div class="h">{n.h}</div> : <a href={n.href} aria-current={path === n.href ? "page" : undefined}>{n.t}</a>))}
+    </aside>
+    <article class="prose"><slot /></article>
+  </div>
+</Base>

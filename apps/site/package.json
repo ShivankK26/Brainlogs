@@ -1,0 +1,22 @@
+{
+  "name": "@brainlog/site",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --host 127.0.0.1 --port 4321",
+    "build": "astro build",
+    "preview": "astro preview --host 127.0.0.1 --port 4321",
+    "typecheck": "astro check",
+    "screenshots": "node scripts/screenshots.mjs",
+    "clean": "rm -rf dist .astro"
+  },
+  "dependencies": {
+    "astro": "^5.9.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "typescript": "^5.8.3"
+  }
+}

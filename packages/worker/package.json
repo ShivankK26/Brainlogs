@@ -9,7 +9,8 @@
     "dev": "tsx src/cli.ts daemon",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "brain": "tsx src/cli.ts"
+    "brain": "tsx src/cli.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@brainlog/core": "workspace:*",
@@ -28,7 +29,8 @@
     "@brainlog/mcp": "workspace:*"
   },
   "devDependencies": {
-    "@types/node-cron": "^3.0.11"
+    "@types/node-cron": "^3.0.11",
+    "vitest": "^3.2.4"
   },
   "license": "MIT"
 }

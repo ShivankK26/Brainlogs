@@ -20,7 +20,7 @@ This repository is being built phase by phase. Honest state:
 | In-app UI (Pulse, Memory, Commitments, Agents, Audit, Data & retention) | Done (Phase 3) |
 | Entity graph and commitments (extraction, resolution, auto-close, weekly narrative) | Done (Phase 4) |
 | MCP server (stdio + local socket) with proposed writes and per-agent permissions | Done (Phase 5) |
-| Landing site, signed releases | Phase 6 |
+| Landing site + docs (`apps/site`), GitHub Releases workflow (.dmg, .msi, .deb, .AppImage), keychain-backed key, §14 checklist tests | Done (Phase 6) |
 
 Upstream features not yet ported to the Brainlog model (open loops, morning brief, voice, connectors) still run in `packages/agents` and `packages/worker`. They are experimental in this repository.
 
@@ -39,10 +39,19 @@ pnpm --filter @brainlog/app test:e2e   # Playwright against a seeded worker
 pnpm dev:desktop    # Tauri shell + capture engine
 ```
 
+## Site
+
+```bash
+pnpm dev:site                          # landing page + docs at http://127.0.0.1:4321
+pnpm --filter @brainlog/site build     # static output in apps/site/dist (Lighthouse 100/100/100/100)
+```
+
 ## Verify the privacy claims yourself
 
-- Listeners: `lsof -iTCP -sTCP:LISTEN -P | grep -i node` shows only `127.0.0.1`.
-- No images: `find "$HOME/Library/Application Support/brainlog" -name '*.png' -o -name '*.jpg'` returns nothing.
+- Listeners: `lsof -iTCP -sTCP:LISTEN -P | grep -i node` shows only `127.0.0.1` (test: `packages/worker/src/listeners.test.ts`).
+- No images: `find "$HOME/Library/Application Support/brainlog" -name '*.png' -o -name '*.jpg'` returns nothing (tests: `packages/capture/src/no-images.test.ts`, `apps/desktop/src-tauri/src/no_images_test.rs`).
+- Master key: `security find-generic-password -s io.brainlog.desktop` on macOS shows the keychain item; no `master.key` content on disk.
+- Audit: `pnpm brainlog audit --limit 20` lists every read and write, including denials.
 - Data directory: see `docs/decisions/0004-env-prefix-and-data-dirs.md`.
 
 Full statement: `docs/privacy.md`. Architecture: `docs/architecture.md`. Decisions: `docs/decisions/`.
