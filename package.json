@@ -1,0 +1,49 @@
+{
+  "name": "second-brain",
+  "version": "0.2.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Local-first ambient memory and open loops for Windows and macOS",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/karanpargal/second-brain.git"
+  },
+  "bugs": {
+    "url": "https://github.com/karanpargal/second-brain/issues"
+  },
+  "homepage": "https://github.com/karanpargal/second-brain#readme",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @second-brain/web",
+    "dev:web": "npm run dev -w @second-brain/web",
+    "dev:worker": "npm run dev -w @second-brain/worker",
+    "dev:desktop": "npm run tauri dev -w @second-brain/desktop",
+    "start": "node scripts/start-app.mjs",
+    "start:app": "node scripts/start-app.mjs",
+    "start:widget": "npm run tauri dev -w @second-brain/desktop",
+    "shortcut": "powershell -ExecutionPolicy Bypass -File scripts/install-desktop-shortcut.ps1",
+    "shortcut:linux": "bash scripts/install-desktop-shortcut.sh",
+    "build": "npm run build -w @second-brain/web",
+    "build:desktop": "node scripts/build-desktop.mjs",
+    "sign:mac": "node scripts/sign-macos.mjs",
+    "package:app": "npm run build && npm run build:desktop && npm run sign:mac",
+    "db:migrate": "npm run db:migrate -w @second-brain/core",
+    "db:seed": "npm run db:seed -w @second-brain/core",
+    "brain": "npm run brain -w @second-brain/worker --",
+    "mcp": "npm run start -w @second-brain/mcp",
+    "eval": "npm run eval -w @second-brain/evals",
+    "test": "npm run test -w @second-brain/evals",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2",
+    "tsx": "^4.19.3",
+    "@types/node": "^22.13.10"
+  }
+}

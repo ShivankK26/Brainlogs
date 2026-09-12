@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "second-brain": {
+      "command": "npx",
+      "args": ["tsx", "packages/mcp/src/index.ts"],
+      "cwd": "/absolute/path/to/second-brain",
+      "env": {}
+    }
+  }
+}
