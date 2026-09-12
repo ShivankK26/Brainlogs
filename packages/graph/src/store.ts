@@ -59,7 +59,12 @@ export function upsertEdge(input: { from: string; to: string | null; kind: EdgeK
       if (typeof r === "string") ev.add(r);
     }
     let added = 0;
-    for (const id of input.evidence) if (!ev.has(id)) (keep.push(id), ev.add(id), added++);
+    for (const id of input.evidence) {
+      if (ev.has(id)) continue;
+      keep.push(id);
+      ev.add(id);
+      added++;
+    }
     if (added > 0 || (existing.status === "proposed" && input.status === "confirmed")) {
       d.update(s.edges)
         .set({ weight: existing.weight + added, evidenceJson: JSON.stringify(keep), status: existing.status === "rejected" ? "rejected" : input.status === "confirmed" ? "confirmed" : existing.status })

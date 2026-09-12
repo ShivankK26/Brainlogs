@@ -82,8 +82,16 @@ export async function runGraphJob(opts: GraphJobOptions = {}): Promise<GraphStat
     // deterministic edges: branch works_on repo (same event), person mentions repo/project/doc (same event)
     const ents = [...linked.values()];
     const repos = ents.filter((x) => x.kind === "repo" || x.kind === "project");
-    if (for (const b of ents.filter((x) => x.kind === "branch")) for (const r of repos) upsertEdge({ from: b.id, to: r.id, kind: "works_on", evidence: [e.id], status: "confirmed", proposedBy: "system", now: nowIso }).created) stats.edges++;
-    if (for (const p of ents.filter((x) => x.kind === "person")) for (const t of ents.filter((x) => x.kind !== "person")) upsertEdge({ from: p.id, to: t.id, kind: "mentions", evidence: [e.id], status: "confirmed", proposedBy: "system", now: nowIso }).created) stats.edges++;
+    for (const b of ents.filter((x) => x.kind === "branch")) {
+      for (const r of repos) {
+        if (upsertEdge({ from: b.id, to: r.id, kind: "works_on", evidence: [e.id], status: "confirmed", proposedBy: "system", now: nowIso }).created) stats.edges++;
+      }
+    }
+    for (const p of ents.filter((x) => x.kind === "person")) {
+      for (const t of ents.filter((x) => x.kind !== "person")) {
+        if (upsertEdge({ from: p.id, to: t.id, kind: "mentions", evidence: [e.id], status: "confirmed", proposedBy: "system", now: nowIso }).created) stats.edges++;
+      }
+    }
 
     if (chat) {
       const contact = dmContact(e);
