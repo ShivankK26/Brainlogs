@@ -38,3 +38,6 @@ scripts/_patch-*.mjs
 apps/site/.astro/
 test-results/
 playwright-report/
+
+# fixtures are test data, not a runtime spool
+!packages/capture/fixtures/spool/
