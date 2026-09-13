@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.4 — 2026-09-13
+## 1.0.5 — 2026-09-13
 
 - The desktop app is self-contained: a Node 22 sidecar, the bundled worker, migrations and native modules ship inside the bundle. No Node, Rust or source checkout needed on the user's machine.
 - macOS builds are ad-hoc signed for direct download (System Settings → Open Anyway on first launch); `install.sh` installs from the terminal with no dialog.
