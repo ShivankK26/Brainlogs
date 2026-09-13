@@ -13,6 +13,7 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync, chmodSync } from "node:fs";
 import { tmpdir } from "node:os";
+import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -88,28 +89,30 @@ rmSync(RES, { recursive: true, force: true });
 mkdirSync(CORE, { recursive: true });
 cpSync(uiDist, join(RES, "ui"), { recursive: true });
 
-// ---- 2. worker bundle (ESM so import.meta.url keeps working)
+// ---- 2. worker bundle (ESM so import.meta.url keeps working). JS API: no shell quoting to break on Windows.
 log("bundling the worker with esbuild");
-const esbuild = join(ROOT, "node_modules", ".bin", process.platform === "win32" ? "esbuild.cmd" : "esbuild");
-sh(
-  esbuild,
-  [
-    join(ROOT, "packages", "worker", "src", "cli.ts"),
-    "--bundle",
-    "--platform=node",
-    "--target=node22",
-    "--format=esm",
-    `--outfile=${join(CORE, "worker.mjs")}`,
-    "--external:better-sqlite3",
-    "--external:sqlite-vec",
-    "--external:@xenova/transformers",
-    "--external:sharp",
-    "--external:onnxruntime-node",
-    "--log-level=warning",
-    "--banner:js=import { createRequire as __cr } from 'node:module'; import { fileURLToPath as __fu } from 'node:url'; import { dirname as __dn } from 'node:path'; const require = __cr(import.meta.url); const __filename = __fu(import.meta.url); const __dirname = __dn(__filename);",
-  ],
-  { shell: process.platform === "win32" },
-);
+const esbuild = createRequire(join(ROOT, "package.json"))("esbuild");
+esbuild.buildSync({
+  entryPoints: [join(ROOT, "packages", "worker", "src", "cli.ts")],
+  bundle: true,
+  platform: "node",
+  target: "node22",
+  format: "esm",
+  outfile: join(CORE, "worker.mjs"),
+  external: ["better-sqlite3", "sqlite-vec", "@xenova/transformers", "sharp", "onnxruntime-node"],
+  logLevel: "warning",
+  // CJS deps inside the ESM bundle expect require/__dirname/__filename.
+  banner: {
+    js: [
+      "import { createRequire as __cr } from 'node:module';",
+      "import { fileURLToPath as __fu } from 'node:url';",
+      "import { dirname as __dn } from 'node:path';",
+      "const require = __cr(import.meta.url);",
+      "const __filename = __fu(import.meta.url);",
+      "const __dirname = __dn(__filename);",
+    ].join(" "),
+  },
+});
 cpSync(join(ROOT, "packages", "core", "drizzle"), join(CORE, "drizzle"), { recursive: true });
 writeFileSync(join(CORE, "package.json"), JSON.stringify({ name: "brainlogs-core", private: true, type: "module", version: JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).version }, null, 2));
 
@@ -165,6 +168,13 @@ for (const t of targets) {
 
 // merge macOS arches into universal binaries so one resource tree serves the universal .app
 const isMac = targets.every((t) => t.endsWith("apple-darwin"));
+// Tauri does not lipo sidecars for --target universal-apple-darwin; it expects brainlogs-node-universal-apple-darwin.
+if (isMac && nodeFiles.length > 1) {
+  const universal = join(BIN, "brainlogs-node-universal-apple-darwin");
+  sh("lipo", ["-create", ...nodeFiles, "-output", universal]);
+  chmodSync(universal, 0o755);
+  log("universal sidecar created");
+}
 const outBsq = join(bsqDst, "build", "Release", "better_sqlite3.node");
 if (isMac && bsqLibs.length > 1) sh("lipo", ["-create", ...bsqLibs, "-output", outBsq]);
 else cpSync(bsqLibs[0], outBsq);
