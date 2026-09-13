@@ -39,6 +39,14 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: apps/desktop/src-tauri
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # tauri-build requires the sidecar and resources to exist; this also exercises the bundle script on Linux.
+      - run: pnpm --filter @brainlog/app build && node tooling/release/prepare-bundle.mjs
       - name: Rust tests
         run: cargo test
         working-directory: apps/desktop/src-tauri

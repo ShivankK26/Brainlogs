@@ -1,12 +1,12 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Brainlogs",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "identifier": "io.brainlog.desktop",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://127.0.0.1:1420",
-    "beforeBuildCommand": "node ../../tooling/release/prepare-bundle.mjs",
+    "beforeBuildCommand": "pnpm build && node ../../tooling/release/prepare-bundle.mjs",
     "frontendDist": "../dist"
   },
   "app": {
