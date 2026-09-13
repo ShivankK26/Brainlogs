@@ -1,12 +1,12 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Brainlogs",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "identifier": "io.brainlog.desktop",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://127.0.0.1:1420",
-    "beforeBuildCommand": "pnpm build",
+    "beforeBuildCommand": "node ../../tooling/release/prepare-bundle.mjs",
     "frontendDist": "../dist"
   },
   "app": {
@@ -40,7 +40,14 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": [
+      "dmg",
+      "msi",
+      "nsis",
+      "deb",
+      "appimage",
+      "rpm"
+    ],
     "category": "Utility",
     "icon": [
       "icons/icon.png",
@@ -48,8 +55,30 @@
     ],
     "macOS": {
       "minimumSystemVersion": "12.0",
-      "infoPlist": "Info.plist"
-    }
+      "infoPlist": "Info.plist",
+      "signingIdentity": "-",
+      "dmg": {
+        "appPosition": {
+          "x": 180,
+          "y": 170
+        },
+        "applicationFolderPosition": {
+          "x": 480,
+          "y": 170
+        },
+        "windowSize": {
+          "width": 660,
+          "height": 400
+        }
+      }
+    },
+    "externalBin": [
+      "binaries/brainlogs-node"
+    ],
+    "resources": [
+      "bundle-res/core/**/*",
+      "bundle-res/ui/**/*"
+    ]
   },
   "plugins": {}
 }

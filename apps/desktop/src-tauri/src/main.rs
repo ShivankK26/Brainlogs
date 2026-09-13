@@ -350,6 +350,10 @@ fn main() {
             prompt_accessibility
         ])
         .setup(move |app| {
+            // Packaged app: the core runs from the bundled resources (core.rs::bundled_core).
+            if let Ok(dir) = app.path().resource_dir() {
+                core::set_resource_dir(dir);
+            }
             #[cfg(target_os = "macos")]
             {
                 // Menu-bar / tray app — no Dock icon (mirrors skipTaskbar on Windows).

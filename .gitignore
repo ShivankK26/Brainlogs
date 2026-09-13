@@ -41,3 +41,8 @@ playwright-report/
 
 # fixtures are test data, not a runtime spool
 !packages/capture/fixtures/spool/
+
+# desktop bundle staging (tooling/release/prepare-bundle.mjs)
+apps/desktop/src-tauri/binaries/
+apps/desktop/src-tauri/bundle-res/
+build/

@@ -4,11 +4,67 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
-use std::sync::Mutex;
+use std::sync::{Mutex, OnceLock};
 use std::thread;
 use std::time::{Duration, Instant};
 
 static CORE_CHILD: Mutex<Option<Child>> = Mutex::new(None);
+
+/// Tauri resource directory, set once from the app setup hook. Enables the packaged
+/// (no Node, no checkout) launch path in `bundled_core`.
+static RESOURCE_DIR: OnceLock<PathBuf> = OnceLock::new();
+
+pub fn set_resource_dir(dir: PathBuf) {
+    let _ = RESOURCE_DIR.set(dir);
+}
+
+/// What the installed app ships (see tooling/release/prepare-bundle.mjs).
+struct BundledCore {
+    node: PathBuf,
+    worker: PathBuf,
+    core_dir: PathBuf,
+    ui_dir: PathBuf,
+}
+
+fn sidecar_name() -> &'static str {
+    if cfg!(windows) {
+        "brainlogs-node.exe"
+    } else {
+        "brainlogs-node"
+    }
+}
+
+fn vec_lib_name() -> &'static str {
+    if cfg!(windows) {
+        "vec0.dll"
+    } else if cfg!(target_os = "macos") {
+        "vec0.dylib"
+    } else {
+        "vec0.so"
+    }
+}
+
+/// Present only in the packaged app: the Node sidecar next to the executable and the
+/// bundled worker under the resource dir.
+fn bundled_core() -> Option<BundledCore> {
+    let res = RESOURCE_DIR.get()?.join("bundle-res");
+    let core_dir = res.join("core");
+    let worker = core_dir.join("worker.mjs");
+    if !worker.exists() {
+        return None;
+    }
+    let exe = std::env::current_exe().ok()?;
+    let node = exe.parent()?.join(sidecar_name());
+    if !node.exists() {
+        return None;
+    }
+    Some(BundledCore {
+        node,
+        worker,
+        core_dir,
+        ui_dir: res.join("ui"),
+    })
+}
 
 /// Shared data directory — must match `packages/core` `defaultDataDir()`.
 pub fn data_dir() -> PathBuf {
@@ -442,6 +498,22 @@ pub fn ensure_core_running() -> Result<(), String> {
         thread::sleep(Duration::from_millis(600));
     }
 
+    let _ = fs::create_dir_all(data_dir());
+    let core_err = data_dir().join("core.err.log");
+
+    // Packaged app: sidecar Node + bundled worker, no checkout needed.
+    if let Some(b) = bundled_core() {
+        let mut cmd = Command::new(&b.node);
+        cmd.arg(&b.worker)
+            .arg("daemon")
+            .current_dir(&b.core_dir)
+            .env("WEB_DIST", &b.ui_dir)
+            .env("BRAINLOG_MIGRATIONS_DIR", b.core_dir.join("drizzle"))
+            .env("SQLITE_VEC_EXT", b.core_dir.join("native").join(vec_lib_name()))
+            .env("BRAIN_SKIP_WEB_BUILD", "1");
+        return spawn_core(cmd, &core_err);
+    }
+
     let root = repo_root().ok_or_else(|| {
         "Could not find brainlog repo (set BRAIN_REPO_ROOT)".to_string()
     })?;
@@ -470,18 +542,17 @@ pub fn ensure_core_running() -> Result<(), String> {
         .join("src")
         .join("cli.ts");
 
-    let _ = fs::create_dir_all(data_dir());
-    let core_log = data_dir().join("core.log");
-    let core_err = data_dir().join("core.err.log");
-    let out_file = fs::File::create(&core_log).ok();
-    let err_file = fs::File::create(&core_err).ok();
-
     let mut cmd = Command::new(node);
-    cmd.arg(tsx_cli)
-        .arg(cli)
-        .arg("daemon")
-        .current_dir(&root)
-        .stdin(Stdio::null());
+    cmd.arg(tsx_cli).arg(cli).arg("daemon").current_dir(&root);
+    spawn_core(cmd, &core_err)
+}
+
+/// Spawn the core with logs in the data dir and wait for `/api/health`.
+fn spawn_core(mut cmd: Command, core_err: &Path) -> Result<(), String> {
+    let core_log = data_dir().join("core.log");
+    let out_file = fs::File::create(&core_log).ok();
+    let err_file = fs::File::create(core_err).ok();
+    cmd.stdin(Stdio::null());
     if let Some(f) = out_file {
         cmd.stdout(Stdio::from(f));
     } else {

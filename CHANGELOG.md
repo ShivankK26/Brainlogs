@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.2 — 2026-09-13
+
+- The desktop app is self-contained: a Node 22 sidecar, the bundled worker, migrations and native modules ship inside the bundle. No Node, Rust or source checkout needed on the user's machine.
+- macOS builds are ad-hoc signed for direct download (System Settings → Open Anyway on first launch); `install.sh` installs from the terminal with no dialog.
+- Embeddings fall back to deterministic hashing when no model is available; the legacy enrich pipeline degrades with a warning.
+
 ## 1.0.1 — 2026-09-12
 
 - Product renamed to **Brainlogs** (bundle, wordmark, docs). Package scopes, the `brainlog` CLI and MCP tool names are unchanged.

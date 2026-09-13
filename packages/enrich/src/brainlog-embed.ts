@@ -59,7 +59,9 @@ export const modelEmbedder: Embedder = async (text) => {
   }
 };
 
-let defaultEmbedder: Embedder = modelEmbedder;
+/** Model when one answers, deterministic hashing otherwise, so search never silently loses its vector leg. */
+const modelThenHash: Embedder = async (text) => (await modelEmbedder(text)) ?? hashEmbedder(text);
+let defaultEmbedder: Embedder = modelThenHash;
 export function setDefaultEmbedder(e: Embedder): void {
   defaultEmbedder = e;
 }

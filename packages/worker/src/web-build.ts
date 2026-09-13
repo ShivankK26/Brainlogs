@@ -10,8 +10,8 @@ import { config, log } from "@brainlog/core";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, "../../..");
-const WEB_SRC = join(REPO_ROOT, "apps", "web", "src");
-const WEB_ROOT = join(REPO_ROOT, "apps", "web");
+const WEB_SRC = join(REPO_ROOT, "apps", "app", "src");
+const WEB_ROOT = join(REPO_ROOT, "apps", "app");
 
 function newestMtime(root: string, filter?: (name: string) => boolean): number {
   if (!existsSync(root)) return 0;
@@ -79,7 +79,8 @@ export function webBuildIsStale(): boolean {
 }
 
 export async function ensureWebBuild(): Promise<{ built: boolean; skipped: boolean }> {
-  if (process.env.BRAIN_SKIP_WEB_BUILD === "1") {
+  // Packaged app: the UI ships as a resource and WEB_DIST points at it; nothing to rebuild.
+  if (process.env.BRAIN_SKIP_WEB_BUILD === "1" || (process.env.WEB_DIST && existsSync(join(process.env.WEB_DIST, "index.html")))) {
     return { built: false, skipped: true };
   }
   if (!existsSync(WEB_SRC)) {
@@ -90,9 +91,9 @@ export async function ensureWebBuild(): Promise<{ built: boolean; skipped: boole
   }
 
   log.info("Web UI source newer than dist — rebuilding…");
-  const npm = process.platform === "win32" ? "npm.cmd" : "npm";
+  const npm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
   const code = await new Promise<number>((resolve) => {
-    const child = spawn(npm, ["run", "build", "-w", "@brainlog/app"], {
+    const child = spawn(npm, ["--filter", "@brainlog/app", "build"], {
       cwd: REPO_ROOT,
       stdio: "inherit",
       shell: true,

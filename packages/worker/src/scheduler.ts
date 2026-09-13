@@ -65,7 +65,13 @@ export async function jobCapture(): Promise<JobResult> {
 export async function jobEnrich(): Promise<JobResult> {
   return runJob("enrich", async () => {
     const brain = await embedPendingBrainlogChunks();
-    const r = await runEnrichPipeline();
+    // The legacy pipeline needs @xenova/transformers, which the packaged app does not ship; degrade quietly.
+    let r: Record<string, unknown> = {};
+    try {
+      r = (await runEnrichPipeline()) as unknown as Record<string, unknown>;
+    } catch (e) {
+      log.warn("legacy enrich skipped", { err: e instanceof Error ? e.message.split("\n")[0] : "error" });
+    }
     return { stats: { ...r, brainlog: brain } };
   });
 }

@@ -70,7 +70,8 @@ export async function loadFixtures(dir?: string): Promise<EvalFixture[]> {
   const base =
     dir ??
     path.join(path.dirname(fileURLToPath(import.meta.url)), "fixtures");
-  const names = (await readdir(base))
+  // The packaged desktop app ships no fixtures; the eval job then has nothing to score.
+  const names = (await readdir(base).catch(() => [] as string[]))
     .filter((n) => n.endsWith(".json") && !n.startsWith("trading-"))
     .sort();
   const out: EvalFixture[] = [];

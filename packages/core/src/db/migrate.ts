@@ -427,6 +427,8 @@ function ensureColumn(
 
 /** Brainlogs migrations live next to the package so dist/ and src/ resolve the same folder. */
 export function migrationsFolder(): string {
+  // The packaged desktop app ships the SQL next to the bundled core and points here (tooling/release/prepare-bundle.mjs).
+  if (process.env.BRAINLOG_MIGRATIONS_DIR) return process.env.BRAINLOG_MIGRATIONS_DIR;
   return join(dirname(fileURLToPath(import.meta.url)), "..", "..", "drizzle");
 }
 

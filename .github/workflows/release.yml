@@ -71,6 +71,12 @@ jobs:
           at-spi2-core
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @brainlog/app build
+      # Node sidecar + bundled worker + native modules are staged by tauri.conf beforeBuildCommand
+      # (tooling/release/prepare-bundle.mjs); cache the downloads between runs.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.brainlogs-bundle-cache
+          key: bundle-cache-${{ runner.os }}-${{ hashFiles('tooling/release/prepare-bundle.mjs', 'pnpm-lock.yaml') }}
       - name: Import Apple certificate
         if: matrix.os == 'macos-latest' && env.APPLE_CERTIFICATE != ''
         env:
@@ -131,8 +137,11 @@ jobs:
         with:
           path: bundles
           merge-multiple: true
-      - name: Checksums
-        run: cd bundles && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+      - name: Checksums and installer
+        run: |
+          cd bundles && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+          cp ../tooling/release/install.sh .
+          echo "20 20 12 61 79 80 81 701 33 98 100 204 250 395 398 399 400cat SHA256SUMS.txt | wc -l) artifacts"
       - name: Create or update the draft release
         env:
           # A classic PAT with `repo` scope in RELEASE_TOKEN is used when set; the built-in token otherwise.
