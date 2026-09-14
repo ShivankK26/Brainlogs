@@ -13,8 +13,8 @@ const hrs = (ms: number) => {
   const h = ms / 3_600_000;
   return h < 1 ? `${Math.max(1, Math.round(ms / 60_000))} minutes` : `${Math.round(h * 10) / 10} hours`;
 };
-const dayName = (ts: string) => new Date(ts).toLocaleDateString("en-US", { weekday: "long", timeZone: "UTC" });
-const hhmm = (ts: string) => ts.slice(11, 16);
+const dayName = (ts: string) => new Date(ts).toLocaleDateString("en-US", { weekday: "long" });
+const hhmm = (ts: string) => new Date(ts).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 
 export async function buildWeeklySummary(date: string): Promise<{ markdown: string; provenance: Array<{ sentenceIdx: number; eventIds: string[] }>; start: string; end: string } | null> {
   const { start, end } = weekBounds(date);
@@ -74,7 +74,7 @@ export async function buildWeeklySummary(date: string): Promise<{ markdown: stri
   for (let i = 1; i < events.length; i++) {
     if (events[i]!.app !== events[i - 1]!.app) {
       switches++;
-      hours[new Date(events[i]!.ts).getUTCHours()]!++;
+      hours[new Date(events[i]!.ts).getHours()]!++;
       if (switchIds.length < 40) switchIds.push(events[i]!.id);
     }
   }

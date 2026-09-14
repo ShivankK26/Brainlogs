@@ -212,9 +212,9 @@ export function ensureMasterKey(): string {
   }
   const stored = readStoredMasterKey();
   if (stored) {
-    if (keychainSet(dir, stored)) {
+    if (keychainSet(dir, stored) && keychainGet(dir) === stored) {
       try {
-        writeFileSync(masterKeyPath(), "", { mode: 0o600 }); // migrated: leave an empty marker, not the key
+        writeFileSync(masterKeyPath(), "", { mode: 0o600 }); // migrated and read back: leave an empty marker, not the key
       } catch {
         /* */
       }
@@ -224,7 +224,7 @@ export function ensureMasterKey(): string {
   }
   mkdirSync(dir, { recursive: true });
   const key = randomBytes(32).toString("hex");
-  if (!keychainSet(dir, key)) writeFileSync(masterKeyPath(), key, { encoding: "utf8", mode: 0o600 });
+  if (!(keychainSet(dir, key) && keychainGet(dir) === key)) writeFileSync(masterKeyPath(), key, { encoding: "utf8", mode: 0o600 });
   process.env.BRAIN_MASTER_KEY = key;
   return key;
 }

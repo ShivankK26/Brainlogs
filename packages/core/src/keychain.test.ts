@@ -10,10 +10,12 @@ describe("keychain", () => {
   const guard = process.env.BRAINLOG_NO_KEYCHAIN;
   beforeAll(() => {
     delete process.env.BRAINLOG_NO_KEYCHAIN;
+    process.env.BRAINLOG_USE_KEYCHAIN = "1";
   });
   afterAll(() => {
     keychainDelete(dir);
     if (guard !== undefined) process.env.BRAINLOG_NO_KEYCHAIN = guard;
+    delete process.env.BRAINLOG_USE_KEYCHAIN;
   });
   it("round-trips a key through the OS backend when one exists", () => {
     const backend = keychainBackend();

@@ -21,7 +21,9 @@ function run(cmd: string, args: string[], input?: string): string | null {
 export type KeychainBackend = "macos-keychain" | "windows-dpapi" | "linux-secret-service" | "none";
 
 export function keychainBackend(): KeychainBackend {
-  if (process.env.BRAINLOG_NO_KEYCHAIN === "1") return "none";
+  // Opt-in (BRAINLOG_USE_KEYCHAIN=1). A locked or out-of-sync login keychain makes every read prompt for a
+  // password, and the key protects a database that sits in the same 0600 directory anyway (ADR 0011).
+  if (process.env.BRAINLOG_USE_KEYCHAIN !== "1" || process.env.BRAINLOG_NO_KEYCHAIN === "1") return "none";
   if (process.platform === "darwin") return "macos-keychain";
   if (process.platform === "win32") return "windows-dpapi";
   if (process.platform === "linux" && run("which", ["secret-tool"])) return "linux-secret-service";
@@ -53,7 +55,10 @@ export function keychainGet(dataDir: string): string | null {
 export function keychainSet(dataDir: string, key: string): boolean {
   switch (keychainBackend()) {
     case "macos-keychain":
-      return run("security", ["add-generic-password", "-U", "-s", KEYCHAIN_SERVICE, "-a", ACCOUNT, "-w", key, "-T", "/usr/bin/security"]) !== null;
+      // Recreate rather than update: `-U` keeps an existing item's access list, and an item without
+      // `security` in that list prompts for the keychain password on every read.
+      run("security", ["delete-generic-password", "-s", KEYCHAIN_SERVICE, "-a", ACCOUNT]);
+      return run("security", ["add-generic-password", "-s", KEYCHAIN_SERVICE, "-a", ACCOUNT, "-w", key, "-T", "/usr/bin/security"]) !== null;
     case "linux-secret-service":
       return run("secret-tool", ["store", "--label", "Brainlogs master key", "service", KEYCHAIN_SERVICE, "account", ACCOUNT], key) !== null;
     case "windows-dpapi": {

@@ -68,7 +68,7 @@ export function Privacy({ status }: { status: Status | null }) {
                 <div className="perm"><div className="l">Network<div className="d">API bound to 127.0.0.1{status ? `:${status.port}` : ""}</div></div><Pill color="var(--green)">Local</Pill></div>
                 <RuleList label="Blocked apps" hint="Never captured, enforced in the engine and again before disk" values={p?.blockedApps ?? []} placeholder="Add app name, Enter" onChange={(v) => save({ blockedApps: v }, "Blocked apps updated")} />
                 <RuleList label="Blocked domains" hint="*.bank.com matches subdomains; bank.com matches both" values={p?.blockedDomains ?? []} placeholder="Add domain, Enter" onChange={(v) => save({ blockedDomains: v }, "Blocked domains updated")} />
-                <div className="perm"><div className="l">Encryption<div className="d">AES-256-GCM, key in OS keychain</div></div><Pill color="var(--green)">On</Pill></div>
+                <div className="perm"><div className="l">Encryption<div className="d">AES-256-GCM, per-install key on this device</div></div><Pill color="var(--green)">On</Pill></div>
                 <div className="perm"><div className="l">Cloud Ask<div className="d">Send questions and evidence to a hosted model. Off keeps everything local.</div></div><Switch on={p?.cloudAskEnabled ?? false} label="Cloud Ask" onChange={(v) => save({ cloudAskEnabled: v }, v ? "Cloud Ask enabled" : "Cloud Ask disabled")} /></div>
               </div>
             </div>

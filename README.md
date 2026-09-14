@@ -58,7 +58,7 @@ pnpm --filter @brainlog/site build     # static output in apps/site/dist (Lighth
 
 - Listeners: `lsof -iTCP -sTCP:LISTEN -P | grep -i node` shows only `127.0.0.1` (test: `packages/worker/src/listeners.test.ts`).
 - No images: `find "$HOME/Library/Application Support/brainlog" -name '*.png' -o -name '*.jpg'` returns nothing (tests: `packages/capture/src/no-images.test.ts`, `apps/desktop/src-tauri/src/no_images_test.rs`).
-- Master key: `security find-generic-password -s io.brainlog.desktop` on macOS shows the keychain item; no `master.key` content on disk.
+- Master key: `ls -la "$HOME/Library/Application Support/brainlog/master.key"` shows mode `-rw-------`; with `BRAINLOG_USE_KEYCHAIN=1` it moves to the keychain item `io.brainlog.desktop` instead.
 - Audit: `pnpm brainlog audit --limit 20` lists every read and write, including denials.
 - Data directory: see `docs/decisions/0004-env-prefix-and-data-dirs.md`.
 

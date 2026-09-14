@@ -62,7 +62,7 @@ export function pulse(input: { date: string }, perms: Perms): PulseResult {
   for (let i = 1; i < events.length; i++) {
     if (events[i]!.app !== events[i - 1]!.app) {
       contextSwitches++;
-      switchHours[new Date(events[i]!.ts).getUTCHours()]!++;
+      switchHours[new Date(events[i]!.ts).getHours()]!++;
     }
   }
   let peakHours: [number, number] | null = null;

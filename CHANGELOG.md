@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.7 — 2026-09-14
+
+- No more keychain password prompts: the master key defaults to the user-only `master.key` file; the OS keychain is opt-in (`BRAINLOG_USE_KEYCHAIN=1`) and writes are verified by read-back.
+- Pulse: previous/next week arrows; peak hours and summary times in local time.
+
 ## 1.0.6 — 2026-09-14
 
 - The desktop app opens the full Brainlogs UI in a normal resizable window with a Dock icon; the tray stays for pause/resume and quit. The compact widget is gone from the launch path.

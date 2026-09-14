@@ -30,7 +30,7 @@ Verified by `packages/capture/src/no-images.test.ts` and a Rust source test in `
 
 ## Secrets are encrypted
 
-Connector tokens are encrypted with AES-256-GCM. The key is kept in the OS keychain (Keychain on macOS, DPAPI on Windows, Secret Service on Linux), with a `0600` file as the fallback when no keychain is available.
+Connector tokens are encrypted with AES-256-GCM. The key lives in `master.key` inside the data directory, readable only by your user account (mode 0600), the same protection as the database it guards. Set `BRAINLOG_USE_KEYCHAIN=1` to move it into the OS keychain (Keychain, DPAPI, Secret Service) instead; this is opt-in because a locked login keychain prompts for a password on every read.
 
 ## Credentials are never stored
 
