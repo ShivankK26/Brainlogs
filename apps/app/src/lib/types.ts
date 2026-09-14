@@ -6,6 +6,7 @@ export type SearchHit = { event: Event; score: number; highlights: Highlight[]; 
 export type SearchResult = { hits: SearchHit[]; total: number; usedVectors: boolean };
 export type MomentResult = { focus: Event; entities: Entity[]; alsoOnScreen: Event[]; before: Event[]; after: Event[] };
 export type TimelineDetailed = { events: Event[]; entities: Record<string, Entity[]> };
+export type AskResult = { answer: string; citations: string[]; model: string; via: "cloud" | "local" | "none"; withheld?: number };
 export type Pending = { notes: Note[]; edges: Edge[] };
 export type Status = {
   user: { name: string; initials: string };
@@ -17,7 +18,17 @@ export type Status = {
   dataDir: string;
   vecReady: boolean;
   ollama: boolean;
-  capture: { paused: boolean; pausedUntil: string | null };
+  capture: {
+    paused: boolean;
+    pausedUntil: string | null;
+    /** null: the desktop engine has never reported (CLI-only install or app not running). */
+    engineRunning: boolean | null;
+    /** false: macOS Accessibility not granted, so window text cannot be read. null: unknown. */
+    accessibility: boolean | null;
+    lastTextAt: string | null;
+    engineVersion: string | null;
+  };
+  cloudAsk: { enabled: boolean; hasKey: boolean; keySource: "env" | "file" | null; keyHint: string | null; model: string };
   retentionDays: number;
   blockedApps: number;
   blockedDomains: number;

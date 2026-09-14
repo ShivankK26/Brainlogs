@@ -135,7 +135,40 @@ describe("policy gate + audit", () => {
     const cited = createQueryApi({ actor: "user", deps: { ...deps, chat: async () => "It failed because vec0 was not loaded [1]." } });
     const r2 = await cited.ask({ question: "why did the migration fail?" });
     expect(r2.model).not.toBe("extractive");
+    expect(r2.via).toBe("local");
     expect(r2.citations).toHaveLength(1);
+  });
+  it("cloud ask is off by default, and when on it never sends sensitive moments", async () => {
+    let sent: string | null = null;
+    const cloudChat = async (_system: string, user: string) => {
+      sent = user;
+      return "Friday, per your DM [1].";
+    };
+    const off = createQueryApi({ actor: "user", deps: { ...deps, cloudChat } });
+    const r0 = await off.ask({ question: "when do I owe Priya the spec?" });
+    expect(sent).toBeNull();
+    expect(r0.via).toBe("none");
+
+    setPolicy({ ...policy, cloudAskEnabled: true });
+    try {
+      const on = createQueryApi({ actor: "user", deps: { ...deps, cloudChat } });
+      // every matching moment is a private DM: nothing goes to the cloud at all
+      const allPrivate = await on.ask({ question: "when do I owe Priya the spec?" });
+      expect(allPrivate.via).not.toBe("cloud");
+      expect(sent).toBeNull();
+      // mixed evidence: the terminal moments go, the DMs are withheld
+      const r = await on.ask({ question: "what happened with the memory-layer spec and the vec0 migration?" });
+      expect(r.via).toBe("cloud");
+      expect(r.model).toBe("claude-opus-5");
+      expect(r.withheld).toBeGreaterThan(0); // the Priya DMs are third_party_private
+      expect(sent).not.toBeNull();
+      expect(sent).not.toContain("DM · Priya");
+      expect(r.citations.length).toBeGreaterThan(0);
+      const last = listAudit({ limit: 1 })[0]!;
+      expect(last.scope).toContain("ask");
+    } finally {
+      setPolicy(policy);
+    }
   });
 });
 

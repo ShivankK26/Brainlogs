@@ -74,6 +74,24 @@ export async function embedForBrainlog(text: string, embedder = defaultEmbedder)
   return v ? quantizeInt8(v) : null;
 }
 
+/** Which backend produced a vector: a real model, the hashing fallback, or a caller-supplied embedder. */
+export type EmbedBackend = "model" | "hash" | "custom";
+
+/**
+ * Like `embedForBrainlog` but says where the vector came from, so search can decide how much
+ * to trust it: hashing only measures token overlap, which BM25 already does better.
+ */
+export async function embedForBrainlogWithBackend(text: string, embedder = defaultEmbedder): Promise<{ vec: Int8Array; backend: EmbedBackend } | null> {
+  if (embedder === modelThenHash) {
+    const m = await modelEmbedder(text);
+    if (m) return { vec: quantizeInt8(m), backend: "model" };
+    const h = await hashEmbedder(text);
+    return h ? { vec: quantizeInt8(h), backend: "hash" } : null;
+  }
+  const v = await embedder(text);
+  return v ? { vec: quantizeInt8(v), backend: embedder === hashEmbedder ? "hash" : "custom" } : null;
+}
+
 /** Embed chunks with `embedded = 0`, write to chunk_vec, mark done. Distinct hashes are embedded once. */
 export async function embedPendingBrainlogChunks(opts: { limit?: number; embedder?: Embedder } = {}): Promise<{ embedded: number; reused: number; failed: number }> {
   const db = getDb();

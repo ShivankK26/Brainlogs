@@ -49,7 +49,8 @@ export type SummaryResult = Summary | null;
 
 export const AskRequest = z.object({ question: z.string().min(1).max(2000), scope: SearchFilters.optional() });
 export type AskRequest = z.input<typeof AskRequest>;
-export type AskResult = { answer: string; citations: string[]; model: string };
+/** `via` says which tier answered; `withheld` counts sensitive moments kept off the cloud path. */
+export type AskResult = { answer: string; citations: string[]; model: string; via: "cloud" | "local" | "none"; withheld?: number };
 
 export const ProposeRequest = z.object({
   note: z.object({

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../lib/api";
 import { useAsync } from "../lib/useAsync";
-import type { Commitment, Entity, Event, Highlight } from "../lib/types";
+import type { AskResult, Commitment, Entity, Event, Highlight } from "../lib/types";
 import { dayKey, dayLabel, eventPriority, eventStatus, eventTitle, initialsOf, memId, timeLabel } from "../lib/format";
 import { useStore } from "../state/store";
 import { Header } from "../components/Header";
@@ -11,6 +11,38 @@ import { MemoryDetail } from "./MemoryDetail";
 
 type Row = { event: Event; entities: Entity[]; highlight?: Highlight };
 
+const VIA_LABEL: Record<AskResult["via"], string> = { cloud: "Answered by Claude", local: "Answered by the local model", none: "No model available" };
+
+/** Answer text with `[n]` markers turned into buttons that select the cited moment. */
+function AskCard({ question, result, loading, onCite }: { question: string; result: AskResult | null; loading: boolean; onCite: (id: string) => void }) {
+  const lines = result ? result.answer.split("\n") : [];
+  return (
+    <div className="askcard" id="askCard">
+      <div className="q">{question}</div>
+      {loading ? <div className="a thinking">Thinking…</div> : null}
+      {result ? (
+        <>
+          <div className="a">
+            {lines.map((line, i) => (
+              <p key={i}>
+                {line.split(/(\[\d+\])/).map((part, j) => {
+                  const m = /^\[(\d+)\]$/.exec(part);
+                  const id = m ? result.citations[Number(m[1]) - 1] : undefined;
+                  return id ? <button key={j} className="cite" onClick={() => onCite(id)}>{part}</button> : <span key={j}>{part}</span>;
+                })}
+              </p>
+            ))}
+          </div>
+          <div className="m">
+            {VIA_LABEL[result.via]}{result.via !== "none" ? ` (${result.model})` : ""} · {result.citations.length} cited
+            {result.withheld ? ` · ${result.withheld} sensitive moment${result.withheld === 1 ? "" : "s"} kept off the cloud` : ""}
+          </div>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
 function linkedCommitments(e: Event, all: Commitment[]): Commitment[] {
   return all.filter((c) => c.evidenceEventIds.some((r) => (typeof r === "string" ? r : r.eventId) === e.id) || c.closedByEventId === e.id);
 }
@@ -18,11 +50,19 @@ function linkedCommitments(e: Event, all: Commitment[]): Commitment[] {
 export function Memory() {
   const { filter, setFilter, selected, select, openPalette, version, userInitials } = useStore();
   const [days, setDays] = useState(7);
+  const [askRes, setAskRes] = useState<AskResult | null>(null);
+  useEffect(() => setAskRes(null), [filter]);
 
   const rows = useAsync<Row[]>(async () => {
     if (filter?.kind === "text") {
       const r = await api.search(filter.q, 100);
       return r.hits.map((h) => ({ event: h.event, entities: h.entities, highlight: h.highlights[0] }));
+    }
+    if (filter?.kind === "ask") {
+      const a = await api.ask(filter.q);
+      setAskRes(a);
+      const evs = await api.eventsByIds(a.citations);
+      return evs.map((event) => ({ event, entities: [] }));
     }
     if (filter?.kind === "ids") {
       const evs = await api.eventsByIds(filter.ids);
@@ -77,7 +117,7 @@ export function Memory() {
     document.querySelector<HTMLElement>(`.row[data-id="${CSS.escape(selected)}"]`)?.scrollIntoView({ block: "nearest" });
   }, [selected]);
 
-  const chipLabel = filter?.kind === "text" ? filter.q : filter?.kind === "ids" ? filter.label : null;
+  const chipLabel = filter?.kind === "text" ? filter.q : filter?.kind === "ask" ? `Ask: ${filter.q}` : filter?.kind === "ids" ? filter.label : null;
 
   return (
     <>
@@ -92,7 +132,8 @@ export function Memory() {
           </div>
           <div id="rows">
             {rows.error ? <div className="err">{rows.error}</div> : null}
-            {!rows.loading && list.length === 0 ? (
+            {filter?.kind === "ask" ? <AskCard question={filter.q} result={askRes} loading={rows.loading && !askRes} onCite={select} /> : null}
+            {!rows.loading && list.length === 0 && filter?.kind !== "ask" ? (
               <div className="empty">{filter ? <>No events match. Press <kbd>⌘K</kbd> to search across everything.</> : <>Nothing captured in the last {days} days. Start the desktop app to begin capturing.</>}</div>
             ) : null}
             {groups.map(([day, rs]) => (

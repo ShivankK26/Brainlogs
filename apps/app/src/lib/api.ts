@@ -1,4 +1,4 @@
-import type { AuditEntry, Commitment, Entity, Event, MomentResult, Note, Pending, Policy, Pulse, SearchResult, Status, TimelineDetailed } from "./types";
+import type { AskResult, AuditEntry, Commitment, Entity, Event, MomentResult, Note, Pending, Policy, Pulse, SearchResult, Status, TimelineDetailed } from "./types";
 
 class ApiError extends Error {
   constructor(
@@ -42,6 +42,9 @@ export const api = {
   audit: (limit = 300, actor?: string) => req<AuditEntry[]>(`/audit${qs({ limit, actor })}`),
   policy: () => req<Policy>("/policy"),
   setPolicy: (patch: Partial<Policy>) => req<Policy>("/policy", { method: "PUT", body: JSON.stringify(patch) }),
+  ask: (question: string) => req<AskResult>("/ask", { method: "POST", body: JSON.stringify({ question }) }),
+  setCloudKey: (apiKey: string) => req<{ hasKey: boolean; keyHint: string | null }>("/cloud/key", { method: "PUT", body: JSON.stringify({ apiKey }) }),
+  deleteCloudKey: () => req<{ hasKey: boolean; keyHint: string | null }>("/cloud/key", { method: "DELETE" }),
   capture: (action: "pause" | "resume", minutes = 60) => req<{ paused: boolean }>(`/capture/${action}`, { method: "POST", body: JSON.stringify({ minutes }) }),
   eventsByIds: async (ids: string[]): Promise<Event[]> => {
     // No batch endpoint yet; moments are cheap and cached by the browser.

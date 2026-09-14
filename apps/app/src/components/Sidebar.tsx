@@ -3,8 +3,19 @@ import { KIND_COLOR, bytes, compact } from "../lib/format";
 import { useStore, type Page } from "../state/store";
 import { IcAgent, IcAudit, IcCheck, IcChev, IcMemory, IcPulse, IcSearch, IcShield } from "./Icons";
 
+/** One line for the sidebar foot: paused beats blind beats engine-down beats active. */
+export function captureHealth(status: Status | null): { label: string; tone: "ok" | "off" | "bad" | "unknown" } {
+  if (!status) return { label: "Connecting…", tone: "unknown" };
+  const c = status.capture;
+  if (c.paused) return { label: "Capture paused", tone: "off" };
+  if (c.accessibility === false) return { label: "Capture blind · Accessibility off", tone: "bad" };
+  if (c.engineRunning === false) return { label: "Capture engine not running", tone: "bad" };
+  return { label: "Capture active", tone: "ok" };
+}
+
 export function Sidebar({ status, entities }: { status: Status | null; entities: Entity[] }) {
   const { page, go, openPalette, setFilter } = useStore();
+  const health = captureHealth(status);
   const Item = ({ p, icon, label, count }: { p: Page; icon: React.ReactNode; label: string; count?: string | number }) => (
     <button className="item" data-page={p} aria-current={page === p ? "page" : undefined} onClick={() => go(p)}>
       {icon}
@@ -39,7 +50,7 @@ export function Sidebar({ status, entities }: { status: Status | null; entities:
         <Item p="privacy" icon={<IcShield />} label="Data & retention" />
       </div>
       <div className="bottom">
-        <div className="stat"><i className={status?.capture.paused ? "off" : ""} />{status?.capture.paused ? "Capture paused" : "Capture active"} · all data on this device</div>
+        <div className="stat" id="capStat" data-tone={health.tone}><i className={health.tone === "ok" ? "" : health.tone} />{health.label} · all data on this device</div>
         <div className="stat" style={{ paddingTop: 0 }}>
           {status ? `${status.ollama ? "Local model" : "No local model"} · ${bytes(status.dbSizeBytes)} · ${status.retentionDays} days` : "Connecting…"}
         </div>

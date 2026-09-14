@@ -12,6 +12,7 @@ export {
 export {
   CANONICAL_DIMS,
   embedForBrainlog,
+  embedForBrainlogWithBackend,
   embedPendingBrainlogChunks,
   hashEmbedder,
   modelEmbedder,
@@ -20,4 +21,5 @@ export {
   quantizeInt8,
   truncateAndNormalize,
   type Embedder,
+  type EmbedBackend,
 } from "./brainlog-embed.js";

@@ -6,7 +6,12 @@ import { PAGE_TITLE, useStore, type Page } from "../state/store";
 import { IcSearch } from "./Icons";
 import { Marked } from "./Bits";
 
-type Item = { key: string; node: React.ReactNode; s: "Search" | "Go to" | string; act: () => void };
+type Item = { key: string; node: React.ReactNode; s: "Search" | "Ask" | "Go to" | string; act: () => void };
+
+/** Questions go to Ask first; plain terms keep the filter first so muscle memory (Enter = filter) holds. */
+export function looksLikeQuestion(term: string): boolean {
+  return /\?\s*$/.test(term) || /^(who|what|when|where|why|how|did|does|do|is|are|was|were|which|can|could|should|has|have)\b/i.test(term);
+}
 
 export function Palette() {
   const { paletteOpen, closePalette, go, setFilter, select } = useStore();
@@ -56,7 +61,8 @@ export function Palette() {
       },
     }));
     const filt: Item[] = term ? [{ key: "filter", node: `Filter memory by “${term}”`, s: "Search", act: () => { setFilter({ kind: "text", q: term }); go("memory"); } }] : [];
-    return [...filt, ...mem, ...nav];
+    const askIt: Item[] = term ? [{ key: "ask", node: `Ask Brainlogs: “${term}”`, s: "Ask", act: () => { setFilter({ kind: "ask", q: term }); go("memory"); } }] : [];
+    return looksLikeQuestion(term) ? [...askIt, ...filt, ...mem, ...nav] : [...filt, ...mem, ...askIt, ...nav];
   }, [q, hits, go, setFilter, select]);
 
   useEffect(() => setIdx((i) => Math.min(i, Math.max(0, items.length - 1))), [items.length]);
@@ -78,7 +84,9 @@ export function Palette() {
         <div className="res" id="pres">
           {items.length === 0 ? <div className="rh">No results</div> : null}
           {items.map((it, i) => {
-            const head = it.s !== last && (it.s === "Go to" || it.s === "Search") ? <div className="rh" key={`h-${it.key}`}>{it.s === "Go to" ? "Navigate" : "Actions"}</div> : null;
+            const isAction = it.s === "Search" || it.s === "Ask";
+            const lastIsAction = last === "Search" || last === "Ask";
+            const head = (isAction && !lastIsAction) || (it.s === "Go to" && last !== "Go to") ? <div className="rh" key={`h-${it.key}`}>{it.s === "Go to" ? "Navigate" : "Actions"}</div> : null;
             last = it.s;
             return (
               <div key={it.key}>

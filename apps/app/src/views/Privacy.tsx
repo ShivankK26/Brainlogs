@@ -22,6 +22,58 @@ function RuleList({ label, hint, values, onChange, placeholder }: { label: strin
   );
 }
 
+function CloudAsk({ status, enabled, onToggle }: { status: Status | null; enabled: boolean; onToggle: (v: boolean) => void }) {
+  const { bump, toastMsg } = useStore();
+  const [draft, setDraft] = useState("");
+  const [busy, setBusy] = useState(false);
+  const cloud = status?.cloudAsk;
+  const saveKey = async () => {
+    if (!draft.trim()) return;
+    setBusy(true);
+    try {
+      await api.setCloudKey(draft.trim());
+      setDraft("");
+      toastMsg("Claude API key saved on this device");
+      bump();
+    } catch (e) {
+      toastMsg(e instanceof Error ? e.message : "Could not save the key");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const removeKey = async () => {
+    try {
+      await api.deleteCloudKey();
+      toastMsg("Claude API key removed");
+      bump();
+    } catch (e) {
+      toastMsg(e instanceof Error ? e.message : "Could not remove the key");
+    }
+  };
+  return (
+    <div className="perm" style={{ flexDirection: "column", alignItems: "stretch" }} id="cloudAsk">
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div className="l">Cloud Ask<div className="d">Answer questions with Claude ({cloud?.model ?? "claude-opus-5"}) using your own API key. Only the question and moments with no sensitivity tag are sent; credentials, finance, health and other people's messages stay on this device. Off keeps everything local.</div></div>
+        <Switch on={enabled} label="Cloud Ask" onChange={onToggle} />
+      </div>
+      <div className="rules" style={{ alignItems: "center" }}>
+        {cloud?.hasKey ? (
+          <>
+            <span className="chip mono">{cloud.keyHint}{cloud.keySource === "env" ? " · from ANTHROPIC_API_KEY" : ""}</span>
+            {cloud.keySource === "file" ? <button className="tb outl" id="cloudKeyRemove" onClick={removeKey}>Remove key</button> : null}
+          </>
+        ) : (
+          <>
+            <input id="cloudKey" type="password" placeholder="sk-ant-… (stored as a 0600 file in the data directory)" value={draft} autoComplete="off" onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") void saveKey(); }} style={{ flex: 1 }} />
+            <button className="tb primary" id="cloudKeySave" disabled={busy || !draft.trim()} onClick={saveKey}>Save key</button>
+          </>
+        )}
+        {enabled && !cloud?.hasKey ? <span className="pill" style={{ color: "var(--amber)" }}>Enabled, but no key yet: answers stay local</span> : null}
+      </div>
+    </div>
+  );
+}
+
 export function Privacy({ status }: { status: Status | null }) {
   const { version, bump, toastMsg } = useStore();
   const policy = useAsync(() => api.policy(), [version]);
@@ -69,7 +121,7 @@ export function Privacy({ status }: { status: Status | null }) {
                 <RuleList label="Blocked apps" hint="Never captured, enforced in the engine and again before disk" values={p?.blockedApps ?? []} placeholder="Add app name, Enter" onChange={(v) => save({ blockedApps: v }, "Blocked apps updated")} />
                 <RuleList label="Blocked domains" hint="*.bank.com matches subdomains; bank.com matches both" values={p?.blockedDomains ?? []} placeholder="Add domain, Enter" onChange={(v) => save({ blockedDomains: v }, "Blocked domains updated")} />
                 <div className="perm"><div className="l">Encryption<div className="d">AES-256-GCM, per-install key on this device</div></div><Pill color="var(--green)">On</Pill></div>
-                <div className="perm"><div className="l">Cloud Ask<div className="d">Send questions and evidence to a hosted model. Off keeps everything local.</div></div><Switch on={p?.cloudAskEnabled ?? false} label="Cloud Ask" onChange={(v) => save({ cloudAskEnabled: v }, v ? "Cloud Ask enabled" : "Cloud Ask disabled")} /></div>
+                <CloudAsk status={status} enabled={p?.cloudAskEnabled ?? false} onToggle={(v) => save({ cloudAskEnabled: v }, v ? "Cloud Ask enabled" : "Cloud Ask disabled")} />
               </div>
             </div>
           </div>

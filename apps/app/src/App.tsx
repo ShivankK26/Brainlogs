@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { api } from "./lib/api";
+import type { Status } from "./lib/types";
 import { useAsync } from "./lib/useAsync";
 import { StoreProvider, useStore, type Page } from "./state/store";
 import { Sidebar } from "./components/Sidebar";
@@ -14,10 +15,56 @@ import { Privacy } from "./views/Privacy";
 
 const G_MAP: Record<string, Page> = { p: "overview", m: "memory", c: "commitments", a: "agents" };
 
+type TauriGlobal = { core?: { invoke: (cmd: string) => Promise<unknown> } };
+const tauri = (): TauriGlobal | undefined => (window as unknown as { __TAURI__?: TauriGlobal }).__TAURI__;
+
+/** Shown when the engine says window text cannot be read (macOS Accessibility revoked after an update). */
+function CaptureBanner({ status }: { status: Status | null }) {
+  const { bump, toastMsg } = useStore();
+  const blind = status?.capture.accessibility === false;
+  const down = status?.capture.engineRunning === false;
+  const fix = useCallback(async () => {
+    const t = tauri();
+    if (t?.core) {
+      try {
+        await t.core.invoke("prompt_accessibility");
+        await t.core.invoke("open_accessibility_settings");
+        return;
+      } catch {
+        /* fall through to the manual hint */
+      }
+    }
+    toastMsg("System Settings → Privacy & Security → Accessibility → turn on Brainlogs");
+  }, [toastMsg]);
+  if (!blind && !down) return null;
+  return (
+    <div className="banner" id="capBanner" role="status">
+      {blind ? (
+        <>
+          <b>Capture is blind.</b> macOS is not letting this copy of Brainlogs read window text, so nothing new is being remembered. Turn Brainlogs on under Accessibility, then quit and reopen the app.
+          <span className="acts"><button className="tb primary" onClick={fix}>Open Accessibility settings</button><button className="tb outl" onClick={bump}>Re-check</button></span>
+        </>
+      ) : (
+        <>
+          <b>Capture engine is not running.</b> The Brainlogs desktop app is closed or has stopped; memory is not being updated. Open Brainlogs from /Applications.
+          <span className="acts"><button className="tb outl" onClick={bump}>Re-check</button></span>
+        </>
+      )}
+    </div>
+  );
+}
+
 function Shell() {
   const store = useStore();
   const { page, paletteOpen, openPalette, closePalette, go, version, setUser } = store;
   const status = useAsync(() => api.status(), [version]);
+  // The engine heartbeats every 5 s; poll so a fixed grant clears the banner without a click.
+  const statusData = status.data;
+  useEffect(() => {
+    if (!statusData || (statusData.capture.accessibility !== false && statusData.capture.engineRunning !== false)) return;
+    const t = window.setInterval(() => store.bump(), 15_000);
+    return () => window.clearInterval(t);
+  }, [statusData, store]);
   useEffect(() => {
     if (status.data) setUser(status.data.user.initials);
   }, [status.data, setUser]);
@@ -58,7 +105,8 @@ function Shell() {
   return (
     <div className="shell">
       <Sidebar status={status.data} entities={entities.data ?? []} />
-      <div className="main">
+      <div className={`main${status.data && (status.data.capture.accessibility === false || status.data.capture.engineRunning === false) ? " has-banner" : ""}`}>
+        <CaptureBanner status={status.data} />
         {page === "overview" && <Pulse />}
         {page === "memory" && <Memory />}
         {page === "commitments" && <Commitments />}

@@ -43,6 +43,8 @@ struct Shared {
     last_user_app: String,
     last_user_pid: u32,
     last_wake_at: std::time::Instant,
+    /// Last observation that carried readable text (title or body). Stays None while capture is blind.
+    last_text_at: Option<String>,
     browser_cursors: HashMap<String, i64>,
     block_exes: HashSet<String>,
     block_domains: HashSet<String>,
@@ -118,6 +120,7 @@ impl CaptureEngine {
                 last_user_app: String::new(),
                 last_user_pid: 0,
                 last_wake_at: std::time::Instant::now() - Duration::from_secs(60),
+                last_text_at: None,
                 browser_cursors: HashMap::new(),
                 block_exes,
                 block_domains,
@@ -180,10 +183,15 @@ impl CaptureEngine {
         let idle_limit_secs = 120u32;
         let mut last_browser = std::time::Instant::now() - Duration::from_secs(60);
         let mut last_hb = std::time::Instant::now() - Duration::from_secs(60);
+        let mut last_status = std::time::Instant::now() - Duration::from_secs(60);
         ocr_debug("capture thread started");
         loop {
             if !self.running.load(Ordering::SeqCst) {
                 break;
+            }
+            if last_status.elapsed() > Duration::from_secs(5) {
+                last_status = std::time::Instant::now();
+                self.write_status_file();
             }
             let control_pause = read_paused_until(&self.data_dir);
             {
@@ -332,13 +340,16 @@ impl CaptureEngine {
             if fs::copy(&hist, &tmp).is_err() {
                 continue;
             }
+            // First pass starts at the retention horizon: anything older would be dropped by
+            // ingest as expired anyway, and a full-history import (tens of thousands of visits)
+            // on every launch only wastes spool and CPU.
             let cursor = self
                 .shared
                 .lock()
                 .browser_cursors
                 .get(&browser)
                 .copied()
-                .unwrap_or(0);
+                .unwrap_or_else(|| history_cutoff(kind));
             if let Ok(conn) = Connection::open(&tmp) {
                 let mut max_visit = cursor;
                 let visits: Vec<(String, String, i64)> = match kind {
@@ -761,7 +772,46 @@ impl CaptureEngine {
         if let Ok(mut f) = OpenOptions::new().create(true).append(true).open(&path) {
             let _ = writeln!(f, "{value}");
             let mut s = self.shared.lock();
-            s.last_obs = Some(Utc::now().to_rfc3339());
+            let now = Utc::now().to_rfc3339();
+            let has_text = ["text", "window_title", "url"]
+                .iter()
+                .any(|k| value.get(*k).and_then(|v| v.as_str()).map(|t| !t.trim().is_empty()).unwrap_or(false));
+            if has_text {
+                s.last_text_at = Some(now.clone());
+            }
+            s.last_obs = Some(now);
+        }
+    }
+
+    /// Small status file the core reads to tell the UI whether capture can see anything
+    /// (Accessibility grant, last readable text). Rewritten every few seconds; cheap.
+    fn write_status_file(&self) {
+        let (last_obs, last_text_at, paused_until) = {
+            let s = self.shared.lock();
+            (
+                s.last_obs.clone(),
+                s.last_text_at.clone(),
+                s.paused_until.map(|t| t.to_rfc3339()),
+            )
+        };
+        let capture_method = if cfg!(target_os = "macos") || cfg!(target_os = "linux") {
+            "ax"
+        } else {
+            "ocr"
+        };
+        let status = json!({
+            "ts": Utc::now().to_rfc3339(),
+            "version": env!("CARGO_PKG_VERSION"),
+            "accessibility": platform_accessibility_trusted(),
+            "capture_method": capture_method,
+            "last_obs": last_obs,
+            "last_text_at": last_text_at,
+            "paused_until": paused_until,
+        });
+        let path = self.data_dir.join("capture-status.json");
+        let tmp = self.data_dir.join("capture-status.json.tmp");
+        if fs::write(&tmp, status.to_string()).is_ok() {
+            let _ = fs::rename(&tmp, &path);
         }
     }
 
@@ -1062,6 +1112,18 @@ fn firefox_places(home: &Path) -> Vec<(String, PathBuf, BrowserKind)> {
     scan(&home.join(".zen"), "zen", true);
     out
 }
+
+/// Oldest browser visit worth importing, in the browser's own clock unit.
+/// Chromium: micros since 1601-01-01; Firefox: micros since 1970-01-01.
+fn history_cutoff(kind: BrowserKind) -> i64 {
+    let unix_us = (Utc::now() - chrono::Duration::days(HISTORY_IMPORT_DAYS)).timestamp_micros();
+    match kind {
+        BrowserKind::Chromium => unix_us + 11_644_473_600_000_000,
+        BrowserKind::Firefox => unix_us,
+    }
+}
+
+const HISTORY_IMPORT_DAYS: i64 = 30;
 
 fn chrome_time_to_rfc3339(visit_time: i64) -> String {
     let unix_us = visit_time - 11_644_473_600_000_000;

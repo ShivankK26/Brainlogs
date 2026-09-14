@@ -8,13 +8,28 @@ Brainlogs is local-first the way a notebook is: there is no server to trust beca
 
 ## Nothing leaves your machine
 
-Every listener binds to `127.0.0.1`. The only network calls are optional and user-enabled: Ollama on localhost, and read-only connectors you turn on yourself.
+Every listener binds to `127.0.0.1`. The only network calls are optional and user-enabled: Ollama on localhost, Cloud Ask with your own Claude API key (below), and read-only connectors you turn on yourself.
 
 ```bash
 lsof -iTCP -sTCP:LISTEN -P | grep -i brainlog   # only 127.0.0.1
 ```
 
 Verified by `packages/worker/src/listeners.test.ts`.
+
+## Cloud Ask is off, and narrow when on
+
+Ask answers come from the local Ollama model, or from an extractive answer when no model runs. **Cloud Ask** is an
+opt-in switch under *Data & retention* that sends the question plus the cited moments to Claude (`claude-opus-5`)
+using **your own Claude API key**. The key is stored as a 0600 file in the data directory (or read from
+`ANTHROPIC_API_KEY`) and is never shown again in full. Only moments tagged `sensitivity: none` are sent:
+credentials never exist, and finance, health and other people's messages (DMs) stay on this device. The answer
+card says which tier answered and how many moments were withheld. Every Ask, cloud or local, is one audit row.
+
+```bash
+ls -l "$HOME/Library/Application Support/brainlog/anthropic-api-key"   # -rw------- or absent
+```
+
+Verified by `packages/query/src/api.test.ts` ("cloud ask is off by default…").
 
 ## Text, not pixels
 

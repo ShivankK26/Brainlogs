@@ -45,6 +45,27 @@ test("palette: '/' opens, Esc closes, 'Filter memory by' sets a chip, Esc clears
   await expect.poll(() => rows.count()).toBeGreaterThan(5);
 });
 
+test("palette: a question puts Ask first; Memory shows the answer card with clickable citations", async ({ page }) => {
+  await open(page);
+  await page.keyboard.press("ControlOrMeta+k");
+  await page.locator("#pq").fill("why did the vec0 migration fail?");
+  await expect(page.locator("#pres .ri").first()).toContainText("Ask Brainlogs");
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#clearF")).toContainText("Ask: why did the vec0 migration fail?");
+  const card = page.locator("#askCard");
+  await expect(card.locator(".q")).toHaveText("why did the vec0 migration fail?");
+  await expect(card.locator(".m")).toContainText(/cited/);
+  await expect.poll(() => page.locator("#rows .row").count()).toBeGreaterThan(0);
+  await card.locator(".cite").first().click();
+  await expect(page.locator(".row[aria-selected=true]")).toHaveCount(1);
+  await expect(page.locator("#detail .dtitle")).toBeVisible();
+  // a plain term keeps the filter action first
+  await page.keyboard.press("ControlOrMeta+k");
+  await page.locator("#pq").fill("vec0");
+  await expect(page.locator("#pres .ri").first()).toContainText("Filter memory by");
+  await page.keyboard.press("Escape");
+});
+
 test("memory: j/k move the selection and the detail panel follows", async ({ page }) => {
   await open(page);
   await page.keyboard.press("g");

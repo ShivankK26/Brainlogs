@@ -115,3 +115,4 @@ export {
 export { getPolicy, setPolicy, exportEngineRules } from "./repo/policy.js";
 export { writeAudit, updateAudit, listAudit, countAudit } from "./repo/audit.js";
 export { keychainBackend, keychainGet, keychainSet, keychainDelete, KEYCHAIN_SERVICE } from "./keychain.js";
+export { anthropicKeyPath, readAnthropicKey, writeAnthropicKey, deleteAnthropicKey, anthropicKeyHint, anthropicKeySource } from "./cloud-key.js";

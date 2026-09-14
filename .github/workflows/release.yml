@@ -89,6 +89,12 @@ jobs:
           security unlock-keychain -p ci build.keychain
           security import cert.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple: -s -k ci build.keychain
+          # The identity may be self-signed (ADR 0012: a stable identity without an Apple account).
+          # codesign only accepts *trusted* identities, so trust the leaf on this throwaway runner.
+          openssl pkcs12 -in cert.p12 -clcerts -nokeys -passin "pass:$APPLE_CERTIFICATE_PASSWORD" -out cert.pem
+          sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain cert.pem
+          security find-identity -v -p codesigning build.keychain
+          rm -f cert.p12 cert.pem
       # Tauri treats an *empty* APPLE_SIGNING_IDENTITY as "sign with this identity" and fails with
       # "no identity found", so signing variables are exported only when the secrets are set.
       - name: Export signing secrets when present

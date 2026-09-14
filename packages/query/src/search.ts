@@ -1,5 +1,5 @@
 import { getSqlite } from "@brainlog/core";
-import { embedForBrainlog, type Embedder } from "@brainlog/enrich";
+import { embedForBrainlogWithBackend, type Embedder } from "@brainlog/enrich";
 import { ftsQuery, tokenize } from "./terms.js";
 import { highlight } from "./highlight.js";
 import { entitiesForEvents, eventsByIds } from "./store.js";
@@ -72,10 +72,14 @@ export async function search(
     // an FTS syntax edge case should degrade to vectors, never fail the search
   }
   let usedVectors = false;
-  const vec = await embedForBrainlog(input.q, deps.embedder);
-  if (vec) {
+  const emb = await embedForBrainlogWithBackend(input.q, deps.embedder);
+  // When no model answered and the default embedder fell back to hashing, the vector leg only
+  // re-measures token overlap with far worse precision than BM25 (long chunks dilute the
+  // cosine, short questions match everything). Lexical-only is the honest result there.
+  const hashFallback = emb?.backend === "hash" && !deps.embedder;
+  if (emb && !hashFallback) {
     try {
-      lists.push({ ranked: vecCandidates(vec), weight: 0.8 });
+      lists.push({ ranked: vecCandidates(emb.vec), weight: 0.8 });
       usedVectors = true;
     } catch {
       usedVectors = false;

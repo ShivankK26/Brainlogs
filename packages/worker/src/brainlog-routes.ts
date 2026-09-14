@@ -8,8 +8,8 @@ import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { userInfo } from "node:os";
 import { join } from "node:path";
 import { Policy } from "@brainlog/types";
-import { config, countEvents, ensureDataDir, getPolicy, isVecReady, listAudit, purgeExpiredEvents, setPolicy, writeAudit } from "@brainlog/core";
-import { createQueryApi, PolicyDeniedError, type SearchFilters } from "@brainlog/query";
+import { anthropicKeyHint, anthropicKeySource, config, countEvents, deleteAnthropicKey, ensureDataDir, getPolicy, isVecReady, listAudit, purgeExpiredEvents, setPolicy, writeAnthropicKey, writeAudit } from "@brainlog/core";
+import { CLOUD_ASK_MODEL, createQueryApi, PolicyDeniedError, type SearchFilters } from "@brainlog/query";
 import { z } from "zod";
 
 type Reply = (status: number, body: unknown, headers?: Record<string, string>) => void;
@@ -43,6 +43,21 @@ function readControl(): Record<string, unknown> {
   }
 }
 
+/** What the desktop capture engine last reported (apps/desktop capture.rs::write_status_file). */
+type EngineStatus = { ts?: string; version?: string; accessibility?: boolean; capture_method?: string; last_obs?: string | null; last_text_at?: string | null };
+
+function readEngineStatus(): EngineStatus | null {
+  try {
+    const path = join(config.dataDir, "capture-status.json");
+    return existsSync(path) ? (JSON.parse(readFileSync(path, "utf8")) as EngineStatus) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Engine heartbeats every 5 s; two minutes of silence means it is not running. */
+const ENGINE_STALE_MS = 120_000;
+
 function writeControl(patch: Record<string, unknown>): Record<string, unknown> {
   ensureDataDir();
   const next = { ...readControl(), ...patch };
@@ -62,6 +77,7 @@ async function ollamaUp(): Promise<boolean> {
 export async function status() {
   const s = await api().stats();
   const control = readControl();
+  const engine = readEngineStatus();
   const pausedUntil = typeof control.paused_until === "string" ? control.paused_until : null;
   const policy = getPolicy();
   let dbSizeBytes = 0;
@@ -89,7 +105,16 @@ export async function status() {
     dataDir: config.dataDir,
     vecReady: isVecReady(),
     ollama: await ollamaUp(),
-    capture: { paused: Boolean(pausedUntil && pausedUntil > new Date().toISOString()), pausedUntil },
+    capture: {
+      paused: Boolean(pausedUntil && pausedUntil > new Date().toISOString()),
+      pausedUntil,
+      // null = the engine has never reported (CLI-only install, or the app is not running)
+      engineRunning: engine?.ts ? Date.now() - Date.parse(engine.ts) < ENGINE_STALE_MS : null,
+      accessibility: engine && engine.ts && Date.now() - Date.parse(engine.ts) < ENGINE_STALE_MS ? (engine.accessibility ?? null) : null,
+      lastTextAt: engine?.last_text_at ?? null,
+      engineVersion: engine?.version ?? null,
+    },
+    cloudAsk: { enabled: policy.cloudAskEnabled, hasKey: anthropicKeySource() !== null, keySource: anthropicKeySource(), keyHint: anthropicKeyHint(), model: CLOUD_ASK_MODEL },
     retentionDays: policy.retentionDays,
     blockedApps: policy.blockedApps.length,
     blockedDomains: policy.blockedDomains.length,
@@ -198,6 +223,20 @@ export async function handleBrainlogRoute(_req: IncomingMessage, ctx: Ctx): Prom
       const next = setPolicy(Policy.parse({ ...getPolicy(), ...body }));
       writeAudit({ actor: "user", action: "policy_change", scope: Object.keys(body).join(","), result: "ok" });
       return reply(200, next), true;
+    }
+    // Cloud Ask key: written as a 0600 file, never echoed back. Enabling stays a policy change.
+    if ((method === "PUT" || method === "DELETE") && p === "/cloud/key") {
+      if (method === "DELETE") {
+        deleteAnthropicKey();
+        writeAudit({ actor: "user", action: "policy_change", scope: "cloud ask key removed", result: "ok" });
+        return reply(200, { hasKey: anthropicKeySource() !== null, keyHint: anthropicKeyHint() }), true;
+      }
+      const body = await ctx.readJson<{ apiKey?: string }>();
+      const key = typeof body.apiKey === "string" ? body.apiKey.trim() : "";
+      if (!key.startsWith("sk-ant-") || key.length < 20) return reply(400, { error: "That does not look like a Claude API key (sk-ant-…)." }), true;
+      writeAnthropicKey(key);
+      writeAudit({ actor: "user", action: "policy_change", scope: "cloud ask key set", result: "ok" });
+      return reply(200, { hasKey: true, keyHint: anthropicKeyHint() }), true;
     }
     if (method === "POST" && p === "/capture/pause") {
       const body = await ctx.readJson<{ minutes?: number }>();

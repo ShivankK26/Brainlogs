@@ -3,8 +3,8 @@ import { createContext, useCallback, useContext, useMemo, useReducer, type React
 export type Page = "overview" | "memory" | "commitments" | "agents" | "audit" | "privacy";
 export const PAGE_TITLE: Record<Page, string> = { overview: "Pulse", memory: "Memory", commitments: "Commitments", agents: "Agents", audit: "Audit log", privacy: "Data & retention" };
 
-/** A memory filter is either free text (search) or an explicit set of event ids (evidence for a narrative sentence). */
-export type Filter = { kind: "text"; q: string } | { kind: "ids"; ids: string[]; label: string } | null;
+/** A memory filter is free text (search), a question (answer card + cited moments), or an explicit set of event ids (evidence for a narrative sentence). */
+export type Filter = { kind: "text"; q: string } | { kind: "ask"; q: string } | { kind: "ids"; ids: string[]; label: string } | null;
 
 type State = { page: Page; filter: Filter; selected: string | null; paletteOpen: boolean; toast: string | null; reviewOpen: boolean; version: number; userInitials: string };
 type Action =

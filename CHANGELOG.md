@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.11 — 2026-09-14
+
+- **Capture no longer goes blind after an update.** Releases are signed with a stable self-signed identity, so the macOS Accessibility grant survives upgrades (ADR 0012). Upgrading from 1.0.10 or earlier asks for Accessibility one last time.
+- The app now says when it cannot see: a banner with an "Open Accessibility settings" button when window text is unreadable, a different one when the engine is not running, and "Capture blind" in the sidebar. The engine reports its health in `capture-status.json`; `/api/v1/status` exposes it.
+- **Ask from the palette.** Type a question in ⌘K and press Enter: Memory shows an answer card with clickable `[n]` citations that select the cited moment. Questions rank the Ask action first; plain terms keep the filter first.
+- **Cloud Ask (opt-in) with your own Claude API key.** Data & retention gains a key field; when on, answers come from Claude (`claude-opus-5`). Only moments with no sensitivity tag are sent, and the card reports how many were withheld. Local Ollama remains the default; the no-model fallback now explains both options.
+- Search stops using the hashing fallback as a vector leg: without a real embedding model it only re-measured word overlap with worse precision than BM25, which is why questions returned unrelated YouTube history. Lexical ranking is used until a model is available.
+- Browser history import starts at the retention horizon instead of re-importing the whole history (tens of thousands of visits) on every launch.
+
 ## 1.0.10 — 2026-09-14
 
 - The shell reclaims port 3000 from a hung or orphaned core before starting a new one, instead of spinning on "Starting Brainlogs…". The core logs a clear message when the port is taken.
