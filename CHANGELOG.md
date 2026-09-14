@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.10 — 2026-09-14
+
+- The shell reclaims port 3000 from a hung or orphaned core before starting a new one, instead of spinning on "Starting Brainlogs…". The core logs a clear message when the port is taken.
+
 ## 1.0.9 — 2026-09-14
 
 - The purple tile is now the app icon, favicon, sidebar workspace tile and social image; the mono mark stays next to text and in the menu bar. Brand guidelines updated.

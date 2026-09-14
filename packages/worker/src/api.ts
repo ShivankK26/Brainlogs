@@ -1186,6 +1186,14 @@ export function startApiServer(): void {
       }
     });
   });
+  server.on("error", (e: NodeJS.ErrnoException) => {
+    if (e.code === "EADDRINUSE") {
+      log.error("HTTP API could not bind: port already in use. Another Brainlogs core is running (or hung). Quit it from the tray or free the port.", { host: config.host, port: config.port });
+    } else {
+      log.error("HTTP API failed to start", { err: String(e) });
+    }
+    process.exit(1);
+  });
   server.listen(config.port, config.host, () => {
     // §5: the app and the CLI discover the worker through ~/.brainlog/port.
     try {

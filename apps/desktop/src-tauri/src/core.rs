@@ -115,6 +115,16 @@ pub fn core_url() -> String {
     format!("http://127.0.0.1:{}", port())
 }
 
+/// True when anything accepts TCP connections on the core port, healthy or not.
+fn port_in_use() -> bool {
+    use std::net::TcpStream;
+    let addr = format!("127.0.0.1:{}", port());
+    match addr.parse() {
+        Ok(a) => TcpStream::connect_timeout(&a, Duration::from_millis(400)).is_ok(),
+        Err(_) => false,
+    }
+}
+
 /// Read per-install API token written by the Node core.
 pub fn api_token() -> Option<String> {
     let path = data_dir().join("api-token");
@@ -496,6 +506,16 @@ pub fn ensure_core_running() -> Result<(), String> {
     if health_ok() && !core_is_current() {
         stop_core_if_owned();
         thread::sleep(Duration::from_millis(600));
+        if health_ok() {
+            stop_core_on_port(port());
+            thread::sleep(Duration::from_millis(800));
+        }
+    }
+    // Something holds the port but does not answer /api/health (a core from a previous launch
+    // that hung, or a crashed shell's orphan). A new core would die with EADDRINUSE, so reclaim it.
+    if !health_ok() && port_in_use() {
+        stop_core_on_port(port());
+        thread::sleep(Duration::from_millis(800));
     }
 
     let _ = fs::create_dir_all(data_dir());
