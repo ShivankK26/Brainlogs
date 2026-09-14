@@ -12,7 +12,7 @@ mark { background: var(--mark); color: inherit; border-radius: 2px; }
 .sb { background: var(--bg-sidebar); border-right: 1px solid var(--line); display: flex; flex-direction: column; padding: 10px 8px 8px; user-select: none; min-height: 0; }
 .wsbtn { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: var(--r2); width: 100%; text-align: left; font-weight: 500; margin-bottom: 6px; }
 .wsbtn:hover { background: var(--bg-hover); }
-.wsbtn .mark { width: 18px; height: 18px; border-radius: 4px; background: linear-gradient(140deg, #7b86e4, #4d57b8); display: grid; place-items: center; font-size: 10px; font-weight: 700; color: #fff; }
+.wsbtn .mark { width: 20px; height: 20px; color: var(--t1); flex: none; }
 .wsbtn .chev { color: var(--t3); margin-left: 2px; }
 .wsbtn .u { margin-left: auto; width: 18px; height: 18px; border-radius: 50%; background: #2e3b8f; font-size: 9px; font-weight: 600; display: grid; place-items: center; color: #dde1ff; }
 .sb-search { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: var(--r2); border: 1px solid var(--line); background: var(--bg-input); color: var(--t3); margin: 2px 0 10px; width: 100%; text-align: left; }

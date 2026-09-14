@@ -1,4 +1,4 @@
-# Brainlogs
+<p><picture><source media="(prefers-color-scheme: dark)" srcset="packages/ui/brand/lockup-dark.svg"><img src="packages/ui/brand/lockup-light.svg" alt="Brainlogs" width="300"></picture></p>
 
 **It's your second brain.**
 

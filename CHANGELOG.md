@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.8 — 2026-09-14
+
+- New Brainlogs identity: the Loop B mark (two open loops on a stem, faded older loop, purple dot). Applied to the app icon, menu-bar template icon, favicons, in-app wordmark, landing page, README and a social image. Brand guidelines in `docs/brand.md` and on the site.
+
 ## 1.0.7 — 2026-09-14
 
 - No more keychain password prompts: the master key defaults to the user-only `master.key` file; the OS keychain is opt-in (`BRAINLOG_USE_KEYCHAIN=1`) and writes are verified by read-back.

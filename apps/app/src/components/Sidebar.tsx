@@ -15,7 +15,7 @@ export function Sidebar({ status, entities }: { status: Status | null; entities:
   return (
     <nav className="sb" aria-label="Primary">
       <button className="wsbtn">
-        <span className="mark">B</span>Brainlogs<IcChev /><span className="u">{status?.user.initials ?? "··"}</span>
+        <svg className="mark" viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="12"><path d="M 24 20 H 50 A 13 13 0 0 1 50 46 H 24" opacity=".45"/><path d="M 24 46 H 56 A 18 18 0 0 1 56 82 H 24"/><path d="M 24 18 V 82"/></g><circle cx="82" cy="78" r="7.5" fill="#5E6AD2"/></svg>Brainlogs<IcChev /><span className="u">{status?.user.initials ?? "··"}</span>
       </button>
       <button className="sb-search" id="openPal" onClick={openPalette}>
         <IcSearch />Search or jump to<kbd>⌘K</kbd>

@@ -385,7 +385,8 @@ fn main() {
             let _tray = TrayIconBuilder::new()
                 .menu(&menu)
                 .tooltip("Brainlogs")
-                .icon(app.default_window_icon().unwrap().clone())
+                .icon(tauri::image::Image::from_bytes(include_bytes!("../icons/tray.png"))?)
+                .icon_as_template(true)
                 .on_menu_event(move |app, event| match event.id.as_ref() {
                     "show" => show_main(app),
                     "pause" => {
