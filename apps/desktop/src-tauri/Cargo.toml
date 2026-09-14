@@ -1,6 +1,6 @@
 [package]
 name = "brainlog-desktop"
-version = "1.0.12"
+version = "1.0.13"
 description = "Brainlogs tray app + PC capture engine"
 authors = ["local"]
 edition = "2021"
@@ -15,6 +15,8 @@ tauri-plugin-autostart = "2"
 tauri-plugin-global-shortcut = "2"
 tauri-plugin-single-instance = "2"
 tauri-plugin-notification = "2"
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }

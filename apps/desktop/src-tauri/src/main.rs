@@ -335,6 +335,9 @@ fn main() {
         }))
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_notification::init())
+        // In-app updates: the UI calls window.__TAURI__.updater / .process (ADR 0013).
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .manage(AppState {
             engine: engine.clone(),
         })

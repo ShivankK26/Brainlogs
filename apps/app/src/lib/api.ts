@@ -1,4 +1,4 @@
-import type { AskResult, AuditEntry, Commitment, Entity, Event, MomentResult, Note, Pending, Policy, Pulse, SearchResult, Status, TimelineDetailed } from "./types";
+import type { AskResult, AuditEntry, Commitment, Entity, Event, Facets, MomentResult, Note, Pending, Policy, Pulse, QueryFilters, SearchResult, Status, TimelineDetailed } from "./types";
 
 class ApiError extends Error {
   constructor(
@@ -31,7 +31,8 @@ export const api = {
   status: () => req<Status>("/status"),
   search: (q: string, limit = 50, filters: Record<string, string | undefined> = {}) => req<SearchResult>(`/search${qs({ q, limit, ...filters })}`),
   moment: (eventId: string) => req<MomentResult>(`/moment/${encodeURIComponent(eventId)}`),
-  timeline: (from: string, to: string, limit = 1000) => req<TimelineDetailed>(`/timeline/detailed${qs({ from, to, limit })}`),
+  timeline: (from: string, to: string, limit = 1000, filters: QueryFilters = {}) => req<TimelineDetailed>(`/timeline/detailed${qs({ ...filters, from, to, limit })}`),
+  facets: (days = 30) => req<Facets>(`/facets${qs({ days })}`),
   entities: (limit = 6) => req<Entity[]>(`/entities${qs({ limit })}`),
   commitments: () => req<Commitment[]>("/commitments"),
   pulse: (date?: string) => req<Pulse>(`/pulse${qs({ date })}`),

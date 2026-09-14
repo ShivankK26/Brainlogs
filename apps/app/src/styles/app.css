@@ -222,3 +222,18 @@ td .t2 { color: var(--t3); font-size: 11.5px; margin-top: 2px; }
 .askcard .cite { color: var(--brand); font-weight: 600; padding: 0 2px; border-radius: 3px; }
 .askcard .cite:hover { background: var(--bg-hover); }
 .askcard .m { font-size: 11.5px; color: var(--t3); margin-top: 4px; }
+
+/* ============ filter panel ============ */
+.fbar { position: sticky; }
+.fpanel { position: absolute; top: 40px; left: 14px; z-index: 5; width: 520px; max-width: calc(100% - 28px); background: var(--bg-panel); border: 1px solid var(--line-2); border-radius: var(--r3); box-shadow: var(--shadow); padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.fpanel .frow { display: flex; gap: 10px; }
+.fpanel .ff { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; font-size: 12px; color: var(--t3); }
+.fpanel .ff input, .fpanel .ff select { background: var(--bg-input); border: 1px solid var(--line-2); border-radius: var(--r2); padding: 5px 8px; font-size: 12.5px; color: var(--t1); width: 100%; color-scheme: dark; }
+.fpanel .ff input:focus, .fpanel .ff select:focus { outline: none; border-color: var(--brand); }
+.fpanel .facts { display: flex; gap: 6px; align-items: center; padding-top: 4px; border-top: 1px solid var(--line); }
+.fpanel .facts .sp { flex: 1; }
+
+/* ============ updater ============ */
+.sb .upd { display: block; width: 100%; text-align: left; margin: 0 0 6px; padding: 6px 8px; border-radius: var(--r2); background: var(--brand-soft); color: var(--t1); font-size: 12px; font-weight: 500; border: 1px solid transparent; }
+.sb .upd:hover { border-color: var(--brand); }
+.sb .upd:disabled { opacity: 0.7; }

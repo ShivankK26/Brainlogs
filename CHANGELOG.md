@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.13 — 2026-09-15
+
+- **Brainlogs updates itself.** The sidebar shows "Update to x.y.z · restart" when a newer release exists; one click downloads the signed archive, verifies it, replaces the app in place and relaunches (ADR 0013). No more deleting and re-dragging. Update checks need the release to be reachable, so they start working once the repository is public.
+- **A new install replaces an old running core.** The shell now compares the core's bundle version with its own and recycles a stale core instead of reusing it, so the UI and API can no longer be different versions after an update.
+- **Real filters in Memory.** The Filter button opens a panel: text, app, domain, person, repo or branch, and a date range, with apps and domains suggested from the last 30 days. ⌘K remains the fast search.
+- The no-model Ask answer shows local times, no longer repeats the title, and answers "when …" questions with the time of the newest match.
+
 ## 1.0.12 — 2026-09-14
 
 - Memory showed 10 September instead of today: the 7-day timeline was capped at 2000 events *after* sorting oldest-first, so a busy week hid its newest days. The cap now keeps the newest events. The count pill says "newest 2000 events" when the cap applies.

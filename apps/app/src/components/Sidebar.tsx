@@ -1,6 +1,7 @@
 import type { Entity, Status } from "../lib/types";
 import { KIND_COLOR, bytes, compact } from "../lib/format";
 import { useStore, type Page } from "../state/store";
+import { useUpdater } from "../lib/updater";
 import { IcAgent, IcAudit, IcCheck, IcChev, IcMemory, IcPulse, IcSearch, IcShield } from "./Icons";
 
 /** One line for the sidebar foot: paused beats blind beats engine-down beats active. */
@@ -16,6 +17,7 @@ export function captureHealth(status: Status | null): { label: string; tone: "ok
 export function Sidebar({ status, entities }: { status: Status | null; entities: Entity[] }) {
   const { page, go, openPalette, setFilter } = useStore();
   const health = captureHealth(status);
+  const upd = useUpdater();
   const Item = ({ p, icon, label, count }: { p: Page; icon: React.ReactNode; label: string; count?: string | number }) => (
     <button className="item" data-page={p} aria-current={page === p ? "page" : undefined} onClick={() => go(p)}>
       {icon}
@@ -50,6 +52,11 @@ export function Sidebar({ status, entities }: { status: Status | null; entities:
         <Item p="privacy" icon={<IcShield />} label="Data & retention" />
       </div>
       <div className="bottom">
+        {upd.available ? (
+          <button className="upd" id="updBtn" disabled={upd.phase === "downloading" || upd.phase === "ready"} onClick={upd.install} title={upd.available.body ?? undefined}>
+            {upd.phase === "downloading" ? "Downloading update…" : upd.phase === "ready" ? "Restarting…" : upd.phase === "error" ? `Update failed: ${upd.error ?? "retry"}` : `Update to ${upd.available.version} · restart`}
+          </button>
+        ) : null}
         <div className="stat" id="capStat" data-tone={health.tone}><i className={health.tone === "ok" ? "" : health.tone} />{health.label} · all data on this device</div>
         <div className="stat" style={{ paddingTop: 0 }}>
           {status ? `${status.ollama ? "Local model" : "No local model"} · ${bytes(status.dbSizeBytes)} · ${status.retentionDays} days` : "Connecting…"}

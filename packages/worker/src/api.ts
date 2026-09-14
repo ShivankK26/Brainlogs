@@ -280,7 +280,9 @@ async function handle(
     reply(200, {
       ok: true,
       dataDir: config.dataDir,
-      apiVersion: 14,
+      apiVersion: 15,
+      // Set by the desktop shell at spawn; lets a newer shell recycle a core from an older install.
+      bundleVersion: process.env.BRAINLOG_BUNDLE_VERSION ?? null,
       features: [
         "spam",
         "wake",

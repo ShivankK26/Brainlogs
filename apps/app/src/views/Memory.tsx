@@ -8,6 +8,16 @@ import { Header } from "../components/Header";
 import { EntityLbls, Marked, Pri, St } from "../components/Bits";
 import { IcFilter } from "../components/Icons";
 import { MemoryDetail } from "./MemoryDetail";
+import { FilterPanel, describeQuery } from "../components/FilterPanel";
+import type { QueryFilters } from "../lib/types";
+
+/** Date-only bounds become full-day ISO bounds in the user's local zone. */
+function isoBounds(from?: string, to?: string): { from?: string; to?: string } {
+  const out: { from?: string; to?: string } = {};
+  if (from) out.from = new Date(`${from}T00:00:00`).toISOString();
+  if (to) out.to = new Date(`${to}T23:59:59.999`).toISOString();
+  return out;
+}
 
 type Row = { event: Event; entities: Entity[]; highlight?: Highlight };
 
@@ -48,9 +58,10 @@ function linkedCommitments(e: Event, all: Commitment[]): Commitment[] {
 }
 
 export function Memory() {
-  const { filter, setFilter, selected, select, openPalette, version, userInitials } = useStore();
+  const { filter, setFilter, selected, select, version, userInitials } = useStore();
   const [days, setDays] = useState(7);
   const [askRes, setAskRes] = useState<AskResult | null>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
   useEffect(() => setAskRes(null), [filter]);
 
   const rows = useAsync<Row[]>(async () => {
@@ -67,6 +78,17 @@ export function Memory() {
     if (filter?.kind === "ids") {
       const evs = await api.eventsByIds(filter.ids);
       return evs.map((event) => ({ event, entities: [] }));
+    }
+    if (filter?.kind === "query") {
+      const f: QueryFilters = { app: filter.app, domain: filter.domain, person: filter.person, repo: filter.repo, ...isoBounds(filter.from, filter.to) };
+      if (filter.q) {
+        const r = await api.search(filter.q, 200, f as Record<string, string | undefined>);
+        return r.hits.map((h) => ({ event: h.event, entities: h.entities, highlight: h.highlights[0] }));
+      }
+      const to = f.to ?? new Date().toISOString();
+      const from = f.from ?? new Date(Date.now() - days * 86_400_000).toISOString();
+      const t = await api.timeline(from, to, 2000, f);
+      return [...t.events].reverse().map((event) => ({ event, entities: t.entities[event.id] ?? [] }));
     }
     const to = new Date().toISOString();
     const from = new Date(Date.now() - days * 86_400_000).toISOString();
@@ -117,7 +139,7 @@ export function Memory() {
     document.querySelector<HTMLElement>(`.row[data-id="${CSS.escape(selected)}"]`)?.scrollIntoView({ block: "nearest" });
   }, [selected]);
 
-  const chipLabel = filter?.kind === "text" ? filter.q : filter?.kind === "ask" ? `Ask: ${filter.q}` : filter?.kind === "ids" ? filter.label : null;
+  const chipLabel = filter?.kind === "text" ? filter.q : filter?.kind === "ask" ? `Ask: ${filter.q}` : filter?.kind === "query" ? describeQuery(filter) : filter?.kind === "ids" ? filter.label : null;
 
   return (
     <>
@@ -125,7 +147,8 @@ export function Memory() {
       <div className="body" id="memBody">
         <div className="list">
           <div className="fbar">
-            <button className="tb outl" id="filterBtn" onClick={openPalette}><IcFilter />Filter</button>
+            <button className="tb outl" id="filterBtn" aria-expanded={panelOpen} onClick={() => setPanelOpen((o) => !o)}><IcFilter />Filter</button>
+            {panelOpen ? <FilterPanel current={filter?.kind === "query" ? filter : null} onApply={setFilter} onClose={() => setPanelOpen(false)} /> : null}
             {chipLabel ? <button className="chip" id="clearF" onClick={() => setFilter(null)}>{chipLabel}<span className="x">✕</span></button> : null}
             <span className="sp" />
             <span className="pill">{rows.loading ? "Loading…" : list.length >= 2000 && !filter ? `newest ${list.length} events` : `${list.length} events`}</span>
@@ -134,7 +157,7 @@ export function Memory() {
             {rows.error ? <div className="err">{rows.error}</div> : null}
             {filter?.kind === "ask" ? <AskCard question={filter.q} result={askRes} loading={rows.loading && !askRes} onCite={select} /> : null}
             {!rows.loading && list.length === 0 && filter?.kind !== "ask" ? (
-              <div className="empty">{filter ? <>No events match. Press <kbd>⌘K</kbd> to search across everything.</> : <>Nothing captured in the last {days} days. Start the desktop app to begin capturing.</>}</div>
+              <div className="empty">{filter ? <>No events match. Adjust the filter, or press <kbd>⌘K</kbd> to search across everything.</> : <>Nothing captured in the last {days} days. Start the desktop app to begin capturing.</>}</div>
             ) : null}
             {groups.map(([day, rs]) => (
               <div key={day}>

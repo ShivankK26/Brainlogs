@@ -66,6 +66,31 @@ test("palette: a question puts Ask first; Memory shows the answer card with clic
   await page.keyboard.press("Escape");
 });
 
+test("memory: the Filter button opens a panel; app + text filters apply and clear", async ({ page }) => {
+  await open(page);
+  await page.locator(".item[data-page=memory]").click();
+  await page.locator("#filterBtn").click();
+  await expect(page.locator("#filterPanel")).toBeVisible();
+  const apps = page.locator("#filterPanel select").first();
+  await expect.poll(async () => apps.locator("option").count()).toBeGreaterThan(1);
+  await apps.selectOption({ index: 1 });
+  const chosen = await apps.inputValue();
+  await page.locator("#fapply").click();
+  await expect(page.locator("#filterPanel")).toHaveCount(0);
+  await expect(page.locator("#clearF")).toContainText(`app: ${chosen}`);
+  const rows = page.locator("#rows .row");
+  await expect.poll(() => rows.count()).toBeGreaterThan(0);
+  for (const t of await rows.locator(".meta span:nth-last-child(3)").allTextContents()) expect(t).toBe(chosen);
+  await page.locator("#filterBtn").click();
+  await page.locator("#fq").fill("pricing");
+  await page.locator("#fapply").click();
+  await expect(page.locator("#clearF")).toContainText("“pricing”");
+  await expect(rows.first()).toContainText(/pricing/i);
+  await page.locator("#filterBtn").click();
+  await page.locator("#fclear").click();
+  await expect(page.locator("#clearF")).toHaveCount(0);
+});
+
 test("memory: j/k move the selection and the detail panel follows", async ({ page }) => {
   await open(page);
   await page.keyboard.press("g");

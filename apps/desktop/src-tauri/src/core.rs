@@ -170,18 +170,63 @@ pub fn health_ok() -> bool {
 }
 
 /// Current desktop expects these API capabilities (bump with worker health.apiVersion).
-const REQUIRED_API_VERSION: i32 = 14;
+const REQUIRED_API_VERSION: i32 = 15;
 
 pub fn core_api_version() -> Option<i32> {
+    core_health_versions().0
+}
+
+/// The core must speak this shell's API *and* come from this shell's bundle. A core left
+/// running from a previous install answers /api/health happily while serving old code (and,
+/// after the .app is replaced underneath it, the new UI on top of the old API).
+pub fn core_is_current() -> bool {
+    let (api, bundle) = core_health_versions();
+    if api.unwrap_or(0) < REQUIRED_API_VERSION {
+        return false;
+    }
+    match bundle {
+        Some(v) => v == env!("CARGO_PKG_VERSION"),
+        // Older cores do not report a bundle version: treat as stale so they get recycled once.
+        None => false,
+    }
+}
+
+/// `apiVersion` (integer) and `bundleVersion` (string) from /api/health, when reachable.
+fn core_health_versions() -> (Option<i32>, Option<String>) {
+    let Some(buf) = health_body() else {
+        return (None, None);
+    };
+    let api = {
+        let key = "\"apiVersion\":";
+        buf.find(key).and_then(|idx| {
+            let rest = &buf[idx + key.len()..];
+            let digits: String = rest
+                .chars()
+                .skip_while(|c| c.is_whitespace())
+                .take_while(|c| c.is_ascii_digit())
+                .collect();
+            digits.parse().ok()
+        })
+    };
+    let bundle = {
+        let key = "\"bundleVersion\":\"";
+        buf.find(key).map(|idx| {
+            let rest = &buf[idx + key.len()..];
+            rest.chars().take_while(|c| *c != '"').collect::<String>()
+        })
+    };
+    (api, bundle)
+}
+
+fn health_body() -> Option<String> {
     use std::io::{Read, Write};
     use std::net::TcpStream;
     let addr = format!("127.0.0.1:{}", port());
-    let Ok(mut stream) = TcpStream::connect_timeout(
+    let mut stream = TcpStream::connect_timeout(
         &addr.parse().unwrap_or_else(|_| "127.0.0.1:3000".parse().unwrap()),
         Duration::from_millis(400),
-    ) else {
-        return None;
-    };
+    )
+    .ok()?;
     let _ = stream.set_read_timeout(Some(Duration::from_millis(800)));
     let _ = stream.set_write_timeout(Some(Duration::from_millis(800)));
     let req = format!(
@@ -189,24 +234,10 @@ pub fn core_api_version() -> Option<i32> {
         port(),
         auth_headers()
     );
-    if stream.write_all(req.as_bytes()).is_err() {
-        return None;
-    }
+    stream.write_all(req.as_bytes()).ok()?;
     let mut buf = String::new();
     let _ = stream.read_to_string(&mut buf);
-    let key = "\"apiVersion\":";
-    let idx = buf.find(key)?;
-    let rest = &buf[idx + key.len()..];
-    let digits: String = rest
-        .chars()
-        .skip_while(|c| c.is_whitespace())
-        .take_while(|c| c.is_ascii_digit())
-        .collect();
-    digits.parse().ok()
-}
-
-pub fn core_is_current() -> bool {
-    core_api_version().unwrap_or(0) >= REQUIRED_API_VERSION
+    Some(buf)
 }
 
 fn repo_root() -> Option<PathBuf> {
@@ -530,6 +561,7 @@ pub fn ensure_core_running() -> Result<(), String> {
             .env("WEB_DIST", &b.ui_dir)
             .env("BRAINLOG_MIGRATIONS_DIR", b.core_dir.join("drizzle"))
             .env("SQLITE_VEC_EXT", b.core_dir.join("native").join(vec_lib_name()))
+            .env("BRAINLOG_BUNDLE_VERSION", env!("CARGO_PKG_VERSION"))
             .env("BRAIN_SKIP_WEB_BUILD", "1");
         return spawn_core(cmd, &core_err);
     }

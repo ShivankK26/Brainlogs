@@ -78,11 +78,46 @@ export async function claudeChat(system: string, user: string, apiKey = readAnth
 }
 
 function fmtTs(ts: string): string {
-  return ts.slice(0, 16).replace("T", " ");
+  // The core runs on the user's machine, so the process zone is the user's zone.
+  return new Date(ts).toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+}
+
+/** Title plus the first line of text, unless the text just repeats the title. */
+function headline(h: SearchHit): string {
+  const first = h.event.text.split("\n").map((l) => l.trim()).find((l) => l.length > 0) ?? "";
+  const title = h.event.windowTitle.trim();
+  if (!first || first === title || title.includes(first)) return title || first;
+  if (!title || first.includes(title)) return first.slice(0, 160);
+  return `${title}: ${first.slice(0, 160)}`;
 }
 
 function evidenceOf(hits: SearchHit[]): string {
   return hits.map((h, i) => `[${i + 1}] ${fmtTs(h.event.ts)} · ${h.event.app} · ${h.event.windowTitle}\n${h.event.text.slice(0, 600)}`).join("\n\n");
+}
+
+/**
+ * No model at all: answer what can be answered from the hits' metadata. "When" questions get the
+ * time of the newest match; everything else gets the closest moments, newest first.
+ */
+function extractiveAnswer(question: string, hits: SearchHit[]): { answer: string; citations: string[] } {
+  const byTime = [...hits].sort((a, b) => b.event.ts.localeCompare(a.event.ts));
+  const top = hits.slice(0, 3);
+  const lines: string[] = [];
+  if (/^\s*when\b/i.test(question) && byTime[0]) {
+    const h = byTime[0];
+    lines.push(`Most recent match: ${fmtTs(h.event.ts)} — ${headline(h)} (${h.event.app}) [${hits.indexOf(h) + 1}]`);
+    if (byTime.length > 1) lines.push(`Earlier: ${byTime.slice(1, 3).map((x) => `${fmtTs(x.event.ts)} [${hits.indexOf(x) + 1}]`).join(", ")}`);
+  } else {
+    lines.push("Closest moments:");
+    for (const [i, h] of top.entries()) lines.push(`[${i + 1}] ${fmtTs(h.event.ts)} · ${h.event.app} · ${headline(h)}`);
+  }
+  lines.push("No model is running to write a fuller answer. Install Ollama for local answers, or add a Claude API key under Data & retention.");
+  const cited = new Set<string>();
+  for (const m of lines.join("\n").matchAll(/\[(\d+)\]/g)) {
+    const h = hits[Number(m[1]) - 1];
+    if (h) cited.add(h.event.id);
+  }
+  return { answer: lines.join("\n"), citations: [...cited] };
 }
 
 function citationsOf(text: string, hits: SearchHit[]): string[] {
@@ -115,10 +150,6 @@ export async function ask(input: { question: string; scope?: SearchFilters }, pe
   const text = await chat(SYSTEM, `Question: ${input.question}\n\nEvidence:\n${evidenceOf(hits)}`);
   if (text) return { answer: text, citations: citationsOf(text, hits), model: localAskModel(), via: "local" };
 
-  const top = hits.slice(0, 3);
-  const answer = [
-    "No model is available to write an answer, so here are the closest moments. Install Ollama for local answers, or add a Claude API key under Data & retention.",
-    ...top.map((h, i) => `[${i + 1}] ${fmtTs(h.event.ts)} · ${h.event.app} · ${h.event.windowTitle}: ${h.event.text.split("\n")[0]?.slice(0, 160)}`),
-  ].join("\n");
-  return { answer, citations: top.map((h) => h.event.id), model: "extractive", via: "none" };
+  const ex = extractiveAnswer(input.question, hits);
+  return { answer: ex.answer, citations: ex.citations, model: "extractive", via: "none" };
 }

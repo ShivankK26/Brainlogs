@@ -12,6 +12,8 @@
 | Windows | unsigned | `TAURI_SIGNING_*` for the Tauri updater; Authenticode via `signtool` once a certificate exists |
 | Linux | unsigned | unsigned (`.deb`/`.AppImage` checksums are on the release) |
 
+In-app updates (ADR 0013): the publish job writes `latest.json` next to the installers; `TAURI_SIGNING_PRIVATE_KEY(_PASSWORD)` sign the update archives with the minisign key whose public half is in `tauri.conf.json`. Rotate with `pnpm --filter @brainlog/desktop exec tauri signer generate -w updater.key -p <password> --ci`, then update the pubkey and both secrets.
+
 Secrets read by the workflow: `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID`, `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`, `TAURI_SIGNING_PRIVATE_KEY`, `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`, `NPM_TOKEN`. All optional: the workflow degrades to ad-hoc signed artifacts with a warning.
 
 Rotating the self-signed identity (only if the key is lost; users re-grant Accessibility once):

@@ -6,6 +6,9 @@ export type SearchHit = { event: Event; score: number; highlights: Highlight[]; 
 export type SearchResult = { hits: SearchHit[]; total: number; usedVectors: boolean };
 export type MomentResult = { focus: Event; entities: Entity[]; alsoOnScreen: Event[]; before: Event[]; after: Event[] };
 export type TimelineDetailed = { events: Event[]; entities: Record<string, Entity[]> };
+export type Facets = { days: number; apps: Array<{ name: string; count: number }>; domains: Array<{ name: string; count: number }> };
+/** Server-side filters accepted by /search and /timeline. */
+export type QueryFilters = { app?: string; domain?: string; person?: string; repo?: string; from?: string; to?: string };
 export type AskResult = { answer: string; citations: string[]; model: string; via: "cloud" | "local" | "none"; withheld?: number };
 export type Pending = { notes: Note[]; edges: Edge[] };
 export type Status = {

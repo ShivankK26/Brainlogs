@@ -69,3 +69,7 @@ pnpm dev:worker    # local core
 pnpm dev:desktop   # Tauri shell + capture engine (needs Rust)
 pnpm bundle:core   # stage the sidecar Node + bundled worker the installer ships
 ```
+
+## Updating
+
+Brainlogs checks GitHub Releases on launch and every six hours. When a newer version exists the sidebar shows **Update to x.y.z · restart**; one click downloads the signed archive, verifies it, swaps the app in place and relaunches. Installing by hand (drag the new `.dmg` over the old app, or rerun `install.sh`) always works too.

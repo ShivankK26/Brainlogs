@@ -123,7 +123,7 @@ jobs:
         run: |
           mkdir -p out
           find apps/desktop/src-tauri/target -path '*/release/bundle/*' -type f \
-            \( -name '*.dmg' -o -name '*.msi' -o -name '*.exe' -o -name '*.deb' -o -name '*.AppImage' -o -name '*.rpm' \) \
+            \( -name '*.dmg' -o -name '*.msi' -o -name '*.exe' -o -name '*.deb' -o -name '*.AppImage' -o -name '*.rpm' -o -name '*.app.tar.gz' -o -name '*.sig' \) \
             -exec cp {} out/ \;
           ls -la out
       - uses: actions/upload-artifact@v4
@@ -147,6 +147,10 @@ jobs:
         run: |
           cd bundles && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
           cp ../tooling/release/install.sh .
+      # Updater manifest: Tauri's updater fetches latest.json from the latest release and compares
+      # `version`; each platform entry points at the signed artifact (minisign .sig next to it).
+      - name: Updater manifest (latest.json)
+        run: node tooling/release/latest-json.mjs "$TAG" bundles > bundles/latest.json && cat bundles/latest.json
           echo "20 20 12 61 79 80 81 701 33 98 100 204 250 395 398 399 400cat SHA256SUMS.txt | wc -l) artifacts"
       - name: Create or update the draft release
         env:
@@ -156,7 +160,7 @@ jobs:
           set -e
           if ! gh release view "$TAG" >/dev/null 2>&1; then
             gh release create "$TAG" --draft --verify-tag --title "Brainlogs $TAG" \
-              --notes "See CHANGELOG.md. Nothing leaves your machine. macOS builds are unsigned until Apple credentials are configured: right-click → Open on first launch." \
+              --notes "See CHANGELOG.md. Nothing leaves your machine. macOS: first launch of a downloaded .dmg needs right-click → Open (no Apple notarization); the app updates itself from here afterwards." \
               $([[ "$TAG" == *-* ]] && echo --prerelease)
           fi
           gh release upload "$TAG" bundles/* --clobber

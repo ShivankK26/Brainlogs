@@ -8,7 +8,7 @@ import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { userInfo } from "node:os";
 import { join } from "node:path";
 import { Policy } from "@brainlog/types";
-import { anthropicKeyHint, anthropicKeySource, config, countEvents, deleteAnthropicKey, ensureDataDir, getPolicy, isVecReady, listAudit, purgeExpiredEvents, setPolicy, writeAnthropicKey, writeAudit } from "@brainlog/core";
+import { anthropicKeyHint, anthropicKeySource, config, countEvents, deleteAnthropicKey, ensureDataDir, getPolicy, getSqlite, isVecReady, listAudit, purgeExpiredEvents, setPolicy, writeAnthropicKey, writeAudit } from "@brainlog/core";
 import { CLOUD_ASK_MODEL, createQueryApi, PolicyDeniedError, type SearchFilters } from "@brainlog/query";
 import { z } from "zod";
 
@@ -149,6 +149,15 @@ export async function handleBrainlogRoute(_req: IncomingMessage, ctx: Ctx): Prom
   const p = path.slice("/api/v1".length);
   try {
     if (method === "GET" && p === "/status") return reply(200, await status()), true;
+    // Distinct apps and domains seen recently, for the Memory filter panel.
+    if (method === "GET" && p === "/facets") {
+      const days = Math.min(365, Math.max(1, Number(query.get("days") ?? 30)));
+      const since = new Date(Date.now() - days * 86_400_000).toISOString();
+      const sqlite = getSqlite();
+      const apps = sqlite.prepare("SELECT app AS name, count(*) AS count FROM events WHERE ts >= ? GROUP BY app ORDER BY count DESC LIMIT 40").all(since);
+      const domains = sqlite.prepare("SELECT domain AS name, count(*) AS count FROM events WHERE ts >= ? AND domain IS NOT NULL AND domain != '' GROUP BY domain ORDER BY count DESC LIMIT 40").all(since);
+      return reply(200, { days, apps, domains }), true;
+    }
     if (method === "GET" && p === "/search") {
       const limit = Number(query.get("limit") ?? 20);
       return reply(200, await api().search({ q: query.get("q") ?? "", filters: filtersFrom(query), limit })), true;
