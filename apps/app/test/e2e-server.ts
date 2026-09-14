@@ -2,7 +2,7 @@
  * Boots a worker on a throwaway data dir, seeds it from the capture fixture spool,
  * plants a proposed agent note and some audit rows, and serves the built app.
  */
-import { cpSync, mkdtempSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -27,8 +27,18 @@ const { startApiServer } = await import("@brainlog/worker");
 core.ensureDataDir();
 core.migrate();
 core.setPolicy({ ...core.getPolicy(), blockedDomains: ["mail.google.com"] });
-cpSync(join(here, "..", "..", "..", "packages", "capture", "fixtures", "spool"), core.config.spoolDir, { recursive: true });
-await ingestSpool({ platform: "darwin", now: new Date("2026-09-12T12:00:00.000Z") });
+// Shift the fixture so its events land in the current week: Pulse and the retention cutoff then see "this week" data
+// no matter when the suite runs.
+const fixture = join(here, "..", "..", "..", "packages", "capture", "fixtures", "spool", "obs-2026-09-09.jsonl");
+const anchor = Date.parse("2026-09-09T15:31:00.000Z");
+const shift = Date.now() - 2 * 3_600_000 - anchor;
+const shifted = readFileSync(fixture, "utf8")
+  .split("\n")
+  .map((line) => line.replace(/"ts":"([^"]+)"/, (_m, ts: string) => `"ts":"${new Date(Date.parse(ts) + shift).toISOString()}"`))
+  .join("\n");
+mkdirSync(core.config.spoolDir, { recursive: true });
+writeFileSync(join(core.config.spoolDir, "obs-now.jsonl"), shifted);
+await ingestSpool({ platform: "darwin" });
 setDefaultEmbedder(hashEmbedder);
 await embedPendingBrainlogChunks({ embedder: hashEmbedder });
 
@@ -43,7 +53,7 @@ db.insert(s.entities).values({ id: "ent-repo", kind: "repo", name: "brainlog", n
 for (const e of dm) db.insert(s.eventEntities).values({ eventId: e.id, entityId: "ent-priya" }).run();
 for (const e of term) db.insert(s.eventEntities).values({ eventId: e.id, entityId: "ent-repo" }).run();
 db.insert(s.commitments)
-  .values({ id: "cmt-spec", text: "Memory-layer spec", fromParty: "you", toParty: "Priya", dueAt: "2026-09-11T17:00:00.000Z", status: "overdue", evidenceJson: JSON.stringify([dm[0]!.id]), createdAt: dm[0]!.ts, updatedAt: dm[0]!.ts })
+  .values({ id: "cmt-spec", text: "Memory-layer spec", fromParty: "you", toParty: "Priya", dueAt: new Date(Date.now() - 3_600_000).toISOString(), status: "overdue", evidenceJson: JSON.stringify([dm[0]!.id]), createdAt: dm[0]!.ts, updatedAt: dm[0]!.ts })
   .run();
 db.insert(s.commitments)
   .values({ id: "cmt-vec", text: "Fix vec0 load order on feat/graph-edges", fromParty: "you", toParty: "yourself", dueAt: null, status: "open", evidenceJson: JSON.stringify([term[1]!.id]), createdAt: term[1]!.ts, updatedAt: term[1]!.ts })

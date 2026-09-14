@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { api } from "../lib/api";
 import { useAsync } from "../lib/useAsync";
 import { dateLabelUTC, hours } from "../lib/format";
@@ -17,7 +17,9 @@ function splitSentences(md: string): string[] {
 
 export function Pulse() {
   const { version, setFilter, go } = useStore();
-  const pulse = useAsync(() => api.pulse(), [version]);
+  const [weekOffset, setWeekOffset] = useState(0);
+  const date = useMemo(() => new Date(Date.now() + weekOffset * 7 * 86_400_000).toISOString().slice(0, 10), [weekOffset]);
+  const pulse = useAsync(() => api.pulse(date), [version, date]);
   const p = pulse.data;
   const sentences = useMemo(() => (p?.summary ? splitSentences(p.summary.markdown) : []), [p?.summary]);
   const max = Math.max(1, ...(p?.timeByProject.map((x) => x.ms) ?? [1]));
@@ -34,10 +36,17 @@ export function Pulse() {
 
   return (
     <>
-      <Header />
+      <Header
+        right={
+          <>
+            <button className="tb outl" id="weekPrev" onClick={() => setWeekOffset((w) => w - 1)} aria-label="Previous week">←</button>
+            <button className="tb outl" id="weekNext" onClick={() => setWeekOffset((w) => Math.min(0, w + 1))} disabled={weekOffset === 0} aria-label="Next week">→</button>
+          </>
+        }
+      />
       <div className="pg-wrap">
         <div className="pg">
-          <h1>This week</h1>
+          <h1>{weekOffset === 0 ? "This week" : weekOffset === -1 ? "Last week" : ` weeks ago`}</h1>
           <p className="sub">Generated on this device from your activity timeline. Every sentence is linked to source events.</p>
           {pulse.error ? <div className="err">{pulse.error}</div> : null}
           <div className="kp">
