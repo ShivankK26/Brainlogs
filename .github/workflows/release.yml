@@ -91,7 +91,7 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -s -k ci build.keychain
           # The identity may be self-signed (ADR 0012: a stable identity without an Apple account).
           # codesign only accepts *trusted* identities, so trust the leaf on this throwaway runner.
-          openssl pkcs12 -in cert.p12 -clcerts -nokeys -passin "pass:$APPLE_CERTIFICATE_PASSWORD" -out cert.pem
+          security find-certificate -a -p build.keychain > cert.pem
           sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain cert.pem
           security find-identity -v -p codesigning build.keychain
           rm -f cert.p12 cert.pem
