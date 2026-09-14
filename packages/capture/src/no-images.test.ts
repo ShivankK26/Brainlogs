@@ -31,7 +31,7 @@ describe("no images on disk", () => {
     migrate();
     const spool = mkdtempSync(join(tmpdir(), "brainlog-spool-img-"));
     cpSync(join(here, "..", "fixtures", "spool"), spool, { recursive: true });
-    await ingestSpool({ spoolDir: spool, platform: "win32" }); // the OCR platform
+    await ingestSpool({ spoolDir: spool, platform: "win32", now: new Date("2026-09-12T12:00:00.000Z") }); // the OCR platform
     purgeExpiredEvents(new Date("2027-01-01T00:00:00.000Z"));
     backupDb();
   });

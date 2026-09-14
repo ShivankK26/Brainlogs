@@ -20,7 +20,7 @@ beforeAll(async () => {
   setPolicy(policy);
   const spool = mkdtempSync(join(tmpdir(), "brainlog-query-spool-"));
   cpSync(join(here, "..", "..", "capture", "fixtures", "spool"), spool, { recursive: true });
-  await ingestSpool({ spoolDir: spool, policy, platform: "darwin" });
+  await ingestSpool({ spoolDir: spool, policy, platform: "darwin", now: new Date("2026-09-12T12:00:00.000Z") });
   await embedPendingBrainlogChunks({ embedder: hashEmbedder });
   // link an entity so the entity boost and entity() have something to chew on
   const db = getDb();

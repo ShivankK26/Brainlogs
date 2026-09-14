@@ -28,7 +28,7 @@ core.ensureDataDir();
 core.migrate();
 core.setPolicy({ ...core.getPolicy(), blockedDomains: ["mail.google.com"] });
 cpSync(join(here, "..", "..", "..", "packages", "capture", "fixtures", "spool"), core.config.spoolDir, { recursive: true });
-await ingestSpool({ platform: "darwin" });
+await ingestSpool({ platform: "darwin", now: new Date("2026-09-12T12:00:00.000Z") });
 setDefaultEmbedder(hashEmbedder);
 await embedPendingBrainlogChunks({ embedder: hashEmbedder });
 

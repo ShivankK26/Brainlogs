@@ -1,6 +1,6 @@
 [package]
 name = "brainlog-desktop"
-version = "1.0.5"
+version = "1.0.6"
 description = "Brainlogs tray app + PC capture engine"
 authors = ["local"]
 edition = "2021"

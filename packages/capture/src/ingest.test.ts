@@ -10,6 +10,7 @@ import { ingestSpool } from "./ingest.js";
 const here = dirname(fileURLToPath(import.meta.url));
 const policy = { ...DEFAULT_POLICY, blockedApps: ["1Password"], blockedDomains: ["mail.google.com"] };
 let spoolDir: string;
+const NOW = new Date("2026-09-12T12:00:00.000Z");
 
 beforeAll(() => {
   migrate();
@@ -19,12 +20,12 @@ beforeAll(() => {
 
 describe("ingestSpool", () => {
   it("ingests the fixture spool with dedup, diff, sampling and the policy gate", async () => {
-    const r = await ingestSpool({ spoolDir, policy, platform: "darwin" });
+    const r = await ingestSpool({ spoolDir, policy, platform: "darwin", now: NOW });
     expect(r.files).toBe(1);
     expect(r.lines).toBe(19);
     expect(r.invalid).toBe(1);
     expect(r.dropped).toEqual({ blocked_app: 1, blocked_domain: 1, credential: 1 });
-    expect(r.skipped).toEqual({ empty: 0, unchanged: 3, same_session: 0, too_soon: 1, no_new_lines: 0 });
+    expect(r.skipped).toEqual({ empty: 0, unchanged: 3, same_session: 0, too_soon: 1, no_new_lines: 0, expired: 0 });
     expect(r.inserted).toBe(11);
 
     const rows = getDb().select().from(brainlogSchema.events).orderBy(brainlogSchema.events.ts).all();
@@ -70,15 +71,28 @@ describe("ingestSpool", () => {
   });
 
   it("is incremental: a second run reads nothing, an appended line is picked up", async () => {
-    const again = await ingestSpool({ spoolDir, policy, platform: "darwin" });
+    const again = await ingestSpool({ spoolDir, policy, platform: "darwin", now: NOW });
     expect(again.lines).toBe(0);
     expect(again.inserted).toBe(0);
     appendFileSync(
       join(spoolDir, "obs-2026-09-09.jsonl"),
       JSON.stringify({ ts: "2026-09-09T16:00:00Z", source: "window", app: "Notion", window_title: "Platform sync — notes", dwell_ms: 10 }) + "\n",
     );
-    const third = await ingestSpool({ spoolDir, policy, platform: "darwin" });
+    const third = await ingestSpool({ spoolDir, policy, platform: "darwin", now: NOW });
     expect(third.lines).toBe(1);
     expect(third.inserted).toBe(1);
+  });
+});
+
+describe("retention at ingest", () => {
+  it("drops spool records that are already older than the retention window", async () => {
+    appendFileSync(
+      join(spoolDir, "obs-2026-09-09.jsonl"),
+      JSON.stringify({ ts: "2026-06-16T16:56:00Z", source: "browser", app: "chrome", window_title: "an old YouTube tab", url: "https://youtube.com/watch?v=old", domain: "youtube.com" }) + "\n",
+    );
+    const r = await ingestSpool({ spoolDir, policy, platform: "darwin", now: NOW });
+    expect(r.lines).toBe(1);
+    expect(r.inserted).toBe(0);
+    expect(r.skipped.expired).toBe(1);
   });
 });

@@ -18,7 +18,7 @@ beforeAll(async () => {
   const spool = mkdtempSync(join(tmpdir(), "brainlog-graph-spool-"));
   mkdirSync(spool, { recursive: true });
   cpSync(join(here, "..", "fixtures", "conversations.jsonl"), join(spool, "obs-2026-09-07.jsonl"));
-  const r = await ingestSpool({ spoolDir: spool, policy: DEFAULT_POLICY, platform: "darwin" });
+  const r = await ingestSpool({ spoolDir: spool, policy: DEFAULT_POLICY, platform: "darwin", now: new Date("2026-09-12T12:00:00.000Z") });
   expect(r.inserted).toBe(9);
 });
 

@@ -13,7 +13,7 @@ export type SampleInput = {
   cls: AppClass;
 };
 
-export type SkipReason = "empty" | "unchanged" | "same_session" | "too_soon" | "no_new_lines";
+export type SkipReason = "empty" | "unchanged" | "same_session" | "too_soon" | "no_new_lines" | "expired";
 export type SampleDecision =
   | { action: "skip"; reason: SkipReason }
   | { action: "store"; text: string; textHash: string; regionKey: string };

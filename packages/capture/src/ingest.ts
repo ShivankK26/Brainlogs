@@ -33,6 +33,8 @@ export type IngestOptions = {
   platform?: NodeJS.Platform;
   /** Skip persisting cursors (used by tests that re-read a fixture). */
   persistCursors?: boolean;
+  /** "Now" for the retention cutoff; tests pin it so fixtures do not age out. */
+  now?: Date;
 };
 
 const SELF = /brainlog/i;
@@ -52,13 +54,14 @@ export async function ingestSpool(opts: IngestOptions = {}): Promise<IngestResul
   const policy = opts.policy ?? getPolicy();
   const platform = opts.platform ?? process.platform;
   const cursors = loadIngestCursors();
+  const cutoff = (opts.now ?? new Date()).getTime() - policy.retentionDays * 86_400_000;
   const sampler = new Sampler(loadRegionStates());
   const result: IngestResult = {
     files: 0,
     lines: 0,
     inserted: 0,
     invalid: 0,
-    skipped: { empty: 0, unchanged: 0, same_session: 0, too_soon: 0, no_new_lines: 0 },
+    skipped: { empty: 0, unchanged: 0, same_session: 0, too_soon: 0, no_new_lines: 0, expired: 0 },
     dropped: { blocked_app: 0, blocked_domain: 0, credential: 0 },
   };
 
@@ -72,6 +75,11 @@ export async function ingestSpool(opts: IngestOptions = {}): Promise<IngestResul
       const rec = parseSpoolLine(line);
       if (!rec) {
         result.invalid++;
+        continue;
+      }
+      // Browser-history imports can be months old; anything already past retention never touches disk.
+      if (Date.parse(rec.ts) < cutoff) {
+        result.skipped.expired++;
         continue;
       }
       const app = (rec.app ?? rec.exe ?? "").trim();

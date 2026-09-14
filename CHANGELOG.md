@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.6 — 2026-09-14
+
+- The desktop app opens the full Brainlogs UI in a normal resizable window with a Dock icon; the tray stays for pause/resume and quit. The compact widget is gone from the launch path.
+- Brainlogs icon replaces the inherited "SB" tile.
+- Ingest skips spool records already older than the retention window, so importing browser history no longer floods memory with months-old visits that would be purged that night.
+
 ## 1.0.5 — 2026-09-13
 
 - The desktop app is self-contained: a Node 22 sidecar, the bundled worker, migrations and native modules ship inside the bundle. No Node, Rust or source checkout needed on the user's machine.

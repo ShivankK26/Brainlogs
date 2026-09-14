@@ -186,6 +186,8 @@ fn toggle_main(app: &AppHandle) {
     }
 }
 
+/// Kept for the compact "widget" mode command; the main window is a regular window now.
+#[allow(dead_code)]
 fn place_bottom_right(app: &AppHandle) {
     if let Some(win) = app.get_webview_window("main") {
         if let Ok(Some(m)) = win.current_monitor() {
@@ -356,8 +358,8 @@ fn main() {
             }
             #[cfg(target_os = "macos")]
             {
-                // Menu-bar / tray app — no Dock icon (mirrors skipTaskbar on Windows).
-                app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+                // Regular app: Dock icon plus the tray. The tray keeps capture alive when the window is closed.
+                app.set_activation_policy(tauri::ActivationPolicy::Regular);
                 capture_mac::ensure_accessibility_prompt();
             }
 
@@ -365,17 +367,13 @@ fn main() {
             // the core (possibly a cold tsx compile) comes up on a background
             // thread. Blocking here is what caused the "Not Responding" window.
             if let Some(win) = app.get_webview_window("main") {
-                let _ = win.set_shadow(false);
-                let _ = win.set_always_on_top(true);
-                let _ = win.set_decorations(false);
                 if let Ok(url) = loading_url().parse::<tauri::Url>() {
                     let _ = win.navigate(url);
                 }
-                place_bottom_right(app.handle());
                 allow_widget_microphone(&win);
             }
 
-            let show_i = MenuItem::with_id(app, "show", "Show widget", true, None::<&str>)?;
+            let show_i = MenuItem::with_id(app, "show", "Open Brainlogs", true, None::<&str>)?;
             let pause_i =
                 MenuItem::with_id(app, "pause", "Pause capture 1h", true, None::<&str>)?;
             let resume_i =
@@ -386,7 +384,7 @@ fn main() {
             let engine_tray = engine_for_setup.clone();
             let _tray = TrayIconBuilder::new()
                 .menu(&menu)
-                .tooltip("Brainlogs widget")
+                .tooltip("Brainlogs")
                 .icon(app.default_window_icon().unwrap().clone())
                 .on_menu_event(move |app, event| match event.id.as_ref() {
                     "show" => show_main(app),
@@ -529,7 +527,7 @@ fn main() {
 
                 let ok = result.is_ok();
                 let target = if ok {
-                    format!("{}/widget?v=20260823d", core::core_url())
+                    format!("{}/?v=20260914", core::core_url())
                 } else {
                     error_url()
                 };

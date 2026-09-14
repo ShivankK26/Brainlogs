@@ -31,7 +31,7 @@ beforeAll(async () => {
   setPolicy({ ...DEFAULT_POLICY, blockedDomains: ["mail.google.com"] });
   const spool = mkdtempSync(join(tmpdir(), "brainlog-mcp-spool-"));
   cpSync(join(here, "..", "..", "capture", "fixtures", "spool"), spool, { recursive: true });
-  await ingestSpool({ spoolDir: spool, platform: "darwin" });
+  await ingestSpool({ spoolDir: spool, platform: "darwin", now: new Date("2026-09-12T12:00:00.000Z") });
   setDefaultEmbedder(hashEmbedder);
   await embedPendingBrainlogChunks({ embedder: hashEmbedder });
 });
