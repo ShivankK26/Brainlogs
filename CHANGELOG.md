@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.9 — 2026-09-14
+
+- The purple tile is now the app icon, favicon, sidebar workspace tile and social image; the mono mark stays next to text and in the menu bar. Brand guidelines updated.
+
 ## 1.0.8 — 2026-09-14
 
 - New Brainlogs identity: the Loop B mark (two open loops on a stem, faded older loop, purple dot). Applied to the app icon, menu-bar template icon, favicons, in-app wordmark, landing page, README and a social image. Brand guidelines in `docs/brand.md` and on the site.
