@@ -151,7 +151,6 @@ jobs:
       # `version`; each platform entry points at the signed artifact (minisign .sig next to it).
       - name: Updater manifest (latest.json)
         run: node tooling/release/latest-json.mjs "$TAG" bundles > bundles/latest.json && cat bundles/latest.json
-          echo "20 20 12 61 79 80 81 701 33 98 100 204 250 395 398 399 400cat SHA256SUMS.txt | wc -l) artifacts"
       - name: Create or update the draft release
         env:
           # A classic PAT with `repo` scope in RELEASE_TOKEN is used when set; the built-in token otherwise.
