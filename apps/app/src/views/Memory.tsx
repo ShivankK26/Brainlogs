@@ -128,7 +128,7 @@ export function Memory() {
             <button className="tb outl" id="filterBtn" onClick={openPalette}><IcFilter />Filter</button>
             {chipLabel ? <button className="chip" id="clearF" onClick={() => setFilter(null)}>{chipLabel}<span className="x">✕</span></button> : null}
             <span className="sp" />
-            <span className="pill">{rows.loading ? "Loading…" : `${list.length} events`}</span>
+            <span className="pill">{rows.loading ? "Loading…" : list.length >= 2000 && !filter ? `newest ${list.length} events` : `${list.length} events`}</span>
           </div>
           <div id="rows">
             {rows.error ? <div className="err">{rows.error}</div> : null}

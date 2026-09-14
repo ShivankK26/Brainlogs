@@ -172,6 +172,17 @@ describe("policy gate + audit", () => {
   });
 });
 
+describe("timeline cap", () => {
+  it("keeps the newest events when a window holds more than the limit, still ascending", async () => {
+    const user = createQueryApi({ actor: "user", deps });
+    const all = await user.timeline({ from: "2026-01-01T00:00:00.000Z", to: "2026-12-31T00:00:00.000Z", limit: 5000 });
+    expect(all.length).toBeGreaterThan(3);
+    const capped = await user.timeline({ from: "2026-01-01T00:00:00.000Z", to: "2026-12-31T00:00:00.000Z", limit: 2 });
+    expect(capped.map((e) => e.id)).toEqual(all.slice(-2).map((e) => e.id));
+    expect(capped[0]!.ts <= capped[1]!.ts).toBe(true);
+  });
+});
+
 describe("lexical path", () => {
   it("finds exact terms with FTS alone when no embedder is available", async () => {
     const api = createQueryApi({ actor: "user", deps: { embedder: async () => null, chat: async () => null } });

@@ -50,14 +50,19 @@ export function eventsByIds(ids: string[]): Map<string, Event> {
   return out;
 }
 
+/**
+ * Events in [from, to], ascending. When the window holds more than `limit`, the *newest* ones win:
+ * a busy week must never hide today behind a cap that keeps the oldest rows.
+ */
 export function eventsBetween(from: string, to: string, limit = 1000): Event[] {
   return getDb()
     .select()
     .from(s.events)
     .where(and(gte(s.events.ts, from), lte(s.events.ts, to)))
-    .orderBy(s.events.ts)
+    .orderBy(desc(s.events.ts))
     .limit(limit)
     .all()
+    .reverse()
     .map(rowToEvent);
 }
 

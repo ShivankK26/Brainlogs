@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.12 — 2026-09-14
+
+- Memory showed 10 September instead of today: the 7-day timeline was capped at 2000 events *after* sorting oldest-first, so a busy week hid its newest days. The cap now keeps the newest events. The count pill says "newest 2000 events" when the cap applies.
+
 ## 1.0.11 — 2026-09-14
 
 - **Capture no longer goes blind after an update.** Releases are signed with a stable self-signed identity, so the macOS Accessibility grant survives upgrades (ADR 0012). Upgrading from 1.0.10 or earlier asks for Accessibility one last time.
