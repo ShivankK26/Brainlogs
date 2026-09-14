@@ -38,6 +38,10 @@ mod tests {
             let lines: Vec<&str> = text.lines().collect();
             for (i, line) in lines.iter().enumerate() {
                 let code = line.split("//").next().unwrap_or("");
+                // Embedding a bundled asset (tray icon) is a read at compile time, not a write.
+                if code.contains("include_bytes!") {
+                    continue;
+                }
                 for needle in FORBIDDEN {
                     if code.contains(needle) {
                         offenders.push(format!("{}:{} {}", path.display(), i + 1, needle));
