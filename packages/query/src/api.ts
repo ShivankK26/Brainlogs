@@ -3,7 +3,7 @@ import { getPolicy, listAudit, writeAudit } from "@brainlog/core";
 import { PolicyDeniedError, finishAudit, gate, type GateRequest } from "@brainlog/policy";
 import { search, type SearchDeps } from "./search.js";
 import { moment } from "./moment.js";
-import { commitments, entity, summary, timeline } from "./graph-reads.js";
+import { commitments, entity, setCommitmentStatus, summary, timeline } from "./graph-reads.js";
 import { ask, type AskDeps } from "./ask.js";
 import { listNotes, listProposedEdges, propose, review } from "./notes.js";
 import { entitiesForEvents, stats, topEntities } from "./store.js";
@@ -97,6 +97,11 @@ export function createQueryApi(opts: QueryApiOptions) {
       const p = EntityRequest.parse(input);
       const key = "id" in p ? p.id : p.name;
       return run({ action: "query", scope: `entity ${short(key, 60)}`, needs: ["readGraph"] }, (perms) => entity(p, perms), (r) => (r ? `${r.recentEvents.length} events, ${r.edges.length} edges` : "not found"));
+    },
+    /** User-only: mark a commitment done, dismiss it, or reopen it. Audited as a write. */
+    setCommitment(input: { id: string; status: "done" | "dismissed" | "open" }): Promise<Commitment | null> {
+      if (opts.actor !== "user") return Promise.reject(new PolicyDeniedError(opts.actor, [], "commitment status"));
+      return run({ action: "write", scope: `commitment ${input.id} → ${input.status}`, needs: ["write"] }, () => setCommitmentStatus(input.id, input.status), (r) => (r ? r.status : "not found"));
     },
     commitments(input: CommitmentsRequest = {}): Promise<Commitment[]> {
       const p = CommitmentsRequest.parse(input);

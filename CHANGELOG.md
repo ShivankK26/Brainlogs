@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.19 — 2026-09-15
+
+- **Commitments, rebuilt for action.** Four buckets (Overdue, You owe, Owed to you, Done recently) with a count strip, each row showing who, when it was made, when it's due, and its sources; Done, Dismiss and Reopen buttons on every row. Honest empty state.
+- Ask understands third-person contact questions (“has Sarvagya connected me to Wavelength team?”, “did Priya reply?”): it finds the conversation with that person, checks whether the topic came up, and answers Yes / Not yet with the quote; unrelated pages that merely share a word no longer appear.
+- **Fewer false commitments.** Inbox previews and notification text (“Your message, …”, “… Received from …”) are ignored, a request needs an action verb, and a commitment with no named counterpart is not recorded (a channel stands in for group asks). Already-stored junk is dismissed automatically by the graph job.
+
 ## 1.0.18 — 2026-09-15
 
 - People are extracted from chats only when a name repeats as a speaker, has two words, or is the conversation partner; a one-off "Role: …" or "Location: …" line is a form field, not a person. Existing mis-labelled people are reclassified as topics by the graph job, so Conversations and the People group clean themselves up on the next run.

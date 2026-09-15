@@ -12,7 +12,8 @@ import type { SearchHit } from "./types.js";
 
 export type Intent = "when" | "contact" | "duration" | "day" | "who" | "find";
 export type Scope = { from?: string; to?: string; label?: string };
-export type Plan = { intent: Intent; subject: string; scope: Scope; question: string; person?: string; topic?: string };
+/** `direction`: "out" = did I contact them; "in" = did they contact/reply/introduce me. */
+export type Plan = { intent: Intent; subject: string; scope: Scope; question: string; person?: string; topic?: string; direction?: "out" | "in" };
 
 export type MomentKind = "message" | "meeting" | "doc" | "code" | "mail" | "page" | "app";
 export type AskMoment = {
@@ -45,6 +46,12 @@ const DURATION = /\b(how\s+(much|long|many\s+(hours|minutes|times))|time\s+(did|
 const DAY = /\b(what\s+(did|was|have)\s+i\s+(do|doing|done|work(ed)?(\s+on)?)|what\s+happened|summar(y|ise|ize)|recap)\b/i;
 const WHO = /^\s*(who\s+is|who'?s|what\s+do\s+i\s+know\s+about|tell\s+me\s+about|what\s+is)\b/i;
 const YESNO = /^\s*(did|have|had|has|was|were|do|does|am|is|are)\s+(i|we)\b/i;
+/** "has Sarvagya connected me to…", "did Priya reply", "has the team sent…": someone else acting towards you. */
+const THIRD_VERB = "(?:connect(?:ed)?|introduc(?:e|ed)|intro(?:'d|ed)?|repl(?:y|ied)|respond(?:ed)?|answer(?:ed)?|sen[dt]|shar(?:e|ed)|g[eo]t back|follow(?:ed)?\\s*up|messag(?:e|ed)|dm(?:'?d|ed)?|email(?:ed)?|mail(?:ed)?|text(?:ed)?|ping(?:ed)?|call(?:ed)?|invit(?:e|ed)|add(?:ed)?|confirm(?:ed)?|accept(?:ed)?|approv(?:e|ed)|pa(?:y|id)|deliver(?:ed)?|ship(?:ped)?|contact(?:ed)?|reach(?:ed)?\\s*out|forward(?:ed)?|mention(?:ed)?|tell|told|ask(?:ed)?)";
+const THIRD_PERSON = new RegExp(`^\\s*(?:did|has|have|had|is|was|does|do)\\s+(?!(?:i|we|you)\\b)((?:the\\s+)?[\\p{L}][\\p{L}'’.-]*(?:\\s+[\\p{Lu}][\\p{L}'’.-]*)?)\\s+(?:ever\\s+|already\\s+|actually\\s+|finally\\s+)?${THIRD_VERB}\\b(.*)$`, "iu");
+const THIRD_PERSON_VERB = new RegExp(`\\b${THIRD_VERB}\\b`, "i");
+/** Words too generic to prove a topic was discussed. */
+const GENERIC_TOPIC = new Set(["team", "teams", "project", "thing", "things", "stuff", "people", "guy", "guys", "work", "call", "meeting", "message", "email", "mail", "chat", "update", "updates", "details", "info", "information", "question", "questions", "request", "reply", "response", "yet", "already", "still", "also", "just", "please", "pls"]);
 
 const NOISE = new Set([
   "i", "we", "me", "my", "our", "you", "did", "do", "does", "have", "has", "had", "was", "were", "is", "are", "am", "the", "a", "an", "to", "with", "about",
@@ -131,6 +138,7 @@ export function detectIntent(question: string): Intent {
   if (WHO.test(q)) return "who";
   if (DAY.test(q)) return "day";
   if (YESNO.test(q) && CONTACT.test(q)) return "contact";
+  if (THIRD_PERSON.test(q)) return "contact";
   return "find";
 }
 
@@ -152,9 +160,27 @@ const CONTACT_VERB = /^\s*(?:did|have|had|do|was|were)\s+(?:i|we)\s+(?:ever\s+|a
 const TOPIC_SPLIT = /\s+(?:asking\s+(?:about|for|if|whether)|about|regarding|re:?|concerning|on the topic of|for the|to ask about|to ask for|to ask)\s+/i;
 const MEDIUM_NOUNS = /\b(?:a|an|the|another|any|some)?\s*(?:message|messages|msg|dm|text|email|mail|note|reply|response|ping|whatsapp|slack)\b/gi;
 
-/** "did I send Sarvagya a message asking about base pay" → person "Sarvagya", topic "base pay". */
-export function parseContact(question: string): { person?: string; topic?: string } {
-  const m = CONTACT_VERB.exec(question.replace(/[?!.]+$/, ""));
+/**
+ * "did I send Sarvagya a message asking about base pay" → person "Sarvagya", topic "base pay", out.
+ * "has Sarvagya connected me to Wavelength team" → person "Sarvagya", topic "Wavelength team", in.
+ */
+export function parseContact(question: string): { person?: string; topic?: string; direction?: "out" | "in" } {
+  const q = question.replace(/[?!.]+$/, "");
+  const third = THIRD_PERSON.exec(q);
+  if (third && !CONTACT_VERB.test(q)) {
+    const person = (third[1] ?? "").replace(/^the\s+/i, "").trim() || undefined;
+    let rest = (third[2] ?? "").trim();
+    rest = rest.replace(/^(?:back\s+)?(?:to|with)?\s*(?:me|us)\b\s*/i, " ").replace(/^(?:back|yet|already)\b/i, " ").trim();
+    const [, ...topicParts] = rest.split(TOPIC_SPLIT);
+    let topic = (topicParts.length ? topicParts.join(" ") : rest)
+      .replace(/^(?:to|with|about|on|for|regarding|the)\s+/i, "")
+      .replace(/[?!.,;:]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!topic || NOISE.has(topic.toLowerCase())) topic = "";
+    return { person, topic: topic || undefined, direction: "in" };
+  }
+  const m = CONTACT_VERB.exec(q);
   if (!m) return {};
   const rest = (m[2] ?? "").trim();
   const [personPartRaw, ...topicParts] = rest.split(TOPIC_SPLIT);
@@ -167,15 +193,15 @@ export function parseContact(question: string): { person?: string; topic?: strin
     .trim();
   const words = personPart.split(" ").filter((w) => w && !NOISE.has(w.toLowerCase()));
   const person = words.slice(0, 3).join(" ") || undefined;
-  return { person, topic };
+  return { person, topic, direction: "out" };
 }
 
 export function plan(question: string, now = new Date()): Plan {
   const intent = detectIntent(question);
   const { scope, rest } = parseScope(question, now);
   if (intent === "contact") {
-    const { person, topic } = parseContact(rest);
-    return { intent, subject: person ?? subjectOf(rest, intent), scope, question, person, topic };
+    const { person, topic, direction } = parseContact(rest);
+    return { intent, subject: person ?? subjectOf(rest, intent), scope, question, person, topic, direction };
   }
   return { intent, subject: subjectOf(rest, intent), scope, question };
 }
@@ -188,6 +214,13 @@ export function termsOf(s: string | undefined): string[] {
     .split(/[^\p{L}\p{N}@#._-]+/u)
     .map((t) => t.replace(/^[._-]+|[._-]+$/g, ""))
     .filter((t) => t.length > 1 && !NOISE.has(t));
+}
+
+/** Topic terms worth checking in text: drop generic words unless nothing else is left. */
+export function topicTermsOf(s: string | undefined): string[] {
+  const all = termsOf(s);
+  const specific = all.filter((t) => !GENERIC_TOPIC.has(t) && !THIRD_PERSON_VERB.test(t));
+  return specific.length ? specific : all;
 }
 
 function containsAll(hay: string, terms: string[]): boolean {
@@ -404,6 +437,7 @@ export function compose(p: Plan, momentsIn: AskMoment[], dayEvents?: Event[]): S
     const convo = about.filter((m) => m.kind === "message" || m.kind === "mail" || m.kind === "meeting");
     const placeOf = (m: AskMoment) => (m.kind === "mail" ? `${m.title} (${m.app})` : m.kind === "meeting" ? `${m.title} (${m.app})` : m.title.toLowerCase() === m.app.toLowerCase() ? `${m.app} chat` : `${m.title} (${m.app})`);
     const viaOf = (m: AskMoment) => (m.kind === "mail" ? "by email" : m.kind === "meeting" ? "in a call" : m.title.includes("LinkedIn") ? "in LinkedIn messages" : `on ${m.app}`);
+    const inbound = p.direction === "in";
     if (convo.length > 0) {
       const withTopic = p.topic ? convo.filter((m) => m.matches.topic) : [];
       const m = withTopic[0] ?? convo[0]!;
@@ -413,18 +447,18 @@ export function compose(p: Plan, momentsIn: AskMoment[], dayEvents?: Event[]): S
       if (convo.length > 1) facts.push({ label: "Other times", value: convo.filter((x) => x !== m).slice(0, 3).map((x) => fmtTime(x.start)).join(", ") });
       const shown = [...convo, ...about.filter((x) => !convo.includes(x))].slice(0, 6);
       if (p.topic && withTopic.length > 0) {
-        return { intent: p.intent, verdict: `Yes. You messaged ${who} ${viaOf(m)} about ${p.topic}, ${fmtSpan(m)}.`, facts, moments: shown, scope: p.scope };
+        return { intent: p.intent, verdict: inbound ? `Yes. ${who} brought up ${p.topic} ${viaOf(m)}, ${fmtSpan(m)}.` : `Yes. You messaged ${who} ${viaOf(m)} about ${p.topic}, ${fmtSpan(m)}.`, facts, moments: shown, scope: p.scope };
       }
       if (p.topic) {
-        return { intent: p.intent, verdict: `Partly. You messaged ${who} ${viaOf(m)} ${fmtSpan(m)}, but nothing about “${p.topic}” was captured.`, facts, moments: shown, scope: p.scope };
+        return { intent: p.intent, verdict: inbound ? `Not yet. Your last exchange with ${who} was ${viaOf(m)} ${fmtSpan(m)}, and nothing about “${p.topic}” was captured.` : `Partly. You messaged ${who} ${viaOf(m)} ${fmtSpan(m)}, but nothing about “${p.topic}” was captured.`, facts, moments: shown, scope: p.scope };
       }
-      return { intent: p.intent, verdict: `Yes. You messaged ${who} ${viaOf(m)}, ${fmtSpan(m)}.`, facts, moments: shown, scope: p.scope };
+      return { intent: p.intent, verdict: inbound ? `Yes. ${who} was in touch ${viaOf(m)}, ${fmtSpan(m)}.` : `Yes. You messaged ${who} ${viaOf(m)}, ${fmtSpan(m)}.`, facts, moments: shown, scope: p.scope };
     }
     const seen = about[0];
     if (seen) {
       facts.push({ label: "Closest", value: placeOf(seen), eventId: seen.eventId });
       facts.push({ label: "When", value: fmtSpan(seen), eventId: seen.eventId });
-      return { intent: p.intent, verdict: `No, nothing sent to ${who}${where}.`, detail: `Closest: you opened ${seen.title} on ${fmtSpan(seen)}.`, facts, moments: about.slice(0, 6), scope: p.scope };
+      return { intent: p.intent, verdict: inbound ? `No message from ${who} was captured${where}.` : `No, nothing sent to ${who}${where}.`, detail: `Closest: you opened ${seen.title} on ${fmtSpan(seen)}.`, facts, moments: about.slice(0, 6), scope: p.scope };
     }
     return { intent: p.intent, verdict: `No, ${who} doesn't appear anywhere${where}.`, detail: "Try the name as it appears in the chat or window title.", facts, moments: [], scope: p.scope };
   }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clusterMoments, compose, detectIntent, looksLikePersonName, parseContact, parseScope, plan, cleanTitle, termsOf } from "./plan.js";
+import { clusterMoments, compose, detectIntent, looksLikePersonName, parseContact, parseScope, plan, cleanTitle, termsOf, topicTermsOf } from "./plan.js";
 import type { SearchHit } from "./types.js";
 import type { Event } from "@brainlog/types";
 
@@ -68,9 +68,9 @@ describe("plan", () => {
     expect(dur.verdict).toMatch(/^About \d+ min on Arez/);
   });
   it("separates the person from the topic in contact questions", () => {
-    expect(parseContact("did i send sarvagya a message asking about base pay")).toEqual({ person: "sarvagya", topic: "base pay" });
-    expect(parseContact("did I reach out to Rohit Talluri")).toEqual({ person: "Rohit Talluri", topic: undefined });
-    expect(parseContact("have we emailed Priya about the invoice")).toEqual({ person: "Priya", topic: "the invoice" });
+    expect(parseContact("did i send sarvagya a message asking about base pay")).toEqual({ person: "sarvagya", topic: "base pay", direction: "out" });
+    expect(parseContact("did I reach out to Rohit Talluri")).toEqual({ person: "Rohit Talluri", topic: undefined, direction: "out" });
+    expect(parseContact("have we emailed Priya about the invoice")).toEqual({ person: "Priya", topic: "the invoice", direction: "out" });
     const p = plan("did i send sarvagya a message asking about base pay?", now);
     expect(p.person).toBe("sarvagya");
     expect(p.subject).toBe("sarvagya");
@@ -97,5 +97,21 @@ describe("plan", () => {
   it("tells names from interface words", () => {
     for (const ok of ["Priya", "Rohit Talluri", "Sarvagya Kulshreshtha", "Arez"]) expect(looksLikePersonName(ok)).toBe(true);
     for (const no of ["username", "Register", "Batch", "CTC", "Sign in", "user123", "Inbox", "Today"]) expect(looksLikePersonName(no)).toBe(false);
+  });
+  it("understands third-person contact questions with direction", () => {
+    expect(detectIntent("has sarvagya connected me to wavelength team?")).toBe("contact");
+    expect(parseContact("has sarvagya connected me to wavelength team")).toEqual({ person: "sarvagya", topic: "wavelength team", direction: "in" });
+    expect(parseContact("did Priya reply about the invoice")).toEqual({ person: "Priya", topic: "the invoice", direction: "in" });
+    expect(topicTermsOf("wavelength team")).toEqual(["wavelength"]);
+    const p = plan("has sarvagya connected me to wavelength team?", now);
+    const terms = { person: termsOf(p.person), topic: topicTermsOf(p.topic) };
+    const noTopic = compose(p, clusterMoments([
+      hit(ev({ ts: "2026-09-15T08:27:00.000Z", windowTitle: "WhatsApp", app: "WhatsApp", domain: null, sensitivity: "third_party_private", text: "Sarvagya: hey\nYou: hi\nSarvagya: base pay kitna" })),
+      hit(ev({ ts: "2026-09-08T15:45:00.000Z", windowTitle: "Connected – Vercel", domain: "vercel.com", text: "Connected – Vercel" })),
+    ], terms));
+    expect(noTopic.verdict).toMatch(/^Not yet\. Your last exchange with Sarvagya was on WhatsApp/);
+    expect(noTopic.moments.map((m) => m.title)).not.toContain("Connected – Vercel");
+    const yes = compose(p, clusterMoments([hit(ev({ ts: "2026-09-15T09:00:00.000Z", windowTitle: "WhatsApp", app: "WhatsApp", domain: null, sensitivity: "third_party_private", text: "Sarvagya: connected you with the Wavelength founders, check your inbox" }))], terms));
+    expect(yes.verdict).toMatch(/^Yes\. Sarvagya brought up wavelength team on WhatsApp/);
   });
 });

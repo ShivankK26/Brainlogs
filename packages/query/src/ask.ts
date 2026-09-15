@@ -5,7 +5,7 @@ import type { Perms } from "./filters.js";
 import { search, type SearchDeps } from "./search.js";
 import { eventsBetween } from "./store.js";
 import { visible } from "./filters.js";
-import { clusterMoments, compose, plan, renderText, termsOf, type Structured } from "./plan.js";
+import { clusterMoments, compose, plan, renderText, termsOf, topicTermsOf, type Structured } from "./plan.js";
 import type { AskResult, SearchFilters, SearchHit } from "./types.js";
 
 export type ChatFn = (system: string, user: string) => Promise<string | null>;
@@ -160,7 +160,7 @@ export async function ask(input: { question: string; scope?: SearchFilters }, pe
       if (hits.length) p.scope.label = `${p.scope.label ?? "that period"} (nothing then; showing all time)`;
     }
   }
-  const moments = clusterMoments(hits, { person: termsOf(p.person ?? p.subject), topic: termsOf(p.topic) });
+  const moments = clusterMoments(hits, { person: termsOf(p.person ?? p.subject), topic: topicTermsOf(p.topic) });
   const structured: Structured = compose(p, moments, dayEvents);
   const citations = structured.moments.map((m) => m.eventId);
   const base: AskResult = { answer: renderText(structured), citations, model: "planner", via: "none", structured };

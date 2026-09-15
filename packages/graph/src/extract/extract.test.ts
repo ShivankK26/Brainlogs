@@ -65,3 +65,19 @@ describe("people from chat text", () => {
     expect(people).toEqual(["Rohit Talluri"]);
   });
 });
+
+describe("commitments skip inbox previews and unnamed counterparts", () => {
+  const base = { id: "e2", ts: "2026-09-15T08:00:00.000Z", app: "Google Chrome", bundleId: null, windowTitle: "Messaging | LinkedIn", url: null, domain: "linkedin.com", textHash: "0".repeat(64), sourceKind: "ax" as const, sensitivity: "third_party_private" as const, expiresAt: "2026-10-15T00:00:00.000Z" };
+  it("ignores LinkedIn preview text", () => {
+    const text = "Ajay Yadav: message, Can you give me a reminder on Monday, 12:44 PM, Received from Ajay Yadav Neatlogs CEO\nYou: Your message, Heyy, could you pls let me know the availability of slots?";
+    expect(extractCommitments({ ...base, text }, { contact: "Ajay Yadav" })).toEqual([]);
+  });
+  it("keeps a real request with a named counterpart and drops one without", () => {
+    const real = extractCommitments({ ...base, text: "Priya: can you send me the pricing table by Friday?\nYou: sure" }, { contact: "Priya" });
+    expect(real.map((c) => [c.fromParty, c.toParty, c.intent])).toEqual([["Priya", "you", "request"]]);
+    const channel = extractCommitments({ ...base, windowTitle: "#general", text: "You: can you send me the pricing table by Friday?" }, { contact: null });
+    expect(channel.map((c) => c.toParty)).toEqual(["#general"]);
+    const unnamed = extractCommitments({ ...base, windowTitle: "Messaging", text: "You: can you send me the pricing table by Friday?" }, { contact: null });
+    expect(unnamed).toEqual([]);
+  });
+});

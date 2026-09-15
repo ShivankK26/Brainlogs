@@ -204,6 +204,14 @@ export async function handleBrainlogRoute(_req: IncomingMessage, ctx: Ctx): Prom
       const r = id ? await api().entity({ id }) : name ? await api().entity({ name }) : null;
       return reply(r ? 200 : 404, r ?? { error: "not found" }), true;
     }
+    const cmtStatus = p.match(/^\/commitments\/([^/]+)\/status$/);
+    if (method === "POST" && cmtStatus) {
+      const body = await ctx.readJson<{ status?: string }>();
+      const status = body.status;
+      if (status !== "done" && status !== "dismissed" && status !== "open") return reply(400, { error: "status must be done, dismissed or open" }), true;
+      const r = await api().setCommitment({ id: decodeURIComponent(cmtStatus[1]!), status });
+      return reply(r ? 200 : 404, r ?? { error: "not found" }), true;
+    }
     if (method === "GET" && p === "/commitments") {
       const status = query.get("status") ?? undefined;
       const party = query.get("party") ?? undefined;

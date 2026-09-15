@@ -122,6 +122,14 @@ test("commitments grouped with a review queue that approves a proposed note", as
   await page.keyboard.press("g");
   await page.keyboard.press("c");
   await expect(page.locator("#crows .grp").first()).toContainText("Overdue");
+  await expect(page.locator(".cstrip .cs.late b")).toHaveText("1");
+  // a commitment can be closed by hand and reopened
+  const vec = page.locator('.crow[data-c="cmt-vec"]');
+  await vec.locator(".cacts .tb.outl").click();
+  await expect(page.locator("#toast")).toHaveText("Marked done");
+  await expect(page.locator('.crow[data-c="cmt-vec"]')).toHaveClass(/done/);
+  await page.locator('.crow[data-c="cmt-vec"] .cacts .tb.outl').click();
+  await expect(page.locator("#toast")).toHaveText("Reopened");
   await expect(page.locator("#reviewBtn")).toContainText("Review proposed (1)");
   await page.locator("#reviewBtn").click();
   await expect(page.locator("#review .note .txt")).toContainText("loadExtension");

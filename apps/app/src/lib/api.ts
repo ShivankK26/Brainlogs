@@ -38,6 +38,7 @@ export const api = {
   pullModel: (model?: string) => req<ModelStatus>("/models/pull", { method: "POST", body: JSON.stringify({ model }) }),
   entities: (limit = 6) => req<Entity[]>(`/entities${qs({ limit })}`),
   commitments: () => req<Commitment[]>("/commitments"),
+  setCommitment: (id: string, status: "done" | "dismissed" | "open") => req<Commitment>(`/commitments/${encodeURIComponent(id)}/status`, { method: "POST", body: JSON.stringify({ status }) }),
   pulse: (date?: string) => req<Pulse>(`/pulse${qs({ date })}`),
   pending: () => req<Pending>("/pending"),
   notes: (status?: Note["status"]) => req<Note[]>(`/notes${qs({ status })}`),

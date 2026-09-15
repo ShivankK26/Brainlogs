@@ -14,6 +14,15 @@ export function timeline(input: { from: string; to: string; filters?: SearchFilt
 
 const STATUS_ORDER: CommitmentStatus[] = ["overdue", "open", "stalled", "waiting", "done", "dismissed"];
 
+/** User decision on a commitment: done, dismissed, or reopened. Returns the updated row or null. */
+export function setCommitmentStatus(id: string, status: "done" | "dismissed" | "open", now = new Date().toISOString()): Commitment | null {
+  const db = getDb();
+  const row = db.select().from(s.commitments).where(eq(s.commitments.id, id)).get();
+  if (!row) return null;
+  db.update(s.commitments).set({ status, updatedAt: now, ...(status === "open" ? { closedByEventId: null } : {}) }).where(eq(s.commitments.id, id)).run();
+  return rowToCommitment({ ...row, status, updatedAt: now, closedByEventId: status === "open" ? null : row.closedByEventId });
+}
+
 export function commitments(input: { status?: CommitmentStatus; party?: string }, _perms: Perms): Commitment[] {
   const db = getDb();
   const conds = [];

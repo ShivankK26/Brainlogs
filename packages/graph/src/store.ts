@@ -3,6 +3,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { brainlogSchema as s, getDb, newId } from "@brainlog/core";
 import type { Actor, Commitment, EdgeKind, Entity, EntityKind, EvidenceRef, ProposalStatus } from "@brainlog/types";
 import { CHAT_TURN_MIN_WORDS, normName } from "./extract/deterministic.js";
+import { PREVIEW } from "./extract/commitments.js";
 
 const db = () => getDb();
 
@@ -82,6 +83,25 @@ export function reclassifyDoubtfulPeople(limitEventsPerEntity = 60): { reclassif
     }
   }
   return { reclassified, checked: people.length };
+}
+
+/**
+ * Commitments recorded before the extractor learned to skip inbox previews and unnamed
+ * counterparts. Dismissing (not deleting) keeps the audit trail and lets a user reopen one.
+ */
+export function dismissDoubtfulCommitments(now = new Date().toISOString()): number {
+  const d = db();
+  const rows = d.select().from(s.commitments).where(sql`${s.commitments.status} != 'dismissed'`).all();
+  let n = 0;
+  for (const r of rows) {
+    const unnamed = r.toParty === "them" || r.fromParty === "them";
+    const preview = PREVIEW.test(r.text);
+    if (unnamed || preview) {
+      d.update(s.commitments).set({ status: "dismissed", updatedAt: now }).where(eq(s.commitments.id, r.id)).run();
+      n++;
+    }
+  }
+  return n;
 }
 
 export function linkEventEntity(eventId: string, entityId: string): void {
