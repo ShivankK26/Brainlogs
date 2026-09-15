@@ -80,4 +80,8 @@ describe("commitments skip inbox previews and unnamed counterparts", () => {
     const unnamed = extractCommitments({ ...base, windowTitle: "Messaging", text: "You: can you send me the pricing table by Friday?" }, { contact: null });
     expect(unnamed).toEqual([]);
   });
+  it("ignores group broadcasts and label speakers", () => {
+    const text = "Batch: If you or anyone you know has A−ve blood and can donate, please come forward and help.\nBatch: Please share this message widely with your friends, family, colleagues and WhatsApp groups";
+    expect(extractCommitments({ ...base, windowTitle: "Batch", text }, { contact: null })).toEqual([]);
+  });
 });

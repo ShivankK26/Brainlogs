@@ -347,3 +347,14 @@ td .t2 { color: var(--t3); font-size: 11.5px; margin-top: 2px; }
 .cbucket.dismissed .grp.asbtn { width: 100%; text-align: left; cursor: pointer; }
 .cbucket.dismissed .grp.asbtn:hover .hint { color: var(--brand); }
 .cbucket.dismissed .crow .ctext { text-decoration: none; color: var(--t3); }
+
+/* ============ workspace menu ============ */
+.wsmenu { position: relative; }
+.wsmenu .menu { position: absolute; top: 34px; left: 0; z-index: 20; min-width: 240px; background: var(--bg-panel); border: 1px solid var(--line-2); border-radius: var(--r3); box-shadow: var(--shadow); padding: 4px; }
+.wsmenu .mi { display: block; width: 100%; text-align: left; padding: 7px 10px; border-radius: var(--r2); font-size: 12.5px; color: var(--t1); }
+.wsmenu .mi:hover { background: var(--bg-hover); }
+.wsmenu .mi.static { color: var(--t2); font-weight: 600; cursor: default; }
+.wsmenu .mi.static:hover { background: none; }
+.wsmenu .mi.static .sub { display: block; font-weight: 400; font-size: 11px; color: var(--t3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px; }
+.wsmenu .mi.danger { color: var(--red); }
+.wsmenu .sep { height: 1px; background: var(--line); margin: 4px 6px; }

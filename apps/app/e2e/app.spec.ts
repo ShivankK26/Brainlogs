@@ -6,6 +6,16 @@ async function open(page: Page) {
   await expect(page.locator(".item[data-page=memory] .cnt")).not.toHaveText("");
 }
 
+test("workspace menu opens with version, update check and quit", async ({ page }) => {
+  await open(page);
+  await page.locator("#wsBtn").click();
+  await expect(page.locator("#wsMenu .mi.static")).toContainText("Brainlogs");
+  await expect(page.locator("#wsMenu")).toContainText("Check for updates");
+  await expect(page.locator("#wsMenu")).toContainText("Quit Brainlogs");
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#wsMenu")).toHaveCount(0);
+});
+
 test("pulse renders KPIs from real data", async ({ page }) => {
   await open(page);
   await expect(page.locator(".kp .v").first()).not.toHaveText("—");

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.21 — 2026-09-15
+
+- The workspace button in the sidebar is now an app menu: version, Check for updates, Pause/Resume capture, Data & retention, Audit log, Quit. It used to be a decorative chevron.
+- Group broadcasts ("please share this message…", blood-donor appeals) and group names used as speakers ("Batch") no longer become commitments; existing ones are dismissed.
+- The status endpoint reports the real app version instead of 0.1.0.
+
 ## 1.0.20 — 2026-09-15
 
 - Commitments shows a collapsed "Dismissed" section so items removed by the cleanup are visible and can be reopened; the empty state says how many were dismissed and why.

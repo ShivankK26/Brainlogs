@@ -3,7 +3,8 @@ import { and, eq, sql } from "drizzle-orm";
 import { brainlogSchema as s, getDb, newId } from "@brainlog/core";
 import type { Actor, Commitment, EdgeKind, Entity, EntityKind, EvidenceRef, ProposalStatus } from "@brainlog/types";
 import { CHAT_TURN_MIN_WORDS, normName } from "./extract/deterministic.js";
-import { PREVIEW } from "./extract/commitments.js";
+import { BROADCAST, PREVIEW } from "./extract/commitments.js";
+import { LABEL_WORDS } from "./extract/deterministic.js";
 
 const db = () => getDb();
 
@@ -95,8 +96,9 @@ export function dismissDoubtfulCommitments(now = new Date().toISOString()): numb
   let n = 0;
   for (const r of rows) {
     const unnamed = r.toParty === "them" || r.fromParty === "them";
-    const preview = PREVIEW.test(r.text);
-    if (unnamed || preview) {
+    const preview = PREVIEW.test(r.text) || BROADCAST.test(r.text);
+    const labelParty = LABEL_WORDS.has(r.fromParty.toLowerCase()) || LABEL_WORDS.has(r.toParty.toLowerCase());
+    if (unnamed || preview || labelParty) {
       d.update(s.commitments).set({ status: "dismissed", updatedAt: now }).where(eq(s.commitments.id, r.id)).run();
       n++;
     }

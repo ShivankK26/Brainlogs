@@ -5,7 +5,7 @@ type Update = { version: string; body?: string | null; downloadAndInstall: (cb?:
 type TauriGlobals = { updater?: { check: () => Promise<Update | null> }; process?: { relaunch: () => Promise<void> } };
 const tauri = (): TauriGlobals | undefined => (window as unknown as { __TAURI__?: TauriGlobals }).__TAURI__;
 
-export type UpdaterState = { available: Update | null; phase: "idle" | "checking" | "downloading" | "ready" | "error"; error: string | null; install: () => Promise<void> };
+export type UpdaterState = { available: Update | null; phase: "idle" | "checking" | "downloading" | "ready" | "error"; error: string | null; install: () => Promise<void>; check: () => Promise<"update" | "current" | "unavailable"> };
 
 /**
  * Checks GitHub Releases (via the Tauri updater plugin) on launch and every 6 h. Outside the
@@ -37,6 +37,20 @@ export function useUpdater(): UpdaterState {
       window.clearInterval(id);
     };
   }, []);
+  const check = useCallback(async (): Promise<"update" | "current" | "unavailable"> => {
+    const t = tauri();
+    if (!t?.updater) return "unavailable";
+    try {
+      setPhase("checking");
+      const u = await t.updater.check();
+      setAvailable(u ?? null);
+      setPhase("idle");
+      return u ? "update" : "current";
+    } catch {
+      setPhase("idle");
+      return "unavailable";
+    }
+  }, []);
   const install = useCallback(async () => {
     const t = tauri();
     if (!available) return;
@@ -50,5 +64,5 @@ export function useUpdater(): UpdaterState {
       setError(e instanceof Error ? e.message : String(e));
     }
   }, [available]);
-  return { available, phase, error, install };
+  return { available, phase, error, install, check };
 }

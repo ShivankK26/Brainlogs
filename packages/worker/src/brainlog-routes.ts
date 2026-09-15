@@ -101,7 +101,7 @@ export async function status() {
     dbSizeBytes,
     agents: [...agents],
     modelName: (await modelStatus()).askModel ?? "none",
-    version: process.env.npm_package_version ?? "0.1.0",
+    version: process.env.BRAINLOG_BUNDLE_VERSION ?? process.env.npm_package_version ?? "dev",
     port: config.port,
     dataDir: config.dataDir,
     vecReady: isVecReady(),
