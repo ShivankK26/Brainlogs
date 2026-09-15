@@ -173,7 +173,11 @@ jobs:
       # Updater manifest: Tauri's updater fetches latest.json from the latest release and compares
       # `version`; each platform entry points at the signed artifact (minisign .sig next to it).
       - name: Updater manifest (latest.json)
-        run: node tooling/release/latest-json.mjs "$TAG" bundles > bundles/latest.json && cat bundles/latest.json
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download "$TAG" -p latest.json -O prev-latest.json 2>/dev/null || true
+          node tooling/release/latest-json.mjs "$TAG" bundles prev-latest.json > bundles/latest.json && cat bundles/latest.json
       - name: Create or update the draft release
         env:
           # A classic PAT with `repo` scope in RELEASE_TOKEN is used when set; the built-in token otherwise.
