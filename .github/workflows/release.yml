@@ -110,6 +110,10 @@ jobs:
           security create-keychain -p ci build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p ci build.keychain
+          # A fresh keychain auto-locks after a few idle minutes. With a cold cargo cache the Rust
+          # build runs well past that, and codesign then blocks forever on an unlock prompt
+          # (the runner reported an orphan `codesign` after 77 min). Keep it unlocked for 6 h.
+          security set-keychain-settings -lut 21600 build.keychain
           security import cert.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple: -s -k ci build.keychain
           # The identity may be self-signed (ADR 0012: a stable identity without an Apple account).
