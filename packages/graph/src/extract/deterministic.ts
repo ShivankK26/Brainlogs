@@ -15,7 +15,11 @@ const DOC_HOSTS = /(^|\.)(notion\.so|docs\.google\.com|confluence\.[a-z]+|atlass
 const IGNORE_OWNERS = new Set(["http", "https", "src", "packages", "apps", "node_modules", "dist", "usr", "bin", "etc", "var", "home", "users", "library", "tmp", "docs", "lib", "test", "tests", "api", "app", "www", "com", "org", "io", "a", "the", "and", "or"]);
 const BRANCH_OWNERS = new Set(["feat", "feature", "fix", "bugfix", "hotfix", "chore", "refactor", "docs", "test", "ci", "release", "origin", "upstream", "remotes"]);
 const IGNORE_NAMES = new Set(["you", "me", "system", "user", "admin", "bot", "everyone", "channel", "here", "today", "tomorrow", "error", "warning", "note", "todo", "fixme", "http", "https"]);
+/** `Label: value` lines that are not chat turns: forms, résumés, receipts, headers. */
+const LABEL_WORDS = new Set(["role", "location", "experience", "resume", "qualification", "qualifications", "build", "skills", "education", "summary", "subject", "from", "to", "cc", "bcc", "date", "status", "total", "price", "name", "email", "phone", "address", "company", "title", "description", "salary", "ctc", "notice", "type", "category", "position", "department", "duration", "budget", "deadline", "priority", "owner", "assignee", "reporter", "version", "url", "link", "source", "target", "input", "output", "result", "results", "step", "steps", "example", "examples", "usage", "warning", "info", "debug", "tip", "hint", "answer", "question", "q", "a", "re", "fwd", "sent", "received", "time", "amount", "quantity", "id", "order", "invoice", "batch", "register", "username", "password", "login", "account"]);
 const SELF = /^(you|me|myself|i)$/i;
+/** A real chat turn usually says something; "Location: Bangalore" does not. */
+export const CHAT_TURN_MIN_WORDS = 4;
 
 export function normName(name: string): string {
   return name.replace(/\s+/g, " ").trim().toLowerCase();
@@ -56,9 +60,24 @@ export function extractMentions(e: Event, opts: { chat: boolean }): Mention[] {
     const dm = e.windowTitle.match(DM_TITLE);
     const contact = (dm?.[1] ?? dm?.[2])?.trim();
     if (contact && !SELF.test(contact) && contact.length <= 60) add(out, { kind: "person", name: contact, confidence: 1 });
+    // Chat turns repeat their speaker or say something; a one-off "Label: value" line with a
+    // two-word value is a form field or résumé heading, not a person.
+    const turns = new Map<string, { n: number; longest: number }>();
     for (const line of e.text.split("\n")) {
       const s = line.match(SPEAKER);
-      if (s && !SELF.test(s[1]!) && !IGNORE_NAMES.has(s[1]!.toLowerCase())) add(out, { kind: "person", name: s[1]!, confidence: 0.95 });
+      if (!s) continue;
+      const words = line.slice(line.indexOf(":") + 1).trim().split(/\s+/).filter(Boolean).length;
+      const cur = turns.get(s[1]!) ?? { n: 0, longest: 0 };
+      cur.n += 1;
+      cur.longest = Math.max(cur.longest, words);
+      turns.set(s[1]!, cur);
+    }
+    for (const [name, t] of turns) {
+      const lower = name.toLowerCase();
+      if (SELF.test(name) || IGNORE_NAMES.has(lower) || LABEL_WORDS.has(lower)) continue;
+      const multiWord = /\s/.test(name);
+      const isContact = contact !== undefined && normName(contact) === normName(name);
+      if (t.n >= 2 || multiWord || isContact || t.longest >= CHAT_TURN_MIN_WORDS) add(out, { kind: "person", name, confidence: t.n >= 2 || isContact ? 0.95 : 0.8 });
     }
   }
   return [...out.values()];

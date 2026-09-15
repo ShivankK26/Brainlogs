@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.18 — 2026-09-15
+
+- People are extracted from chats only when a name repeats as a speaker, has two words, or is the conversation partner; a one-off "Role: …" or "Location: …" line is a form field, not a person. Existing mis-labelled people are reclassified as topics by the graph job, so Conversations and the People group clean themselves up on the next run.
+
 ## 1.0.17 — 2026-09-15
 
 - Overview "Conversations" and the sidebar People group no longer list interface words ("username", "Register", "Batch", "CTC") that the extractor mistook for people; only plausible names are shown.

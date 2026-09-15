@@ -2,7 +2,7 @@
 import { and, eq, sql } from "drizzle-orm";
 import { brainlogSchema as s, getDb, newId } from "@brainlog/core";
 import type { Actor, Commitment, EdgeKind, Entity, EntityKind, EvidenceRef, ProposalStatus } from "@brainlog/types";
-import { normName } from "./extract/deterministic.js";
+import { CHAT_TURN_MIN_WORDS, normName } from "./extract/deterministic.js";
 
 const db = () => getDb();
 
@@ -37,6 +37,51 @@ export function upsertEntity(kind: EntityKind, name: string, seenAt: string): En
   const id = newId();
   d.insert(s.entities).values({ id, kind, name, nameNorm: norm, aliasesJson: "[]", firstSeen: seenAt, lastSeen: seenAt, mentionCount: 1 }).run();
   return { id, kind, name, aliases: [], firstSeen: seenAt, lastSeen: seenAt, mentionCount: 1 };
+}
+
+const DM_TITLE_RE = /^(?:dm|direct message|private message)\s*[·|:—-]\s*(.+)$|^(.+?)\s*[·|:—-]\s*(?:dm|direct message)$/i;
+
+/**
+ * Person entities with a single-word name are kept only when some linked event shows them as a
+ * real counterpart: the DM title names them, they speak two or more turns, or they are @mentioned.
+ * Everything else (form labels, résumé headings) becomes a `topic`, which no People list shows.
+ */
+export function reclassifyDoubtfulPeople(limitEventsPerEntity = 60): { reclassified: number; checked: number } {
+  const d = db();
+  const people = d.select().from(s.entities).where(eq(s.entities.kind, "person")).all().filter((r) => !/\s/.test(r.name.trim()));
+  let reclassified = 0;
+  for (const p of people) {
+    const norm = p.nameNorm;
+    const rows = d
+      .select({ title: s.events.windowTitle, text: s.events.text })
+      .from(s.eventEntities)
+      .innerJoin(s.events, eq(s.events.id, s.eventEntities.eventId))
+      .where(eq(s.eventEntities.entityId, p.id))
+      .limit(limitEventsPerEntity)
+      .all();
+    const speakerRe = new RegExp(`^\\s*${p.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*:\\s+\\S`, "im");
+    const real = rows.some((r) => {
+      const dm = r.title.match(DM_TITLE_RE);
+      const contact = (dm?.[1] ?? dm?.[2])?.trim().toLowerCase();
+      if (contact === norm) return true;
+      if (new RegExp(`(?<![\\w@])@${p.name}\\b`, "i").test(r.text)) return true;
+      const turnLines = r.text.split("\n").filter((l) => speakerRe.test(l));
+      if (turnLines.length >= 2) return true;
+      return turnLines.some((l) => l.slice(l.indexOf(":") + 1).trim().split(/\s+/).filter(Boolean).length >= CHAT_TURN_MIN_WORDS);
+    });
+    if (!real) {
+      // a topic with the same normalised name may already exist; merge by deleting the doubtful person
+      const clash = d.select({ id: s.entities.id }).from(s.entities).where(and(eq(s.entities.kind, "topic"), eq(s.entities.nameNorm, norm))).get();
+      if (clash) {
+        d.update(s.eventEntities).set({ entityId: clash.id }).where(eq(s.eventEntities.entityId, p.id)).run();
+        d.delete(s.entities).where(eq(s.entities.id, p.id)).run();
+      } else {
+        d.update(s.entities).set({ kind: "topic" }).where(eq(s.entities.id, p.id)).run();
+      }
+      reclassified++;
+    }
+  }
+  return { reclassified, checked: people.length };
 }
 
 export function linkEventEntity(eventId: string, entityId: string): void {

@@ -7,7 +7,7 @@ import { extractCommitments } from "./extract/commitments.js";
 import { modelExtract, type ModelClient } from "./extract/model.js";
 import { parseDue } from "./due.js";
 import { runLifecycle, type LifecycleStats } from "./lifecycle.js";
-import { getWatermark, linkEventEntity, setWatermark, upsertCommitment, upsertEdge, upsertEntity } from "./store.js";
+import { getWatermark, linkEventEntity, setWatermark, upsertCommitment, upsertEdge, upsertEntity, reclassifyDoubtfulPeople } from "./store.js";
 import { writeWeeklySummary } from "./summary.js";
 
 const WATERMARK = "graph";
@@ -148,6 +148,8 @@ export async function runGraphJob(opts: GraphJobOptions = {}): Promise<GraphStat
   }
 
   stats.lifecycle = runLifecycle(now);
+  const cleaned = reclassifyDoubtfulPeople();
+  if (cleaned.reclassified) log.info("Reclassified doubtful people", cleaned);
   const last = events[events.length - 1];
   if (last) setWatermark(WATERMARK, last.ts);
   stats.watermark = last?.ts ?? since;

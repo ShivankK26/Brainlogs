@@ -51,3 +51,17 @@ describe("speakerTurns + extractCommitments", () => {
     ]);
   });
 });
+
+describe("people from chat text", () => {
+  const base = { id: "e1", ts: "2026-09-15T08:00:00.000Z", app: "WhatsApp", bundleId: null, windowTitle: "WhatsApp", url: null, domain: null, textHash: "0".repeat(64), sourceKind: "ax" as const, sensitivity: "third_party_private" as const, expiresAt: "2026-10-15T00:00:00.000Z" };
+  it("ignores one-off Label: value lines and keeps repeated speakers", () => {
+    const text = "Role: Senior Engineer\nLocation: Bangalore\nExperience: 5 years\nSarvagya: hey\nYou: hi\nSarvagya: base pay kitna?";
+    const people = extractMentions({ ...base, text }, { chat: true }).filter((m) => m.kind === "person").map((m) => m.name);
+    expect(people).toEqual(["Sarvagya"]);
+  });
+  it("keeps two-word speakers even when they speak once", () => {
+    const text = "Rohit Talluri: can we talk tomorrow?\nYou: sure";
+    const people = extractMentions({ ...base, text }, { chat: true }).filter((m) => m.kind === "person").map((m) => m.name);
+    expect(people).toEqual(["Rohit Talluri"]);
+  });
+});
