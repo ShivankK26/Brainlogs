@@ -3,7 +3,6 @@ import { api } from "../lib/api";
 import type { AskMoment, AskResult, ModelStatus } from "../lib/types";
 import { useStore } from "../state/store";
 
-const VIA_LABEL: Record<AskResult["via"], string> = { cloud: "Written by Claude", local: "Written by the local model", none: "Answered from your timeline" };
 const KIND_ICON: Record<AskMoment["kind"], string> = { message: "💬", mail: "✉️", meeting: "📞", doc: "📄", code: "⌥", page: "◎", app: "▣" };
 
 function fmtTime(ts: string): string {
@@ -113,11 +112,16 @@ export function ModelSetup({ compact }: { compact?: boolean }) {
   );
 }
 
-export function AskCard({ question, result, loading, onCite }: { question: string; result: AskResult | null; loading: boolean; onCite: (id: string) => void }) {
+export function AskCard({ result, loading, onCite }: { question?: string; result: AskResult | null; loading: boolean; onCite: (id: string) => void }) {
+  const [showAll, setShowAll] = useState(false);
+  const [setupOpen, setSetupOpen] = useState(false);
   const s = result?.structured;
+  const quote = s?.facts.find((f) => f.label === "Captured text");
+  const primary = s?.moments[0];
+  const rest = s ? s.moments.slice(1) : [];
+  const visible = showAll ? rest : rest.slice(0, 2);
   return (
     <div className="askcard" id="askCard">
-      <div className="q">{question}</div>
       {loading ? <div className="a thinking">Looking through your timeline…</div> : null}
       {result && s ? (
         <>
@@ -126,40 +130,33 @@ export function AskCard({ question, result, loading, onCite }: { question: strin
           ) : (
             <>
               <div className="verdict">{s.verdict}</div>
+              {quote ? <blockquote className="quote">{quote.value.replace(/^“|”$/g, "")}</blockquote> : null}
               {s.detail ? <div className="detail">{s.detail}</div> : null}
             </>
           )}
-          {s.facts.length ? (
-            <dl className="facts">
-              {s.facts.map((f, i) => (
-                <div key={i} className="fact">
-                  <dt>{f.label}</dt>
-                  <dd>{f.eventId ? <button className="lnk" onClick={() => onCite(f.eventId!)}>{f.value}</button> : f.value}</dd>
-                </div>
+          {primary ? (
+            <div className="evidence">
+              <div className="eh">{s.moments.length === 1 ? "Source" : `Sources · ${s.moments.length}`}</div>
+              {[primary, ...visible].map((m) => (
+                <button key={m.eventId} className="mom" onClick={() => onCite(m.eventId)}>
+                  <span className="k" aria-hidden>{KIND_ICON[m.kind]}</span>
+                  <span className="t">{m.title}</span>
+                  <span className="meta">{m.app}{m.count > 1 ? ` · ${m.count}` : ""}</span>
+                  <span className="when">{span(m)}</span>
+                </button>
               ))}
-            </dl>
-          ) : null}
-          {s.moments.length ? (
-            <ul className="moments">
-              {s.moments.map((m, i) => (
-                <li key={m.eventId}>
-                  <button className="mom" onClick={() => onCite(m.eventId)}>
-                    <span className="n">{i + 1}</span>
-                    <span className="k" aria-hidden>{KIND_ICON[m.kind]}</span>
-                    <span className="t">{m.title}{m.snippet ? <span className="snip">“{m.snippet}”</span> : null}</span>
-                    <span className="meta">{m.app}{m.count > 1 ? ` · ${m.count} captures` : ""}</span>
-                    <span className="when">{span(m)}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+              {rest.length > 2 ? <button className="lnk dim more" onClick={() => setShowAll((v) => !v)}>{showAll ? "Show fewer" : `Show ${rest.length - 2} more`}</button> : null}
+            </div>
           ) : null}
           <div className="m">
-            {VIA_LABEL[result.via]}{result.via !== "none" ? ` (${result.model})` : ""}
-            {s.scope.label ? ` · ${s.scope.label}` : ""}
-            {result.withheld ? ` · ${result.withheld} sensitive moment${result.withheld === 1 ? "" : "s"} kept off the cloud` : ""}
+            <span>
+              {result.via === "cloud" ? "Written by Claude" : result.via === "local" ? `Written by ${result.model}` : "From your timeline"}
+              {s.scope.label ? ` · ${s.scope.label}` : ""}
+              {result.withheld ? ` · ${result.withheld} sensitive moment${result.withheld === 1 ? "" : "s"} kept off the cloud` : ""}
+            </span>
+            {result.via === "none" ? <button className="lnk dim" id="askSetup" onClick={() => setSetupOpen((v) => !v)}>{setupOpen ? "Hide" : "Get written answers, free"}</button> : null}
           </div>
-          {result.via === "none" ? <ModelSetup compact /> : null}
+          {result.via === "none" && setupOpen ? <ModelSetup /> : null}
         </>
       ) : null}
     </div>

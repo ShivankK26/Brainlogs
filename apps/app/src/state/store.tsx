@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useReducer, type ReactNode } from "react";
 
 export type Page = "overview" | "memory" | "commitments" | "agents" | "audit" | "privacy";
-export const PAGE_TITLE: Record<Page, string> = { overview: "Pulse", memory: "Memory", commitments: "Commitments", agents: "Agents", audit: "Audit log", privacy: "Data & retention" };
+export const PAGE_TITLE: Record<Page, string> = { overview: "Overview", memory: "Memory", commitments: "Commitments", agents: "Agents", audit: "Audit log", privacy: "Data & retention" };
 
 /** A memory filter is free text (search), a question (answer card + cited moments), or an explicit set of event ids (evidence for a narrative sentence). */
 export type QueryFilter = { kind: "query"; q: string; app?: string; domain?: string; person?: string; repo?: string; from?: string; to?: string };

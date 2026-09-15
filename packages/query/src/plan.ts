@@ -270,9 +270,12 @@ export function clusterMoments(hits: SearchHit[], terms: { person?: string[]; to
     const hay = `${e.windowTitle}\n${e.url ?? ""}\n${e.text}`;
     if (!m.matches.person && containsAny(hay, person)) m.matches.person = true;
     if (!m.matches.topic && containsAll(hay, topic)) m.matches.topic = true;
-    if (!m.snippet || (topic.length && !containsAll(m.snippet, topic))) {
+    // Quote text only where it adds something: a topic match, or a person match inside a chat.
+    const wantSnippet = topic.length > 0 || (person.length > 0 && m.kind === "message");
+    if (wantSnippet && (!m.snippet || (topic.length && !containsAll(m.snippet, topic)))) {
       const s = snippetFor(e.text, topic.length ? topic : person);
-      if (s && s.toLowerCase() !== m.title.toLowerCase()) m.snippet = s;
+      const norm = (x: string) => cleanTitle(x).toLowerCase().replace(/^\(\d+\)\s*/, "");
+      if (s && norm(s) !== norm(m.title) && !norm(s).startsWith(norm(m.title))) m.snippet = s;
     }
   };
   for (const h of sorted) {
@@ -361,7 +364,7 @@ export function compose(p: Plan, momentsIn: AskMoment[], dayEvents?: Event[]): S
     return { intent: p.intent, verdict: `${where ? titleCase(where.trim()) : "Recently"}: ${evs.length} captures across ${byApp.size} apps.`, detail: `Top windows are listed below; click one to open it in the timeline.`, facts, moments: ms, scope: p.scope };
   }
 
-  if (moments.length === 0) return { intent: p.intent, verdict: `${NONE_FOUND}${p.subject ? ` about ${subj}` : ""}${where}.`, detail: "Try fewer words, or a name exactly as it appears in a window title.", facts, moments: [], scope: p.scope };
+  if (moments.length === 0) return { intent: p.intent, verdict: `${NONE_FOUND}${p.subject ? ` about ${subj}` : ""}${where}.`, detail: "Try fewer words, or a name as it appears in a window title.", facts, moments: [], scope: p.scope };
   // When some moments mention the subject literally, those are the answer; the rest were partial matches.
   const literal = moments.filter((m) => m.matches.person);
   if (literal.length > 0 && literal.length < moments.length) {
@@ -398,7 +401,7 @@ export function compose(p: Plan, momentsIn: AskMoment[], dayEvents?: Event[]): S
         return { intent: p.intent, verdict: `Yes. You messaged ${who} ${viaOf(m)} about ${p.topic}, ${fmtSpan(m)}.`, facts, moments: shown, scope: p.scope };
       }
       if (p.topic) {
-        return { intent: p.intent, verdict: `You messaged ${who} ${viaOf(m)} ${fmtSpan(m)}, but “${p.topic}” does not appear in the captured text.`, detail: "Capture reads what was on screen at the time; a message typed and sent quickly, or scrolled out of view, can be missed.", facts, moments: shown, scope: p.scope };
+        return { intent: p.intent, verdict: `Partly. You messaged ${who} ${viaOf(m)} ${fmtSpan(m)}, but nothing about “${p.topic}” was captured.`, facts, moments: shown, scope: p.scope };
       }
       return { intent: p.intent, verdict: `Yes. You messaged ${who} ${viaOf(m)}, ${fmtSpan(m)}.`, facts, moments: shown, scope: p.scope };
     }
@@ -406,9 +409,9 @@ export function compose(p: Plan, momentsIn: AskMoment[], dayEvents?: Event[]): S
     if (seen) {
       facts.push({ label: "Closest", value: placeOf(seen), eventId: seen.eventId });
       facts.push({ label: "When", value: fmtSpan(seen), eventId: seen.eventId });
-      return { intent: p.intent, verdict: `No message to ${who} was captured${where}.`, detail: `You did open ${seen.title} ${fmtSpan(seen)}, but no chat, email or call with ${who} shows up. Capture only sees windows that were on screen while Brainlogs was running.`, facts, moments: about.slice(0, 6), scope: p.scope };
+      return { intent: p.intent, verdict: `No, nothing sent to ${who}${where}.`, detail: `Closest: you opened ${seen.title} on ${fmtSpan(seen)}.`, facts, moments: about.slice(0, 6), scope: p.scope };
     }
-    return { intent: p.intent, verdict: `Nothing in memory mentions ${who}${where}.`, detail: "Try the name exactly as it appears in the chat or window title.", facts, moments: [], scope: p.scope };
+    return { intent: p.intent, verdict: `No, ${who} doesn't appear anywhere${where}.`, detail: "Try the name as it appears in the chat or window title.", facts, moments: [], scope: p.scope };
   }
 
   if (p.intent === "duration") {
@@ -416,7 +419,7 @@ export function compose(p: Plan, momentsIn: AskMoment[], dayEvents?: Event[]): S
     const days = new Set(moments.map((m) => new Date(m.start).toDateString()));
     facts.push({ label: "Sessions", value: `${moments.length} across ${days.size} day${days.size === 1 ? "" : "s"}` });
     facts.push({ label: "Latest", value: fmtSpan(moments[0]!), eventId: moments[0]!.eventId });
-    return { intent: p.intent, verdict: `About ${fmtDuration(ms)} on ${subj}${where}.`, detail: "Estimated from the time each window stayed on screen; short glances count as 30 seconds.", facts, moments: top, scope: p.scope };
+    return { intent: p.intent, verdict: `About ${fmtDuration(ms)} on ${subj}${where}.`, detail: `${moments.length} session${moments.length === 1 ? "" : "s"}, latest ${fmtSpan(moments[0]!)}.`, facts, moments: top, scope: p.scope };
   }
 
   if (p.intent === "who") {

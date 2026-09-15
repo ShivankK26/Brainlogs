@@ -48,7 +48,7 @@ describe("plan", () => {
     expect(moments[0]!.count).toBe(4);
     expect(moments[0]!.kind).toBe("page");
     const noMsg = compose(p, moments);
-    expect(noMsg.verdict).toMatch(/^No message to Rohit Talluri/);
+    expect(noMsg.verdict).toMatch(/^No, nothing sent to Rohit Talluri/);
     const withMsg = clusterMoments([...hits, hit(ev({ ts: "2026-09-15T07:30:00.000Z", windowTitle: "Messaging | LinkedIn", sensitivity: "third_party_private", text: "Rohit Talluri\nYou: hi Rohit, quick question" }))], terms);
     const yes = compose(p, withMsg);
     expect(yes.verdict).toMatch(/^Yes\. You messaged Rohit Talluri in LinkedIn messages/);
@@ -92,6 +92,6 @@ describe("plan", () => {
     expect(yes.moments.map((m) => m.title)).toContain("Sarvagya Kulshreshtha (@sarvagya_kul) / X");
     // chat exists but never mentions the topic
     const noTopic = compose(p, clusterMoments([hit(ev({ ts: "2026-09-15T08:27:00.000Z", windowTitle: "WhatsApp", app: "WhatsApp", domain: null, sensitivity: "third_party_private", text: "Sarvagya: see you tomorrow" }))], terms));
-    expect(noTopic.verdict).toMatch(/but “base pay” does not appear/);
+    expect(noTopic.verdict).toMatch(/^Partly\. .*nothing about “base pay” was captured/);
   });
 });

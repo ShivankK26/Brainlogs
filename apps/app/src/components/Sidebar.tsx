@@ -33,19 +33,33 @@ export function Sidebar({ status, entities }: { status: Status | null; entities:
       <button className="sb-search" id="openPal" onClick={openPalette}>
         <IcSearch />Search or jump to<kbd>⌘K</kbd>
       </button>
-      <Item p="overview" icon={<IcPulse />} label="Pulse" />
+      <Item p="overview" icon={<IcPulse />} label="Overview" />
       <Item p="memory" icon={<IcMemory />} label="Memory" count={status ? compact(status.counts.events) : undefined} />
       <Item p="commitments" icon={<IcCheck />} label="Commitments" count={status?.counts.commitmentsOpen} />
       <Item p="agents" icon={<IcAgent />} label="Agents" count={status?.agents.length} />
-      <div className="sbsec">
-        <div className="sbh">Entities</div>
-        {entities.length === 0 ? <div className="stat">No entities yet</div> : null}
-        {entities.map((e) => (
-          <button key={e.id} className="item ent" data-q={e.name} onClick={() => { setFilter({ kind: "text", q: e.name }); go("memory"); }}>
-            <i className="dotc" style={{ background: KIND_COLOR[e.kind] }} /><span className="name">{e.name}</span><span className="cnt">{e.mentionCount}</span>
-          </button>
-        ))}
-      </div>
+      {(() => {
+        const people = entities.filter((e) => e.kind === "person");
+        const projects = entities.filter((e) => e.kind === "repo" || e.kind === "project" || e.kind === "branch" || e.kind === "org");
+        const short = (e: Entity) => (e.kind === "repo" ? e.name.split("/").pop() ?? e.name : e.name);
+        const Group = ({ title, items }: { title: string; items: Entity[] }) =>
+          items.length ? (
+            <div className="sbsec">
+              <div className="sbh">{title}</div>
+              {items.map((e) => (
+                <button key={e.id} className="item ent" data-q={e.name} title={`${e.kind}: ${e.name} · ${e.mentionCount} mentions`} onClick={() => { setFilter({ kind: "text", q: e.name }); go("memory"); }}>
+                  <i className="dotc" style={{ background: KIND_COLOR[e.kind] }} /><span className="name">{short(e)}</span><span className="cnt">{e.mentionCount}</span>
+                </button>
+              ))}
+            </div>
+          ) : null;
+        return (
+          <>
+            <Group title="People" items={people} />
+            <Group title="Projects" items={projects} />
+            {entities.length === 0 ? <div className="sbsec"><div className="sbh">People &amp; projects</div><div className="stat">Nothing extracted yet</div></div> : null}
+          </>
+        );
+      })()}
       <div className="sbsec">
         <div className="sbh">Governance</div>
         <Item p="audit" icon={<IcAudit />} label="Audit log" />

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.16 — 2026-09-15
+
+- **Pulse is now Overview**, rebuilt around measures instead of prose: focused time with a week-over-week delta, share of time on the top project, app switches (with trend) and open commitments; where the time went (projects and apps, browsers merged); a daily rhythm chart you can click into; highlights computed from the data (most focused day, longest stretch, who you talked to) with evidence a click away; conversations and top sites. The generated narrative is still there behind "Show weekly narrative".
+- **Ask answers read like an answer.** One verdict line, the quoted evidence if there is one, a single line of context, then a short list of sources with "Show more". The model prompt is a small link. Text is quoted only when it adds something beyond the window title.
+- Sidebar entities are grouped into People and Projects, with repository names shortened and full names on hover.
+
 ## 1.0.15 — 2026-09-15
 
 - **Ask understands who and what.** "Did I send Sarvagya a message asking about base pay?" now separates the person (Sarvagya) from the topic (base pay), searches for the person, checks whether the topic appears in the captured chat text, and answers "Yes. You messaged Sarvagya on WhatsApp about base pay, Tue 15 Sept 1:57–2:02 pm" with the matching line quoted. If the chat exists but never mentions the topic, it says so instead of guessing.

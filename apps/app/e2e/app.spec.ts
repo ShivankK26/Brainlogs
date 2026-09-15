@@ -53,11 +53,11 @@ test("palette: a question puts Ask first; Memory shows the answer card with clic
   await page.keyboard.press("Enter");
   await expect(page.locator("#clearF")).toContainText("Ask: why did the vec0 migration fail?");
   const card = page.locator("#askCard");
-  await expect(card.locator(".q")).toHaveText("why did the vec0 migration fail?");
-  await expect(card.locator(".m")).toContainText(/timeline|model|Claude/);
-  await expect(card.locator(".moments .mom").first()).toBeVisible();
+  await expect(card.locator(".verdict")).toBeVisible();
+  await expect(card.locator(".m")).toContainText(/timeline|Written by/);
+  await expect(card.locator(".evidence .mom").first()).toBeVisible();
   await expect.poll(() => page.locator("#rows .row").count()).toBeGreaterThan(0);
-  await card.locator(".moments .mom").first().click();
+  await card.locator(".evidence .mom").first().click();
   await expect(page.locator(".row[aria-selected=true]")).toHaveCount(1);
   await expect(page.locator("#detail .dtitle")).toBeVisible();
   // a plain term keeps the filter action first

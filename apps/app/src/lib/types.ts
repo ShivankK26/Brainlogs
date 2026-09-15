@@ -55,4 +55,10 @@ export type Pulse = {
   timeByProject: Array<{ name: string; ms: number; kind: string }>;
   summary: Summary | null;
   eventCount: number;
+  days: Array<{ date: string; focusedMs: number; sessions: number; firstTs: string | null; lastTs: string | null }>;
+  previous: { focusedMs: number; sessions: number; contextSwitches: number; activeDays: number };
+  topDomains: Array<{ name: string; ms: number }>;
+  people: Array<{ name: string; ms: number; lastTs: string; count: number }>;
+  longestSession: { app: string; title: string; ms: number; start: string; eventId: string } | null;
+  activeDays: number;
 };

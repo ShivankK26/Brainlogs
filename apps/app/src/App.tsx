@@ -6,7 +6,7 @@ import { StoreProvider, useStore, type Page } from "./state/store";
 import { Sidebar } from "./components/Sidebar";
 import { Palette } from "./components/Palette";
 import { Toast } from "./components/Toast";
-import { Pulse } from "./views/Pulse";
+import { Overview } from "./views/Overview";
 import { Memory } from "./views/Memory";
 import { Commitments } from "./views/Commitments";
 import { Agents } from "./views/Agents";
@@ -107,7 +107,7 @@ function Shell() {
       <Sidebar status={status.data} entities={entities.data ?? []} />
       <div className={`main${status.data && (status.data.capture.accessibility === false || status.data.capture.engineRunning === false) ? " has-banner" : ""}`}>
         <CaptureBanner status={status.data} />
-        {page === "overview" && <Pulse />}
+        {page === "overview" && <Overview />}
         {page === "memory" && <Memory />}
         {page === "commitments" && <Commitments />}
         {page === "agents" && <Agents status={status.data} />}

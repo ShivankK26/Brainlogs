@@ -1,6 +1,6 @@
 {
   "name": "brainlog",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "private": true,
   "license": "MIT",
   "description": "Brainlog — a local-first second brain. Captures the text of what you see, builds an entity graph on-device, and answers questions about your past. Nothing leaves your machine.",
