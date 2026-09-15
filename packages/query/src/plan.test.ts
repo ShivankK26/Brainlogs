@@ -40,9 +40,11 @@ describe("plan", () => {
       hit(ev({ ts: "2026-09-15T07:26:00.000Z", windowTitle: "Rohit Talluri | LinkedIn - High memory usage - 1,022 MB - Google Chrome" })),
       hit(ev({ ts: "2026-09-15T07:27:00.000Z", windowTitle: "Rohit Talluri | LinkedIn - Google Chrome" })),
     ];
+    hits.push(hit(ev({ ts: "2026-09-15T07:27:30.000Z", windowTitle: "Rohit Talluri | LinkedIn", app: "chrome", domain: null })));
     const moments = clusterMoments(hits);
-    expect(moments).toHaveLength(1);
-    expect(moments[0]!.count).toBe(3);
+    expect(moments).toHaveLength(1); // "chrome" history rows merge with "Google Chrome" captures
+    expect(moments[0]!.count).toBe(4);
+    expect(moments[0]!.kind).toBe("page");
     const noMsg = compose(plan("did i reachout to Rohit talluri?", now), moments);
     expect(noMsg.verdict).toMatch(/^No conversation/);
     const withMsg = clusterMoments([...hits, hit(ev({ ts: "2026-09-15T07:30:00.000Z", windowTitle: "Messaging | LinkedIn", sensitivity: "third_party_private" }))]);

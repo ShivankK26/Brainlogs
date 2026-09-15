@@ -153,6 +153,22 @@ export function plan(question: string, now = new Date()): Plan {
 
 const MOMENT_GAP_MS = 10 * 60_000;
 
+const APP_ALIASES: Array<[RegExp, string]> = [
+  [/^(google\s*)?chrome$/i, "Google Chrome"],
+  [/^(microsoft\s*)?edge$/i, "Microsoft Edge"],
+  [/^(mozilla\s*)?firefox$/i, "Firefox"],
+  [/^arc(\s*browser)?$/i, "Arc"],
+  [/^brave(\s*browser)?$/i, "Brave"],
+  [/^safari$/i, "Safari"],
+];
+
+/** Window captures and browser-history imports name the same browser differently; one label for both. */
+export function normApp(app: string): string {
+  const a = app.trim();
+  for (const [re, name] of APP_ALIASES) if (re.test(a)) return name;
+  return a;
+}
+
 /** Strip the browser suffix and counters so "Rohit Talluri | LinkedIn - Google Chrome" groups with its siblings. */
 export function cleanTitle(title: string): string {
   return title
@@ -180,17 +196,22 @@ export function clusterMoments(hits: SearchHit[]): AskMoment[] {
   const out: AskMoment[] = [];
   for (const h of sorted) {
     const e = h.event;
-    const title = cleanTitle(e.windowTitle) || e.domain || e.app;
+    const app = normApp(e.app);
+    const title = cleanTitle(e.windowTitle) || e.domain || app;
     const t = Date.parse(e.ts);
     const prev = out[out.length - 1];
-    if (prev && prev.app === e.app && prev.title === title && t - Date.parse(prev.end) <= MOMENT_GAP_MS) {
+    if (prev && prev.app === app && prev.title === title && t - Date.parse(prev.end) <= MOMENT_GAP_MS) {
       prev.end = e.ts;
       prev.count += 1;
       prev.eventIds.push(e.id);
       if (e.sensitivity !== "none") prev.sensitivity = e.sensitivity;
+      // a history row (no url/domain) says less about the page than a window capture does
+      const k = kindOf(e);
+      if (prev.kind === "app" && k !== "app") prev.kind = k;
+      if (!prev.domain && e.domain) prev.domain = e.domain;
       continue;
     }
-    out.push({ eventId: e.id, eventIds: [e.id], start: e.ts, end: e.ts, count: 1, title, app: e.app, domain: e.domain ?? null, kind: kindOf(e), sensitivity: e.sensitivity });
+    out.push({ eventId: e.id, eventIds: [e.id], start: e.ts, end: e.ts, count: 1, title, app, domain: e.domain ?? null, kind: kindOf(e), sensitivity: e.sensitivity });
   }
   return out.reverse();
 }
