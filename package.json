@@ -6,7 +6,7 @@
   "description": "Brainlog — a local-first second brain. Captures the text of what you see, builds an entity graph on-device, and answers questions about your past. Nothing leaves your machine.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ShivankK26/Brainlog.git"
+    "url": "https://github.com/ShivankK26/Brainlogs.git"
   },
   "packageManager": "pnpm@11.5.1",
   "engines": {

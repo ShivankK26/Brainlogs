@@ -14,7 +14,7 @@ if (!tag || !dir) {
   process.exit(2);
 }
 const version = tag.replace(/^v/, "");
-const base = `https://github.com/ShivankK26/Brainlog/releases/download/${tag}`;
+const base = `https://github.com/ShivankK26/Brainlogs/releases/download/${tag}`;
 const files = readdirSync(dir);
 const pick = (re) => files.find((f) => re.test(f) && !f.endsWith(".sig"));
 const entry = (name) => {

@@ -2,10 +2,10 @@
 # Brainlogs installer for macOS: downloads the .dmg with curl (no Gatekeeper quarantine flag),
 # copies Brainlogs.app to /Applications, and opens it. No Apple account or App Store involved.
 #
-#   curl -fsSL https://github.com/ShivankK26/Brainlog/releases/latest/download/install.sh | sh
+#   curl -fsSL https://github.com/ShivankK26/Brainlogs/releases/latest/download/install.sh | sh
 #   BRAINLOGS_VERSION=v1.0.2 sh install.sh      # pin a version
 set -eu
-REPO="${BRAINLOGS_REPO:-ShivankK26/Brainlog}"
+REPO="${BRAINLOGS_REPO:-ShivankK26/Brainlogs}"
 VERSION="${BRAINLOGS_VERSION:-latest}"
 if [ "$(uname -s)" != "Darwin" ]; then
   echo "This installer is for macOS. Linux: download the .AppImage or .deb from https://github.com/$REPO/releases" >&2

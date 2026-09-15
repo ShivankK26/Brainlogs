@@ -27,7 +27,7 @@ Upstream features not yet ported to the Brainlogs model (open loops, morning bri
 ## Install (macOS)
 
 ```bash
-curl -fsSL https://github.com/ShivankK26/Brainlog/releases/latest/download/install.sh | sh
+curl -fsSL https://github.com/ShivankK26/Brainlogs/releases/latest/download/install.sh | sh
 ```
 
 Or download the `.dmg` from the latest release and drag Brainlogs to Applications. The app is not Apple-signed: on first launch use System Settings → Privacy & Security → Open Anyway. The bundle carries its own Node runtime and core, so nothing else needs to be installed. Windows and Linux installers are on the same release page.

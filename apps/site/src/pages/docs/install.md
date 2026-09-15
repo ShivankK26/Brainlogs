@@ -13,12 +13,12 @@ Brainlogs is a direct download. There is no account, no App Store listing, and n
 **Option A — one line in Terminal** (recommended; no security dialog):
 
 ```bash
-curl -fsSL https://github.com/ShivankK26/Brainlog/releases/latest/download/install.sh | sh
+curl -fsSL https://github.com/ShivankK26/Brainlogs/releases/latest/download/install.sh | sh
 ```
 
 The script downloads the `.dmg`, verifies its checksum, copies `Brainlogs.app` to `/Applications` and opens it.
 
-**Option B — the `.dmg`:** download `Brainlogs_x.y.z_universal.dmg` from the [latest release](https://github.com/ShivankK26/Brainlog/releases/latest), open it and drag **Brainlogs** to **Applications**.
+**Option B — the `.dmg`:** download `Brainlogs_x.y.z_universal.dmg` from the [latest release](https://github.com/ShivankK26/Brainlogs/releases/latest), open it and drag **Brainlogs** to **Applications**.
 
 Brainlogs is not signed with an Apple Developer certificate, so on first launch macOS says it "could not verify" the app. That is expected for software distributed outside the App Store:
 
@@ -30,7 +30,7 @@ Then grant **Accessibility** when prompted (System Settings → Privacy & Securi
 
 ## Windows
 
-Download `Brainlogs_x.y.z_x64-setup.exe` (or the `.msi`) from the [latest release](https://github.com/ShivankK26/Brainlog/releases/latest) and run it. SmartScreen may show "Windows protected your PC" for an unsigned installer: choose **More info → Run anyway**. Windows uses the built-in OCR engine on an in-memory bitmap that is never written to disk.
+Download `Brainlogs_x.y.z_x64-setup.exe` (or the `.msi`) from the [latest release](https://github.com/ShivankK26/Brainlogs/releases/latest) and run it. SmartScreen may show "Windows protected your PC" for an unsigned installer: choose **More info → Run anyway**. Windows uses the built-in OCR engine on an in-memory bitmap that is never written to disk.
 
 ## Linux
 
@@ -63,7 +63,7 @@ Without a model Brainlogs still captures, searches and extracts entities determi
 ## Build from source
 
 ```bash
-git clone https://github.com/ShivankK26/Brainlog && cd Brainlog
+git clone https://github.com/ShivankK26/Brainlogs && cd Brainlog
 pnpm install && pnpm build
 pnpm dev:worker    # local core
 pnpm dev:desktop   # Tauri shell + capture engine (needs Rust)

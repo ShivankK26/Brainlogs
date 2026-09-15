@@ -91,7 +91,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQ3OUI2RUI1OTkzMUIzQzQKUldURXN6R1p0VzZiMTRST1NYeG1RZEMvSEVGL2g0SnlzS2JPS2NhYXFqRFFNU3dGWUp4cXJ1MzgK",
       "endpoints": [
-        "https://github.com/ShivankK26/Brainlog/releases/latest/download/latest.json"
+        "https://github.com/ShivankK26/Brainlogs/releases/latest/download/latest.json"
       ]
     }
   }

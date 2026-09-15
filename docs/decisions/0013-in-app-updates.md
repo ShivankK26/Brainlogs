@@ -15,7 +15,7 @@ bundle-version handshake in `core.rs::core_is_current`).
    Public key in `tauri.conf.json` (`plugins.updater.pubkey`); private key and password in the repository
    secrets `TAURI_SIGNING_PRIVATE_KEY` / `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` and in the maintainer's
    `~/.brainlogs-signing/`. Losing the key means shipping one manual update with a new public key.
-2. **Endpoint:** `https://github.com/ShivankK26/Brainlog/releases/latest/download/latest.json`. The publish
+2. **Endpoint:** `https://github.com/ShivankK26/Brainlogs/releases/latest/download/latest.json`. The publish
    job writes `latest.json` with `tooling/release/latest-json.mjs` from the collected `.app.tar.gz` /
    `-setup.exe` / `.AppImage` artifacts and their `.sig` files. macOS ships one universal archive under the
    `darwin-universal`, `darwin-aarch64` and `darwin-x86_64` keys.

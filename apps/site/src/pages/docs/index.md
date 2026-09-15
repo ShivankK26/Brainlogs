@@ -13,4 +13,4 @@ Brainlogs runs on your computer, keeps the text of what you see, and turns it in
 - [CLI](/docs/cli) — `brainlog` from the terminal, with `--json` for scripts.
 - [Privacy](/docs/privacy) — every claim on the landing page, and how to check it.
 
-The source is on [GitHub](https://github.com/ShivankK26/Brainlog) under the MIT license.
+The source is on [GitHub](https://github.com/ShivankK26/Brainlogs) under the MIT license.
