@@ -24,7 +24,23 @@ jobs:
       - run: pnpm build
       - run: pnpm test
 
+  changes:
+    runs-on: ubuntu-24.04
+    outputs:
+      rust: ${{ steps.f.outputs.rust }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: f
+        with:
+          filters: |
+            rust:
+              - 'apps/desktop/src-tauri/**'
+              - 'tooling/release/prepare-bundle.mjs'
+
   rust:
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4

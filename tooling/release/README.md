@@ -35,3 +35,12 @@ The Tauri updater needs a signing key pair (`pnpm --filter @brainlog/desktop tau
 ## Versions
 
 Desktop, CLI and MCP share the tag version. `pnpm changeset` records CLI/MCP changes; `pnpm release:version` bumps them.
+
+## Actions minutes
+
+While the repository is private, Actions minutes are metered: 2,000 free per month, macOS runners count 10x and Windows 2x. One full three-platform release costs roughly 200 minutes; a macOS-only release about 150. Therefore:
+
+- A tag push builds **macOS only**. Windows and Linux are built on demand: *Actions → release → Run workflow* with `platforms: macos,windows,linux`.
+- The Rust job in `ci` runs only when `apps/desktop/src-tauri/**` or the bundle script changed.
+- The npm job runs only when the repository variable `PUBLISH_NPM` is `true`.
+- Making the repository public removes the metering entirely (and is what the in-app updater and `install.sh` need).

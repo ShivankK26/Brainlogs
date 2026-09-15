@@ -8,12 +8,25 @@ on:
         description: "Existing tag to (re)build, e.g. v1.0.1"
         required: true
         type: string
+      platforms:
+        description: "Comma-separated: macos,windows,linux (a tag push builds macos only; macOS minutes bill at 10x)"
+        required: false
+        default: "macos"
+        type: string
 
 permissions:
   contents: write
 
+# A re-pushed tag supersedes the run already building it.
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: true
+
 env:
   TAG: ${{ inputs.tag || github.ref_name }}
+  # Actions minutes are metered on a private repo (macOS 10x, Windows 2x). Tag pushes build the
+  # platform the maintainer uses; the others are opt-in through the workflow_dispatch input.
+  PLATFORMS: ${{ inputs.platforms || 'macos' }}
 
 jobs:
   verify:
@@ -46,6 +59,7 @@ jobs:
             name: linux
             args: ""
     runs-on: ${{ matrix.os }}
+    if: contains(inputs.platforms || 'macos', matrix.name)
     steps:
       - uses: actions/checkout@v4
         with:
@@ -168,7 +182,8 @@ jobs:
   npm:
     needs: verify
     runs-on: ubuntu-24.04
-    if: ${{ !contains(inputs.tag || github.ref_name, '-') }}
+    # Opt in with a repository variable PUBLISH_NPM=true once NPM_TOKEN exists; saves a runner otherwise.
+    if: ${{ vars.PUBLISH_NPM == 'true' && !contains(inputs.tag || github.ref_name, '-') }}
     steps:
       - uses: actions/checkout@v4
         with:
