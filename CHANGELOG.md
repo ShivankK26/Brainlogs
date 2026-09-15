@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.15 — 2026-09-15
+
+- **Ask understands who and what.** "Did I send Sarvagya a message asking about base pay?" now separates the person (Sarvagya) from the topic (base pay), searches for the person, checks whether the topic appears in the captured chat text, and answers "Yes. You messaged Sarvagya on WhatsApp about base pay, Tue 15 Sept 1:57–2:02 pm" with the matching line quoted. If the chat exists but never mentions the topic, it says so instead of guessing.
+- Only moments that actually mention the person are listed; pages that merely shared a word ("Payments Engineer" for "pay") are dropped. Browser-history rows and window captures of the same page merge into one moment.
+- The "free local model" prompt under an answer is now a single line that expands on request.
+
 ## 1.0.14 — 2026-09-15
 
 - **Ask answers the question, without a paid model.** Questions are planned into an intent (did I…, when…, how long…, what did I do…, who is…), a subject and a time scope ("yesterday", "last week", "on Monday", "in August"). Repeated captures of the same window collapse into one moment with a time range. The card leads with a verdict ("Yes. You were in a conversation involving Rohit Talluri in LinkedIn messages, Tue 15 Sept 12:57–12:59" or "No conversation captured; you did open their profile at 12:55"), then facts, then the moments, each one clickable.

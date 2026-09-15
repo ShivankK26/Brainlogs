@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clusterMoments, compose, detectIntent, parseScope, plan, cleanTitle } from "./plan.js";
+import { clusterMoments, compose, detectIntent, parseContact, parseScope, plan, cleanTitle, termsOf } from "./plan.js";
 import type { SearchHit } from "./types.js";
 import type { Event } from "@brainlog/types";
 
@@ -41,16 +41,19 @@ describe("plan", () => {
       hit(ev({ ts: "2026-09-15T07:27:00.000Z", windowTitle: "Rohit Talluri | LinkedIn - Google Chrome" })),
     ];
     hits.push(hit(ev({ ts: "2026-09-15T07:27:30.000Z", windowTitle: "Rohit Talluri | LinkedIn", app: "chrome", domain: null })));
-    const moments = clusterMoments(hits);
+    const p = plan("did i reachout to Rohit talluri?", now);
+    const terms = { person: termsOf(p.person) };
+    const moments = clusterMoments(hits, terms);
     expect(moments).toHaveLength(1); // "chrome" history rows merge with "Google Chrome" captures
     expect(moments[0]!.count).toBe(4);
     expect(moments[0]!.kind).toBe("page");
-    const noMsg = compose(plan("did i reachout to Rohit talluri?", now), moments);
-    expect(noMsg.verdict).toMatch(/^No conversation/);
-    const withMsg = clusterMoments([...hits, hit(ev({ ts: "2026-09-15T07:30:00.000Z", windowTitle: "Messaging | LinkedIn", sensitivity: "third_party_private" }))]);
-    const yes = compose(plan("did i reachout to Rohit talluri?", now), withMsg);
-    expect(yes.verdict).toMatch(/^Yes\./);
+    const noMsg = compose(p, moments);
+    expect(noMsg.verdict).toMatch(/^No message to Rohit Talluri/);
+    const withMsg = clusterMoments([...hits, hit(ev({ ts: "2026-09-15T07:30:00.000Z", windowTitle: "Messaging | LinkedIn", sensitivity: "third_party_private", text: "Rohit Talluri\nYou: hi Rohit, quick question" }))], terms);
+    const yes = compose(p, withMsg);
+    expect(yes.verdict).toMatch(/^Yes\. You messaged Rohit Talluri in LinkedIn messages/);
     expect(yes.facts.find((f) => f.label === "Where")?.value).toContain("Messaging");
+    expect(yes.facts.find((f) => f.label === "Captured text")?.value).toContain("quick question");
   });
   it("answers when and duration from moments", () => {
     const moments = clusterMoments([
@@ -63,5 +66,31 @@ describe("plan", () => {
     expect(when.verdict).toMatch(/^Last .*Meet - Arez/);
     const dur = compose(plan("how long did I spend with arez", now), moments);
     expect(dur.verdict).toMatch(/^About \d+ min on Arez/);
+  });
+  it("separates the person from the topic in contact questions", () => {
+    expect(parseContact("did i send sarvagya a message asking about base pay")).toEqual({ person: "sarvagya", topic: "base pay" });
+    expect(parseContact("did I reach out to Rohit Talluri")).toEqual({ person: "Rohit Talluri", topic: undefined });
+    expect(parseContact("have we emailed Priya about the invoice")).toEqual({ person: "Priya", topic: "the invoice" });
+    const p = plan("did i send sarvagya a message asking about base pay?", now);
+    expect(p.person).toBe("sarvagya");
+    expect(p.subject).toBe("sarvagya");
+  });
+  it("verifies the topic inside the chat text and drops unrelated partial matches", () => {
+    const p = plan("did i send sarvagya a message asking about base pay?", now);
+    const terms = { person: termsOf(p.person), topic: termsOf(p.topic) };
+    const hits = [
+      hit(ev({ ts: "2026-09-15T08:27:00.000Z", windowTitle: "WhatsApp", app: "WhatsApp", domain: null, sensitivity: "third_party_private", text: "Sarvagya Kulshreshtha\nYou: hey, what is the base pay for the payments role?\nSarvagya: around 30L" })),
+      hit(ev({ ts: "2026-09-14T11:06:00.000Z", windowTitle: "Payments Engineer - Google Chrome", text: "Payments Engineer job\nbase pay 25L" })),
+      hit(ev({ ts: "2026-09-03T13:25:00.000Z", windowTitle: "Sarvagya Kulshreshtha (@sarvagya_kul) / X - Google Chrome", text: "Sarvagya Kulshreshtha posts" })),
+    ];
+    const moments = clusterMoments(hits, terms);
+    const yes = compose(p, moments);
+    expect(yes.verdict).toBe("Yes. You messaged Sarvagya on WhatsApp about base pay, Tue, 15 Sept, " + new Date("2026-09-15T08:27:00.000Z").toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }) + ".");
+    expect(yes.facts.find((f) => f.label === "Captured text")?.value).toContain("base pay");
+    expect(yes.moments.map((m) => m.title)).not.toContain("Payments Engineer");
+    expect(yes.moments.map((m) => m.title)).toContain("Sarvagya Kulshreshtha (@sarvagya_kul) / X");
+    // chat exists but never mentions the topic
+    const noTopic = compose(p, clusterMoments([hit(ev({ ts: "2026-09-15T08:27:00.000Z", windowTitle: "WhatsApp", app: "WhatsApp", domain: null, sensitivity: "third_party_private", text: "Sarvagya: see you tomorrow" }))], terms));
+    expect(noTopic.verdict).toMatch(/but “base pay” does not appear/);
   });
 });

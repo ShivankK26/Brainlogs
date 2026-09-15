@@ -43,6 +43,7 @@ export function ModelSetup({ compact }: { compact?: boolean }) {
   const { bump, toastMsg } = useStore();
   const [st, setSt] = useState<ModelStatus | null>(null);
   const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState(!compact);
   const refresh = () => api.models().then(setSt, () => setSt(null));
   useEffect(() => {
     void refresh();
@@ -69,9 +70,17 @@ export function ModelSetup({ compact }: { compact?: boolean }) {
   };
   const pull = st.pull;
   const pct = pull && pull.total > 0 ? Math.round((pull.completed / pull.total) * 100) : null;
+  if (compact && !open && !(pull && !pull.done)) {
+    return (
+      <div className="msetup line" id="modelSetup">
+        <span>Want written answers? A free local model can do it.</span>
+        <button className="lnk" onClick={() => setOpen(true)}>Set up</button>
+      </div>
+    );
+  }
   return (
     <div className={`msetup${compact ? " compact" : ""}`} id="modelSetup">
-      <div className="mh">Get written answers, free</div>
+      <div className="mh">Get written answers, free{compact ? <button className="lnk dim" onClick={() => setOpen(false)}>hide</button> : null}</div>
       {!st.installed && !st.running ? (
         <>
           <p>Brainlogs can use <b>Ollama</b>, a free model runner that stays on this Mac. Install it, then come back here.</p>
@@ -137,7 +146,7 @@ export function AskCard({ question, result, loading, onCite }: { question: strin
                   <button className="mom" onClick={() => onCite(m.eventId)}>
                     <span className="n">{i + 1}</span>
                     <span className="k" aria-hidden>{KIND_ICON[m.kind]}</span>
-                    <span className="t">{m.title}</span>
+                    <span className="t">{m.title}{m.snippet ? <span className="snip">“{m.snippet}”</span> : null}</span>
                     <span className="meta">{m.app}{m.count > 1 ? ` · ${m.count} captures` : ""}</span>
                     <span className="when">{span(m)}</span>
                   </button>

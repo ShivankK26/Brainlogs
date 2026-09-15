@@ -5,7 +5,7 @@ import type { Perms } from "./filters.js";
 import { search, type SearchDeps } from "./search.js";
 import { eventsBetween } from "./store.js";
 import { visible } from "./filters.js";
-import { clusterMoments, compose, plan, renderText, type Structured } from "./plan.js";
+import { clusterMoments, compose, plan, renderText, termsOf, type Structured } from "./plan.js";
 import type { AskResult, SearchFilters, SearchHit } from "./types.js";
 
 export type ChatFn = (system: string, user: string) => Promise<string | null>;
@@ -148,13 +148,19 @@ export async function ask(input: { question: string; scope?: SearchFilters }, pe
   } else {
     const q = p.subject || input.question;
     hits = (await search({ q, filters: scope, limit: 40 }, perms, deps)).hits;
+    // a contact question with a topic: also pull moments where person and topic co-occur
+    if (p.intent === "contact" && p.person && p.topic) {
+      const more = (await search({ q: `${p.person} ${p.topic}`, filters: scope, limit: 40 }, perms, deps)).hits;
+      const seen = new Set(hits.map((h) => h.event.id));
+      for (const h of more) if (!seen.has(h.event.id)) hits.push(h);
+    }
     // a scoped question with nothing inside the window falls back to all time, and says so
     if (hits.length === 0 && (scope.from || scope.to) && !input.scope) {
       hits = (await search({ q, filters: {}, limit: 40 }, perms, deps)).hits;
       if (hits.length) p.scope.label = `${p.scope.label ?? "that period"} (nothing then; showing all time)`;
     }
   }
-  const moments = clusterMoments(hits);
+  const moments = clusterMoments(hits, { person: termsOf(p.person ?? p.subject), topic: termsOf(p.topic) });
   const structured: Structured = compose(p, moments, dayEvents);
   const citations = structured.moments.map((m) => m.eventId);
   const base: AskResult = { answer: renderText(structured), citations, model: "planner", via: "none", structured };
