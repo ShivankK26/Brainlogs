@@ -9,9 +9,9 @@ on:
         required: true
         type: string
       platforms:
-        description: "Comma-separated: macos,windows,linux (a tag push builds macos only; macOS minutes bill at 10x)"
+        description: "Comma-separated subset of macos,windows,linux (default: all)"
         required: false
-        default: "macos"
+        default: "macos,windows,linux"
         type: string
 
 permissions:
@@ -24,9 +24,6 @@ concurrency:
 
 env:
   TAG: ${{ inputs.tag || github.ref_name }}
-  # Actions minutes are metered on a private repo (macOS 10x, Windows 2x). Tag pushes build the
-  # platform the maintainer uses; the others are opt-in through the workflow_dispatch input.
-  PLATFORMS: ${{ inputs.platforms || 'macos' }}
 
 jobs:
   verify:
@@ -43,23 +40,33 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck && pnpm lint && pnpm test
 
+  # Which desktop platforms to build: all three by default, a subset via the `platforms` input
+  # (minutes are free on a public repo; the knob stays for reruns of one platform).
+  plan:
+    runs-on: ubuntu-24.04
+    outputs:
+      include: ${{ steps.m.outputs.include }}
+    steps:
+      - id: m
+        shell: bash
+        env:
+          PLATFORMS: ${{ inputs.platforms || 'macos,windows,linux' }}
+        run: |
+          items=()
+          [[ "$PLATFORMS" == *macos* ]]   && items+=('{"os":"macos-latest","name":"macos","args":"--target universal-apple-darwin"}')
+          [[ "$PLATFORMS" == *windows* ]] && items+=('{"os":"windows-latest","name":"windows","args":""}')
+          [[ "$PLATFORMS" == *linux* ]]   && items+=('{"os":"ubuntu-22.04","name":"linux","args":""}')
+          json=$(IFS=,; echo "[${items[*]}]")
+          echo "include=$json" >> "$GITHUB_OUTPUT"
+          echo "building: $json"
+
   desktop:
-    needs: verify
+    needs: [verify, plan]
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: macos-latest
-            name: macos
-            args: --target universal-apple-darwin
-          - os: windows-latest
-            name: windows
-            args: ""
-          - os: ubuntu-22.04
-            name: linux
-            args: ""
+        include: ${{ fromJSON(needs.plan.outputs.include) }}
     runs-on: ${{ matrix.os }}
-    if: contains(inputs.platforms || 'macos', matrix.name)
     steps:
       - uses: actions/checkout@v4
         with:
