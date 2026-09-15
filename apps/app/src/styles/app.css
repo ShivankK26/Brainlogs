@@ -343,3 +343,7 @@ td .t2 { color: var(--t3); font-size: 11.5px; margin-top: 2px; }
 .crow:hover .cacts { opacity: 1; }
 .cempty .t { font-size: 15px; font-weight: 600; color: var(--t1); margin-bottom: 6px; }
 .cempty .d { max-width: 520px; margin: 0 auto; line-height: 1.55; }
+
+.cbucket.dismissed .grp.asbtn { width: 100%; text-align: left; cursor: pointer; }
+.cbucket.dismissed .grp.asbtn:hover .hint { color: var(--brand); }
+.cbucket.dismissed .crow .ctext { text-decoration: none; color: var(--t3); }

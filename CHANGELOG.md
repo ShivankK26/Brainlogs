@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.20 — 2026-09-15
+
+- Commitments shows a collapsed "Dismissed" section so items removed by the cleanup are visible and can be reopened; the empty state says how many were dismissed and why.
+
 ## 1.0.19 — 2026-09-15
 
 - **Commitments, rebuilt for action.** Four buckets (Overdue, You owe, Owed to you, Done recently) with a count strip, each row showing who, when it was made, when it's due, and its sources; Done, Dismiss and Reopen buttons on every row. Honest empty state.

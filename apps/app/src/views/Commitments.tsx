@@ -59,6 +59,8 @@ export function Commitments() {
   const now = Date.now();
   const buckets = useMemo(() => bucketize(cm.data ?? [], now), [cm.data, now]);
   const [busy, setBusy] = useState<string | null>(null);
+  const [showDismissed, setShowDismissed] = useState(false);
+  const dismissed = useMemo(() => (cm.data ?? []).filter((c) => c.status === "dismissed").sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)), [cm.data]);
   const live = (cm.data ?? []).filter((c) => c.status !== "dismissed" && c.status !== "done");
   const overdueN = buckets.find((b) => b.key === "overdue")?.rows.length ?? 0;
   const youN = buckets.find((b) => b.key === "you")?.rows.length ?? 0;
@@ -104,6 +106,7 @@ export function Commitments() {
             <div className="empty cempty">
               <div className="t">Nothing to follow up on.</div>
               <div className="d">Brainlogs turns promises and requests in your chats and mail into commitments: “I'll send the spec by Friday”, “can you review the pricing table?”. They appear here with the messages they came from and close themselves when a follow-up shows up.</div>
+              {dismissed.length ? <div className="d" style={{ marginTop: 10 }}>{dismissed.length} earlier item{dismissed.length === 1 ? " was" : "s were"} dismissed as not actionable (inbox previews, no named person). They are listed below and can be reopened.</div> : null}
             </div>
           ) : null}
           <div id="crows">
@@ -145,6 +148,29 @@ export function Commitments() {
                 })}
               </section>
             ))}
+            {dismissed.length ? (
+              <section className="cbucket dismissed">
+                <button className="grp asbtn" id="dismissedToggle" onClick={() => setShowDismissed((v) => !v)}>
+                  Dismissed<span className="cnt">{dismissed.length}</span><span className="hint">{showDismissed ? "hide" : "show"}</span>
+                </button>
+                {showDismissed
+                  ? dismissed.map((c) => (
+                      <div key={c.id} className="crow done" data-c={c.id}>
+                        <span className="av" title={counterpart(c)}>{initialsOf(counterpart(c))}</span>
+                        <div className="cbody">
+                          <div className="ctext">{cleanText(c.text)}</div>
+                          <div className="cmeta">
+                            <span>{isYou(c.fromParty) ? `you → ${counterpart(c)}` : `${counterpart(c)} → you`}</span>
+                            <span>· {age(c.createdAt, now)}</span>
+                            <button className="lnk" onClick={() => openEvidence(c)}>· {c.evidenceEventIds.length} source{c.evidenceEventIds.length === 1 ? "" : "s"}</button>
+                          </div>
+                        </div>
+                        <div className="cacts"><button className="tb outl" disabled={busy === c.id} onClick={() => act(c, "open", "Reopened")}>Reopen</button></div>
+                      </div>
+                    ))
+                  : null}
+              </section>
+            ) : null}
           </div>
         </div>
         {reviewOpen ? <Review /> : null}
