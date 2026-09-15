@@ -1,5 +1,5 @@
 import type { Entity, Status } from "../lib/types";
-import { KIND_COLOR, bytes, compact } from "../lib/format";
+import { KIND_COLOR, bytes, compact, looksLikePersonName } from "../lib/format";
 import { useStore, type Page } from "../state/store";
 import { useUpdater } from "../lib/updater";
 import { IcAgent, IcAudit, IcCheck, IcChev, IcMemory, IcPulse, IcSearch, IcShield } from "./Icons";
@@ -38,7 +38,7 @@ export function Sidebar({ status, entities }: { status: Status | null; entities:
       <Item p="commitments" icon={<IcCheck />} label="Commitments" count={status?.counts.commitmentsOpen} />
       <Item p="agents" icon={<IcAgent />} label="Agents" count={status?.agents.length} />
       {(() => {
-        const people = entities.filter((e) => e.kind === "person");
+        const people = entities.filter((e) => e.kind === "person" && looksLikePersonName(e.name));
         const projects = entities.filter((e) => e.kind === "repo" || e.kind === "project" || e.kind === "branch" || e.kind === "org");
         const short = (e: Entity) => (e.kind === "repo" ? e.name.split("/").pop() ?? e.name : e.name);
         const Group = ({ title, items }: { title: string; items: Entity[] }) =>

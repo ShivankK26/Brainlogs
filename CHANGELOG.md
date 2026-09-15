@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.17 — 2026-09-15
+
+- Overview "Conversations" and the sidebar People group no longer list interface words ("username", "Register", "Batch", "CTC") that the extractor mistook for people; only plausible names are shown.
+
 ## 1.0.16 — 2026-09-15
 
 - **Pulse is now Overview**, rebuilt around measures instead of prose: focused time with a week-over-week delta, share of time on the top project, app switches (with trend) and open commitments; where the time went (projects and apps, browsers merged); a daily rhythm chart you can click into; highlights computed from the data (most focused day, longest stretch, who you talked to) with evidence a click away; conversations and top sites. The generated narrative is still there behind "Show weekly narrative".

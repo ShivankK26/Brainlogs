@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clusterMoments, compose, detectIntent, parseContact, parseScope, plan, cleanTitle, termsOf } from "./plan.js";
+import { clusterMoments, compose, detectIntent, looksLikePersonName, parseContact, parseScope, plan, cleanTitle, termsOf } from "./plan.js";
 import type { SearchHit } from "./types.js";
 import type { Event } from "@brainlog/types";
 
@@ -93,5 +93,9 @@ describe("plan", () => {
     // chat exists but never mentions the topic
     const noTopic = compose(p, clusterMoments([hit(ev({ ts: "2026-09-15T08:27:00.000Z", windowTitle: "WhatsApp", app: "WhatsApp", domain: null, sensitivity: "third_party_private", text: "Sarvagya: see you tomorrow" }))], terms));
     expect(noTopic.verdict).toMatch(/^Partly\. .*nothing about “base pay” was captured/);
+  });
+  it("tells names from interface words", () => {
+    for (const ok of ["Priya", "Rohit Talluri", "Sarvagya Kulshreshtha", "Arez"]) expect(looksLikePersonName(ok)).toBe(true);
+    for (const no of ["username", "Register", "Batch", "CTC", "Sign in", "user123", "Inbox", "Today"]) expect(looksLikePersonName(no)).toBe(false);
   });
 });

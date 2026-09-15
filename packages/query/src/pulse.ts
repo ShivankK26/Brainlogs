@@ -5,7 +5,7 @@ import { visible, type Perms } from "./filters.js";
 import { regionOf } from "./moment.js";
 import { commitments, summary } from "./graph-reads.js";
 import { entitiesForEvents, eventsBetween } from "./store.js";
-import { kindOf, normApp } from "./plan.js";
+import { kindOf, looksLikePersonName, normApp } from "./plan.js";
 
 export type PulseResult = {
   weekStart: string;
@@ -141,7 +141,7 @@ export function pulse(input: { date: string }, perms: Perms): PulseResult {
     if (first?.domain) domainMs.set(first.domain, (domainMs.get(first.domain) ?? 0) + ms);
     if (first && (kindOf(first) === "message" || kindOf(first) === "mail")) {
       const names = new Set<string>();
-      for (const id of sess.eventIds) for (const ent of ents.get(id) ?? []) if (ent.kind === "person") names.add(ent.name);
+      for (const id of sess.eventIds) for (const ent of ents.get(id) ?? []) if (ent.kind === "person" && looksLikePersonName(ent.name)) names.add(ent.name);
       for (const name of names) {
         const cur = peopleAgg.get(name) ?? { ms: 0, lastTs: first.ts, count: 0 };
         cur.ms += ms;

@@ -218,6 +218,21 @@ export function snippetFor(text: string, terms: string[]): string | undefined {
   return `${idx > 0 ? "…" : ""}${best.slice(idx, idx + 160).trim()}…`;
 }
 
+const NOT_A_NAME = new Set(["username", "register", "batch", "password", "login", "sign", "inbox", "settings", "account", "email", "message", "messages", "home", "search", "notifications", "profile", "today", "yesterday", "user", "admin", "team", "support", "hello", "welcome", "thanks", "regards", "dear", "unknown", "none", "null", "chat", "group", "call", "meeting", "reply", "forward", "draft", "sent", "archive", "spam", "trash", "starred", "important", "update", "updates", "new", "all", "filter", "menu"]);
+
+/**
+ * Person-entity extraction is deterministic and over-eager: capitalised UI words become "people".
+ * Show only names that look like names: two or more capitalised words, or one capitalised word of
+ * four letters or more that is not a common interface word. Acronyms and lowercase tokens fail.
+ */
+export function looksLikePersonName(name: string): boolean {
+  const n = name.trim();
+  if (!n || /\d|@|\//.test(n)) return false;
+  const words = n.split(/\s+/);
+  if (words.length >= 2) return words.filter((w) => /^\p{Lu}[\p{Ll}'’.-]*$/u.test(w)).length >= 2 && words.length <= 4;
+  return /^\p{Lu}\p{Ll}{3,}$/u.test(n) && !NOT_A_NAME.has(n.toLowerCase());
+}
+
 const MOMENT_GAP_MS = 10 * 60_000;
 
 const APP_ALIASES: Array<[RegExp, string]> = [
