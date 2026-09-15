@@ -67,6 +67,8 @@ jobs:
       matrix:
         include: ${{ fromJSON(needs.plan.outputs.include) }}
     runs-on: ${{ matrix.os }}
+    # A healthy build takes 10-20 min; a hung DMG/codesign step must not sit for the 6 h default.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
