@@ -11,6 +11,7 @@ import { Policy } from "@brainlog/types";
 import { anthropicKeyHint, anthropicKeySource, config, countEvents, deleteAnthropicKey, ensureDataDir, getPolicy, getSqlite, isVecReady, listAudit, purgeExpiredEvents, setPolicy, writeAnthropicKey, writeAudit } from "@brainlog/core";
 import { CLOUD_ASK_MODEL, createQueryApi, PolicyDeniedError, type SearchFilters } from "@brainlog/query";
 import { z } from "zod";
+import { modelStatus, pullModel, startOllama } from "./models.js";
 
 type Reply = (status: number, body: unknown, headers?: Record<string, string>) => void;
 type Ctx = { path: string; query: URLSearchParams; method: string; readJson: <T>() => Promise<T>; reply: Reply; res: ServerResponse };
@@ -99,7 +100,7 @@ export async function status() {
     user: { name, initials: name.slice(0, 2).toUpperCase() },
     dbSizeBytes,
     agents: [...agents],
-    modelName: process.env.BRAINLOG_ASK_MODEL ?? "qwen2.5:7b",
+    modelName: (await modelStatus()).askModel ?? "none",
     version: process.env.npm_package_version ?? "0.1.0",
     port: config.port,
     dataDir: config.dataDir,
@@ -149,6 +150,21 @@ export async function handleBrainlogRoute(_req: IncomingMessage, ctx: Ctx): Prom
   const p = path.slice("/api/v1".length);
   try {
     if (method === "GET" && p === "/status") return reply(200, await status()), true;
+    // Local model setup (Ollama): status, start the daemon, pull the recommended model.
+    if (method === "GET" && p === "/models") return reply(200, await modelStatus()), true;
+    if (method === "POST" && p === "/models/start") {
+      const ok = await startOllama();
+      writeAudit({ actor: "user", action: "policy_change", scope: `ollama start ${ok ? "ok" : "failed"}`, result: ok ? "ok" : "denied" });
+      return reply(ok ? 200 : 503, await modelStatus()), true;
+    }
+    if (method === "POST" && p === "/models/pull") {
+      const body = await ctx.readJson<{ model?: string }>().catch(() => ({} as { model?: string }));
+      const model = typeof body.model === "string" && /^[\w.:-]+$/.test(body.model) ? body.model : undefined;
+      if ((await modelStatus()).running === false) return reply(503, { error: "Ollama is not running." }), true;
+      await pullModel(model);
+      writeAudit({ actor: "user", action: "policy_change", scope: `model pull ${model ?? "recommended"}`, result: "ok" });
+      return reply(202, await modelStatus()), true;
+    }
     // Distinct apps and domains seen recently, for the Memory filter panel.
     if (method === "GET" && p === "/facets") {
       const days = Math.min(365, Math.max(1, Number(query.get("days") ?? 30)));

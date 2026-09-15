@@ -1,7 +1,11 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { config, getPolicy, log, readAnthropicKey } from "@brainlog/core";
+import type { Event } from "@brainlog/types";
 import type { Perms } from "./filters.js";
 import { search, type SearchDeps } from "./search.js";
+import { eventsBetween } from "./store.js";
+import { visible } from "./filters.js";
+import { clusterMoments, compose, plan, renderText, type Structured } from "./plan.js";
 import type { AskResult, SearchFilters, SearchHit } from "./types.js";
 
 export type ChatFn = (system: string, user: string) => Promise<string | null>;
@@ -14,6 +18,7 @@ Be plain and short. Cite evidence inline as [n]. If the evidence does not answer
 /** Local Ollama chat. Returns null when Ollama is unreachable so callers can fall back. */
 export async function ollamaChat(system: string, user: string): Promise<string | null> {
   const base = config.ollama.baseUrl.replace(/\/$/, "");
+  await refreshLocalModel();
   const model = localAskModel();
   try {
     const res = await fetch(`${base}/api/chat`, {
@@ -31,8 +36,30 @@ export async function ollamaChat(system: string, user: string): Promise<string |
   }
 }
 
+let pickedModel: { model: string; at: number } | null = null;
+const PREFERRED_LOCAL = ["qwen2.5:7b", "qwen2.5:3b", "llama3.2:3b", "llama3.1:8b", "mistral:7b", "gemma2:2b", "qwen2.5:1.5b"];
+
+/**
+ * The local chat model: `BRAINLOG_ASK_MODEL` when set, else whichever preferred model Ollama
+ * has installed (cached 30 s), else the recommended small default.
+ */
 export function localAskModel(): string {
-  return process.env.BRAINLOG_ASK_MODEL ?? "qwen2.5:7b";
+  return process.env.BRAINLOG_ASK_MODEL ?? pickedModel?.model ?? "qwen2.5:3b";
+}
+
+async function refreshLocalModel(): Promise<void> {
+  if (process.env.BRAINLOG_ASK_MODEL) return;
+  if (pickedModel && Date.now() - pickedModel.at < 30_000) return;
+  try {
+    const res = await fetch(`${config.ollama.baseUrl.replace(/\/$/, "")}/api/tags`, { signal: AbortSignal.timeout(1500) });
+    if (!res.ok) return;
+    const data = (await res.json()) as { models?: Array<{ name: string }> };
+    const names = (data.models ?? []).map((m) => m.name);
+    const model = PREFERRED_LOCAL.find((m) => names.includes(m)) ?? names.find((m) => !/embed/i.test(m));
+    if (model) pickedModel = { model, at: Date.now() };
+  } catch {
+    /* Ollama down: keep the last pick */
+  }
 }
 
 /** Hosted model for Cloud Ask. Opt-in, user-supplied key, sensitive moments never leave the device. */
@@ -82,42 +109,8 @@ function fmtTs(ts: string): string {
   return new Date(ts).toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
-/** Title plus the first line of text, unless the text just repeats the title. */
-function headline(h: SearchHit): string {
-  const first = h.event.text.split("\n").map((l) => l.trim()).find((l) => l.length > 0) ?? "";
-  const title = h.event.windowTitle.trim();
-  if (!first || first === title || title.includes(first)) return title || first;
-  if (!title || first.includes(title)) return first.slice(0, 160);
-  return `${title}: ${first.slice(0, 160)}`;
-}
-
 function evidenceOf(hits: SearchHit[]): string {
   return hits.map((h, i) => `[${i + 1}] ${fmtTs(h.event.ts)} · ${h.event.app} · ${h.event.windowTitle}\n${h.event.text.slice(0, 600)}`).join("\n\n");
-}
-
-/**
- * No model at all: answer what can be answered from the hits' metadata. "When" questions get the
- * time of the newest match; everything else gets the closest moments, newest first.
- */
-function extractiveAnswer(question: string, hits: SearchHit[]): { answer: string; citations: string[] } {
-  const byTime = [...hits].sort((a, b) => b.event.ts.localeCompare(a.event.ts));
-  const top = hits.slice(0, 3);
-  const lines: string[] = [];
-  if (/^\s*when\b/i.test(question) && byTime[0]) {
-    const h = byTime[0];
-    lines.push(`Most recent match: ${fmtTs(h.event.ts)} — ${headline(h)} (${h.event.app}) [${hits.indexOf(h) + 1}]`);
-    if (byTime.length > 1) lines.push(`Earlier: ${byTime.slice(1, 3).map((x) => `${fmtTs(x.event.ts)} [${hits.indexOf(x) + 1}]`).join(", ")}`);
-  } else {
-    lines.push("Closest moments:");
-    for (const [i, h] of top.entries()) lines.push(`[${i + 1}] ${fmtTs(h.event.ts)} · ${h.event.app} · ${headline(h)}`);
-  }
-  lines.push("No model is running to write a fuller answer. Install Ollama for local answers, or add a Claude API key under Data & retention.");
-  const cited = new Set<string>();
-  for (const m of lines.join("\n").matchAll(/\[(\d+)\]/g)) {
-    const h = hits[Number(m[1]) - 1];
-    if (h) cited.add(h.event.id);
-  }
-  return { answer: lines.join("\n"), citations: [...cited] };
 }
 
 function citationsOf(text: string, hits: SearchHit[]): string[] {
@@ -128,28 +121,59 @@ function citationsOf(text: string, hits: SearchHit[]): string[] {
 }
 
 /**
- * Answer a question over memory. Order of preference: the hosted model when the user turned
- * Cloud Ask on and gave a key (only moments tagged `sensitivity: none` are sent), then the local
- * Ollama model, then an extractive answer (top snippets) so the caller always gets citations.
+ * Answer a question over memory.
+ *
+ * 1. Plan: intent + subject + time scope, no model involved (plan.ts).
+ * 2. Retrieve: hybrid search on the subject within the scope; cluster hits into moments.
+ * 3. Compose: a structured answer (verdict, facts, moments) that the UI renders as-is.
+ * 4. Optionally let a model write prose over the same evidence: the hosted model when Cloud Ask
+ *    is on and a key exists (only `sensitivity: none` moments are sent), else local Ollama.
  */
 export async function ask(input: { question: string; scope?: SearchFilters }, perms: Perms, deps: AskDeps = {}): Promise<AskResult> {
-  const { hits } = await search({ q: input.question, filters: input.scope, limit: 8 }, perms, deps);
-  if (hits.length === 0) return { answer: "Nothing in memory matches that question.", citations: [], model: "none", via: "none" };
+  const p = plan(input.question);
+  const scope: SearchFilters = { ...(input.scope ?? {}) };
+  if (p.scope.from && !scope.from) scope.from = p.scope.from;
+  if (p.scope.to && !scope.to) scope.to = p.scope.to;
 
-  const cloudChat = deps.cloudChat ?? (readAnthropicKey() ? claudeChat : null);
-  if (getPolicy().cloudAskEnabled && cloudChat) {
-    const safe = hits.filter((h) => h.event.sensitivity === "none");
-    const withheld = hits.length - safe.length;
-    if (safe.length > 0) {
-      const text = await cloudChat(SYSTEM, `Question: ${input.question}\n\nEvidence:\n${evidenceOf(safe)}`);
-      if (text) return { answer: text, citations: citationsOf(text, safe), model: CLOUD_ASK_MODEL, via: "cloud", withheld };
+  let hits: SearchHit[] = [];
+  let dayEvents: Event[] | undefined;
+  if (p.intent === "day") {
+    const from = scope.from ?? new Date(Date.now() - 86_400_000).toISOString();
+    const to = scope.to ?? new Date().toISOString();
+    dayEvents = eventsBetween(from, to, 5000).filter((e) => visible(e, perms));
+    if (p.subject) {
+      const r = await search({ q: p.subject, filters: scope, limit: 40 }, perms, deps);
+      hits = r.hits;
+    }
+  } else {
+    const q = p.subject || input.question;
+    hits = (await search({ q, filters: scope, limit: 40 }, perms, deps)).hits;
+    // a scoped question with nothing inside the window falls back to all time, and says so
+    if (hits.length === 0 && (scope.from || scope.to) && !input.scope) {
+      hits = (await search({ q, filters: {}, limit: 40 }, perms, deps)).hits;
+      if (hits.length) p.scope.label = `${p.scope.label ?? "that period"} (nothing then; showing all time)`;
     }
   }
+  const moments = clusterMoments(hits);
+  const structured: Structured = compose(p, moments, dayEvents);
+  const citations = structured.moments.map((m) => m.eventId);
+  const base: AskResult = { answer: renderText(structured), citations, model: "planner", via: "none", structured };
+  if (hits.length === 0 && !dayEvents?.length) return base;
 
-  const chat = deps.chat ?? ollamaChat;
-  const text = await chat(SYSTEM, `Question: ${input.question}\n\nEvidence:\n${evidenceOf(hits)}`);
-  if (text) return { answer: text, citations: citationsOf(text, hits), model: localAskModel(), via: "local" };
-
-  const ex = extractiveAnswer(input.question, hits);
-  return { answer: ex.answer, citations: ex.citations, model: "extractive", via: "none" };
+  const evidenceHits = hits.slice(0, 8);
+  const cloudChat = deps.cloudChat ?? (readAnthropicKey() ? claudeChat : null);
+  if (getPolicy().cloudAskEnabled && cloudChat) {
+    const safe = evidenceHits.filter((h) => h.event.sensitivity === "none");
+    const withheld = evidenceHits.length - safe.length;
+    if (safe.length > 0) {
+      const text = await cloudChat(SYSTEM, `Question: ${input.question}\n\nEvidence:\n${evidenceOf(safe)}`);
+      if (text) return { ...base, answer: text, citations: citationsOf(text, safe), model: CLOUD_ASK_MODEL, via: "cloud", withheld };
+    }
+  }
+  if (evidenceHits.length > 0) {
+    const chat = deps.chat ?? ollamaChat;
+    const text = await chat(SYSTEM, `Question: ${input.question}\n\nEvidence:\n${evidenceOf(evidenceHits)}`);
+    if (text) return { ...base, answer: text, citations: citationsOf(text, evidenceHits), model: localAskModel(), via: "local" };
+  }
+  return base;
 }

@@ -49,8 +49,13 @@ export type SummaryResult = Summary | null;
 
 export const AskRequest = z.object({ question: z.string().min(1).max(2000), scope: SearchFilters.optional() });
 export type AskRequest = z.input<typeof AskRequest>;
-/** `via` says which tier answered; `withheld` counts sensitive moments kept off the cloud path. */
-export type AskResult = { answer: string; citations: string[]; model: string; via: "cloud" | "local" | "none"; withheld?: number };
+import type { Structured } from "./plan.js";
+/**
+ * `via` says which tier answered; `withheld` counts sensitive moments kept off the cloud path.
+ * `structured` is always present: the planner's verdict, facts and clustered moments, which the
+ * UI renders directly and which the model tiers use as their evidence.
+ */
+export type AskResult = { answer: string; citations: string[]; model: string; via: "cloud" | "local" | "none"; withheld?: number; structured: Structured };
 
 export const ProposeRequest = z.object({
   note: z.object({

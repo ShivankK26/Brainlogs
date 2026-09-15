@@ -130,11 +130,13 @@ describe("policy gate + audit", () => {
   it("ask falls back to an extractive answer with citations when no model runs", async () => {
     const user = createQueryApi({ actor: "user", deps });
     const r = await user.ask({ question: "why did the migration fail?" });
-    expect(r.model).toBe("extractive");
+    expect(r.model).toBe("planner");
+    expect(r.structured.moments.length).toBeGreaterThan(0);
+    expect(r.structured.verdict).toMatch(/moment/);
     expect(r.citations.length).toBeGreaterThan(0);
     const cited = createQueryApi({ actor: "user", deps: { ...deps, chat: async () => "It failed because vec0 was not loaded [1]." } });
     const r2 = await cited.ask({ question: "why did the migration fail?" });
-    expect(r2.model).not.toBe("extractive");
+    expect(r2.model).not.toBe("planner");
     expect(r2.via).toBe("local");
     expect(r2.citations).toHaveLength(1);
   });

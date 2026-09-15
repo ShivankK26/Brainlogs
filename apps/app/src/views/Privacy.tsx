@@ -5,6 +5,7 @@ import type { Status } from "../lib/types";
 import { useStore } from "../state/store";
 import { Header } from "../components/Header";
 import { Pill, Switch } from "../components/Bits";
+import { ModelSetup } from "../components/AskCard";
 
 function RuleList({ label, hint, values, onChange, placeholder }: { label: string; hint: string; values: string[]; onChange: (v: string[]) => void; placeholder: string }) {
   const [draft, setDraft] = useState("");
@@ -121,6 +122,10 @@ export function Privacy({ status }: { status: Status | null }) {
                 <RuleList label="Blocked apps" hint="Never captured, enforced in the engine and again before disk" values={p?.blockedApps ?? []} placeholder="Add app name, Enter" onChange={(v) => save({ blockedApps: v }, "Blocked apps updated")} />
                 <RuleList label="Blocked domains" hint="*.bank.com matches subdomains; bank.com matches both" values={p?.blockedDomains ?? []} placeholder="Add domain, Enter" onChange={(v) => save({ blockedDomains: v }, "Blocked domains updated")} />
                 <div className="perm"><div className="l">Encryption<div className="d">AES-256-GCM, per-install key on this device</div></div><Pill color="var(--green)">On</Pill></div>
+                <div className="perm" style={{ flexDirection: "column", alignItems: "stretch" }}>
+                  <div className="l">Local model<div className="d">Free written answers with Ollama on this device. Ask uses it automatically once a model is installed.</div></div>
+                  <ModelSetup />
+                </div>
                 <CloudAsk status={status} enabled={p?.cloudAskEnabled ?? false} onToggle={(v) => save({ cloudAskEnabled: v }, v ? "Cloud Ask enabled" : "Cloud Ask disabled")} />
               </div>
             </div>

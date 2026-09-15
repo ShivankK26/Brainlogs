@@ -9,7 +9,12 @@ export type TimelineDetailed = { events: Event[]; entities: Record<string, Entit
 export type Facets = { days: number; apps: Array<{ name: string; count: number }>; domains: Array<{ name: string; count: number }> };
 /** Server-side filters accepted by /search and /timeline. */
 export type QueryFilters = { app?: string; domain?: string; person?: string; repo?: string; from?: string; to?: string };
-export type AskResult = { answer: string; citations: string[]; model: string; via: "cloud" | "local" | "none"; withheld?: number };
+export type MomentKind = "message" | "meeting" | "doc" | "code" | "mail" | "page" | "app";
+export type AskMoment = { eventId: string; eventIds: string[]; start: string; end: string; count: number; title: string; app: string; domain: string | null; kind: MomentKind; sensitivity: Event["sensitivity"] };
+export type Structured = { intent: "when" | "contact" | "duration" | "day" | "who" | "find"; verdict: string; detail?: string; facts: Array<{ label: string; value: string; eventId?: string }>; moments: AskMoment[]; scope: { from?: string; to?: string; label?: string } };
+export type AskResult = { answer: string; citations: string[]; model: string; via: "cloud" | "local" | "none"; withheld?: number; structured: Structured };
+export type PullState = { model: string; status: string; completed: number; total: number; done: boolean; error: string | null; startedAt: string };
+export type ModelStatus = { installed: boolean; running: boolean; models: string[]; askModel: string | null; recommended: string; recommendedSize: string; pull: PullState | null; downloadUrl: string };
 export type Pending = { notes: Note[]; edges: Edge[] };
 export type Status = {
   user: { name: string; initials: string };

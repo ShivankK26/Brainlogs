@@ -1,4 +1,4 @@
-import type { AskResult, AuditEntry, Commitment, Entity, Event, Facets, MomentResult, Note, Pending, Policy, Pulse, QueryFilters, SearchResult, Status, TimelineDetailed } from "./types";
+import type { AskResult, AuditEntry, Commitment, Entity, Event, Facets, ModelStatus, MomentResult, Note, Pending, Policy, Pulse, QueryFilters, SearchResult, Status, TimelineDetailed } from "./types";
 
 class ApiError extends Error {
   constructor(
@@ -33,6 +33,9 @@ export const api = {
   moment: (eventId: string) => req<MomentResult>(`/moment/${encodeURIComponent(eventId)}`),
   timeline: (from: string, to: string, limit = 1000, filters: QueryFilters = {}) => req<TimelineDetailed>(`/timeline/detailed${qs({ ...filters, from, to, limit })}`),
   facets: (days = 30) => req<Facets>(`/facets${qs({ days })}`),
+  models: () => req<ModelStatus>("/models"),
+  startModel: () => req<ModelStatus>("/models/start", { method: "POST" }),
+  pullModel: (model?: string) => req<ModelStatus>("/models/pull", { method: "POST", body: JSON.stringify({ model }) }),
   entities: (limit = 6) => req<Entity[]>(`/entities${qs({ limit })}`),
   commitments: () => req<Commitment[]>("/commitments"),
   pulse: (date?: string) => req<Pulse>(`/pulse${qs({ date })}`),

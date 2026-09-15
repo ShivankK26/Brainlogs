@@ -8,6 +8,7 @@ import { Header } from "../components/Header";
 import { EntityLbls, Marked, Pri, St } from "../components/Bits";
 import { IcFilter } from "../components/Icons";
 import { MemoryDetail } from "./MemoryDetail";
+import { AskCard } from "../components/AskCard";
 import { FilterPanel, describeQuery } from "../components/FilterPanel";
 import type { QueryFilters } from "../lib/types";
 
@@ -20,38 +21,6 @@ function isoBounds(from?: string, to?: string): { from?: string; to?: string } {
 }
 
 type Row = { event: Event; entities: Entity[]; highlight?: Highlight };
-
-const VIA_LABEL: Record<AskResult["via"], string> = { cloud: "Answered by Claude", local: "Answered by the local model", none: "No model available" };
-
-/** Answer text with `[n]` markers turned into buttons that select the cited moment. */
-function AskCard({ question, result, loading, onCite }: { question: string; result: AskResult | null; loading: boolean; onCite: (id: string) => void }) {
-  const lines = result ? result.answer.split("\n") : [];
-  return (
-    <div className="askcard" id="askCard">
-      <div className="q">{question}</div>
-      {loading ? <div className="a thinking">Thinking…</div> : null}
-      {result ? (
-        <>
-          <div className="a">
-            {lines.map((line, i) => (
-              <p key={i}>
-                {line.split(/(\[\d+\])/).map((part, j) => {
-                  const m = /^\[(\d+)\]$/.exec(part);
-                  const id = m ? result.citations[Number(m[1]) - 1] : undefined;
-                  return id ? <button key={j} className="cite" onClick={() => onCite(id)}>{part}</button> : <span key={j}>{part}</span>;
-                })}
-              </p>
-            ))}
-          </div>
-          <div className="m">
-            {VIA_LABEL[result.via]}{result.via !== "none" ? ` (${result.model})` : ""} · {result.citations.length} cited
-            {result.withheld ? ` · ${result.withheld} sensitive moment${result.withheld === 1 ? "" : "s"} kept off the cloud` : ""}
-          </div>
-        </>
-      ) : null}
-    </div>
-  );
-}
 
 function linkedCommitments(e: Event, all: Commitment[]): Commitment[] {
   return all.filter((c) => c.evidenceEventIds.some((r) => (typeof r === "string" ? r : r.eventId) === e.id) || c.closedByEventId === e.id);

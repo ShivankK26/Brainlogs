@@ -221,7 +221,29 @@ td .t2 { color: var(--t3); font-size: 11.5px; margin-top: 2px; }
 .askcard .a.thinking { color: var(--t3); }
 .askcard .cite { color: var(--brand); font-weight: 600; padding: 0 2px; border-radius: 3px; }
 .askcard .cite:hover { background: var(--bg-hover); }
-.askcard .m { font-size: 11.5px; color: var(--t3); margin-top: 4px; }
+.askcard .m { font-size: 11.5px; color: var(--t3); margin-top: 8px; }
+.askcard .verdict { font-size: 15px; font-weight: 600; line-height: 1.4; color: var(--t1); }
+.askcard .detail { font-size: 12.5px; color: var(--t2); margin-top: 4px; line-height: 1.5; }
+.askcard .prose p { margin: 0 0 6px; font-size: 13px; line-height: 1.5; }
+.askcard .facts { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 10px 0 0; font-size: 12.5px; }
+.askcard .fact { display: contents; }
+.askcard .facts dt { color: var(--t3); }
+.askcard .facts dd { margin: 0; color: var(--t1); }
+.askcard .lnk { color: var(--t1); text-align: left; text-decoration: underline dotted var(--t4); }
+.askcard .lnk:hover { color: var(--brand); }
+.askcard .moments { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.askcard .mom { display: grid; grid-template-columns: 18px 18px 1fr auto auto; align-items: center; gap: 8px; width: 100%; padding: 5px 8px; border-radius: var(--r2); text-align: left; font-size: 12.5px; }
+.askcard .mom:hover { background: var(--bg-hover); }
+.askcard .mom .n { color: var(--brand); font-weight: 600; font-size: 11px; }
+.askcard .mom .k { color: var(--t3); font-size: 12px; }
+.askcard .mom .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--t1); }
+.askcard .mom .meta, .askcard .mom .when { color: var(--t3); font-size: 11.5px; white-space: nowrap; }
+.msetup { margin-top: 10px; padding: 10px 12px; border: 1px solid var(--line-2); border-radius: var(--r2); background: var(--bg-main); font-size: 12.5px; }
+.msetup .mh { font-weight: 600; margin-bottom: 4px; }
+.msetup p { margin: 0 0 8px; color: var(--t2); line-height: 1.5; }
+.msetup .macts { display: flex; gap: 6px; }
+.msetup .bar { height: 6px; border-radius: 3px; background: var(--line-2); overflow: hidden; }
+.msetup .bar i { display: block; height: 100%; background: var(--brand); transition: width 0.4s; }
 
 /* ============ filter panel ============ */
 .fbar { position: sticky; }

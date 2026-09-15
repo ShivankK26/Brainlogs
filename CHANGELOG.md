@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.14 — 2026-09-15
+
+- **Ask answers the question, without a paid model.** Questions are planned into an intent (did I…, when…, how long…, what did I do…, who is…), a subject and a time scope ("yesterday", "last week", "on Monday", "in August"). Repeated captures of the same window collapse into one moment with a time range. The card leads with a verdict ("Yes. You were in a conversation involving Rohit Talluri in LinkedIn messages, Tue 15 Sept 12:57–12:59" or "No conversation captured; you did open their profile at 12:55"), then facts, then the moments, each one clickable.
+- **Free written answers in two clicks.** The card and Data & retention now walk you through Ollama: download, start, and pull a small model (qwen2.5:3b, 1.9 GB) with a progress bar. Ask picks the best installed model automatically.
+- Ask no longer searches with the whole question; it searches for the subject inside the time scope, and says when it had to widen the scope.
+
 ## 1.0.13 — 2026-09-15
 
 - **Brainlogs updates itself.** The sidebar shows "Update to x.y.z · restart" when a newer release exists; one click downloads the signed archive, verifies it, replaces the app in place and relaunches (ADR 0013). No more deleting and re-dragging. Update checks need the release to be reachable, so they start working once the repository is public.
