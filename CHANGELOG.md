@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.24 — 2026-09-16
+
+- Sidebar: the repositories and branches group is titled "Top screens" (the separate app list added in 1.0.23 is removed).
+
 ## 1.0.23 — 2026-09-16
 
 - **Overview:** "Focused time" is now "Active time" and counts wall-clock time once even when several windows overlap (it previously summed sessions, so a day could read 20 h). "Daily rhythm" is "Time per day". The People & places panel is now "Top sites" only. Week-over-week change for app switches is hidden when last week had too little data to compare.
