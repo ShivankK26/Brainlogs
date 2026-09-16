@@ -84,4 +84,12 @@ describe("commitments skip inbox previews and unnamed counterparts", () => {
     const text = "Batch: If you or anyone you know has A−ve blood and can donate, please come forward and help.\nBatch: Please share this message widely with your friends, family, colleagues and WhatsApp groups";
     expect(extractCommitments({ ...base, windowTitle: "Batch", text }, { contact: null })).toEqual([]);
   });
+  it("ignores donation appeals, résumé fields and previews with invisible marks", () => {
+    const cases = [
+      { title: "Raspberry Pi", text: "Raspberry Pi: Please call/message immediately if you can donate." },
+      { title: "WhatsApp", text: "You: Seeking Associate Product Manager roles where I can turn user research into growth\nCGPA: 8.9" },
+      { title: "Messaging | LinkedIn", text: "\u200eYour message, awesome perfect i'll ping you, 15Septemberat12:50 PM, \u200eSent to Ajay Yadav Neatlogs CEO" },
+    ];
+    for (const c of cases) expect(extractCommitments({ ...base, windowTitle: c.title, text: c.text }, { contact: null })).toEqual([]);
+  });
 });

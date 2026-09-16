@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.22 — 2026-09-16
+
+- Commitments: donation appeals and job-seeking blurbs, résumé fields like "CGPA:", and inbox previews hidden behind invisible text-direction characters are no longer recorded; existing ones are dismissed.
+
 ## 1.0.21 — 2026-09-15
 
 - The workspace button in the sidebar is now an app menu: version, Check for updates, Pause/Resume capture, Data & retention, Audit log, Quit. It used to be a decorative chevron.
