@@ -61,10 +61,30 @@ export function sessionize(events: Event[]): Array<{ region: string; app: string
   return out;
 }
 
-/** Focus, sessions and app switches for a set of events (used for this week and the previous one). */
+/**
+ * Wall-clock time covered by a set of intervals. Sessions from different windows overlap (a chat
+ * and a browser tab on screen at once; history rows next to window captures), so summing them
+ * overstates the day. The union is what "active time" should mean.
+ */
+export function unionMs(intervals: Array<{ start: number; end: number }>): number {
+  const sorted = [...intervals].sort((a, b) => a.start - b.start);
+  let total = 0;
+  let cur: { start: number; end: number } | null = null;
+  for (const iv of sorted) {
+    if (cur && iv.start <= cur.end) cur.end = Math.max(cur.end, iv.end);
+    else {
+      if (cur) total += cur.end - cur.start;
+      cur = { start: iv.start, end: iv.end };
+    }
+  }
+  if (cur) total += cur.end - cur.start;
+  return total;
+}
+
+/** Active time, sessions and app switches for a set of events (used for this week and the previous one). */
 function measures(events: Event[]) {
   const sessions = sessionize(events);
-  const focusedMs = sessions.reduce((n, x) => n + (x.end - x.start), 0);
+  const focusedMs = unionMs(sessions);
   let contextSwitches = 0;
   const switchHours = new Array<number>(24).fill(0);
   for (let i = 1; i < events.length; i++) {
@@ -119,17 +139,19 @@ export function pulse(input: { date: string }, perms: Perms): PulseResult {
     const d = new Date(ts);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   };
+  const perDay = new Map<string, Array<{ start: number; end: number }>>();
   for (const sess of sessions) {
     const k = localDay(sess.start);
     const a = dayAgg.get(k);
     if (!a) continue;
-    a.focusedMs += sess.end - sess.start;
+    perDay.set(k, [...(perDay.get(k) ?? []), { start: sess.start, end: sess.end }]);
     a.sessions += 1;
     const first = byId.get(sess.eventIds[0]!)?.ts ?? null;
     const last = byId.get(sess.eventIds[sess.eventIds.length - 1]!)?.ts ?? null;
     if (first && (!a.firstTs || first < a.firstTs)) a.firstTs = first;
     if (last && (!a.lastTs || last > a.lastTs)) a.lastTs = last;
   }
+  for (const [k, ivs] of perDay) dayAgg.get(k)!.focusedMs = unionMs(ivs);
   const days = dayKeys.map((date) => ({ date, ...dayAgg.get(date)! }));
 
   // top domains and the people you actually exchanged messages with

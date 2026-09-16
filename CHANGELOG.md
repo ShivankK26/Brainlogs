@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.23 — 2026-09-16
+
+- **Overview:** "Focused time" is now "Active time" and counts wall-clock time once even when several windows overlap (it previously summed sessions, so a day could read 20 h). "Daily rhythm" is "Time per day". The People & places panel is now "Top sites" only. Week-over-week change for app switches is hidden when last week had too little data to compare.
+- **Commitments:** the count strip filters the list (all, overdue, you owe, owed to you, done, dismissed).
+- **Sidebar:** "Projects" replaced by "Top screens" (your most-captured apps this week, each a filter); People kept; the footer is a compact model / memory / retention readout. The Agents page is gone: agents still connect over MCP and their proposed writes are reviewed from Commitments and the Audit log.
+- **Data & retention** rebuilt as grouped settings (Retention, Capture rules, Security, Models) with consistent rows.
+- Memory detail: the Copy id button is now a primary button.
+
 ## 1.0.22 — 2026-09-16
 
 - Commitments: donation appeals and job-seeking blurbs, résumé fields like "CGPA:", and inbox previews hidden behind invisible text-direction characters are no longer recorded; existing ones are dismissed.

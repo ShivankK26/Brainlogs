@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { api } from "../lib/api";
 import { useAsync } from "../lib/useAsync";
 import type { Status } from "../lib/types";
@@ -11,10 +11,12 @@ function RuleList({ label, hint, values, onChange, placeholder }: { label: strin
   const [draft, setDraft] = useState("");
   return (
     <div className="perm" style={{ flexDirection: "column", alignItems: "stretch" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <div className="l">{label}<div className="d">{hint}</div></div>
-        <span className="pill">{values.length} rule{values.length === 1 ? "" : "s"}</span>
-      </div>
+      {label ? (
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div className="l">{label}<div className="d">{hint}</div></div>
+          <span className="pill">{values.length} rule{values.length === 1 ? "" : "s"}</span>
+        </div>
+      ) : null}
       <div className="rules">
         {values.map((v) => <button key={v} className="chip" onClick={() => onChange(values.filter((x) => x !== v))}>{v}<span className="x">✕</span></button>)}
         <input placeholder={placeholder} value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && draft.trim()) { onChange([...new Set([...values, draft.trim()])]); setDraft(""); } }} />
@@ -75,8 +77,26 @@ function CloudAsk({ status, enabled, onToggle }: { status: Status | null; enable
   );
 }
 
+function Section({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
+  return (
+    <section className="settings">
+      <div className="sh"><h2>{title}</h2>{hint ? <p>{hint}</p> : null}</div>
+      <div className="sbody">{children}</div>
+    </section>
+  );
+}
+
+function Row({ label, hint, children, stack }: { label: string; hint?: string; children?: ReactNode; stack?: boolean }) {
+  return (
+    <div className={`srow${stack ? " stack" : ""}`}>
+      <div className="l">{label}{hint ? <div className="d">{hint}</div> : null}</div>
+      <div className="c">{children}</div>
+    </div>
+  );
+}
+
 export function Privacy({ status }: { status: Status | null }) {
-  const { version, bump, toastMsg } = useStore();
+  const { version, bump, toastMsg, go } = useStore();
   const policy = useAsync(() => api.policy(), [version]);
   const p = policy.data;
   const save = async (patch: Parameters<typeof api.setPolicy>[0], msg: string) => {
@@ -93,43 +113,44 @@ export function Privacy({ status }: { status: Status | null }) {
     <>
       <Header right={status ? <button className="tb outl" onClick={() => api.capture(status.capture.paused ? "resume" : "pause").then(() => { toastMsg(status.capture.paused ? "Capture resumed" : "Capture paused for an hour"); bump(); })}>{status.capture.paused ? "Resume capture" : "Pause capture 1 h"}</button> : null} />
       <div className="pg-wrap">
-        <div className="pg">
-          <h1>Data & retention</h1>
-          <p className="sub">What is captured, how long it is kept, where it lives. Policy is enforced locally and cannot be overridden by agents.</p>
-          <div className="two">
-            <div className="panel">
-              <div className="ph">Retention</div>
-              <table>
-                <tbody>
-                  <tr><td>Raw captured text<div className="t2">Titles, URLs, on-screen text</div></td><td className="mono">{days} d</td><td><Pill color="var(--green)">Encrypted</Pill></td></tr>
-                  <tr><td>Embeddings<div className="t2">int8, deduplicated</div></td><td className="mono">{days} d</td><td><Pill color="var(--green)">Encrypted</Pill></td></tr>
-                  <tr><td>Entity graph<div className="t2">People, projects, commitments</div></td><td className="mono">∞</td><td><Pill color="var(--green)">Encrypted</Pill></td></tr>
-                  <tr><td>Weekly summaries<div className="t2">Sources marked expired after {days} d</div></td><td className="mono">∞</td><td><Pill color="var(--green)">Encrypted</Pill></td></tr>
-                  <tr><td>Retention window<div className="t2">Raw text older than this is purged nightly</div></td><td className="mono" colSpan={2}>
-                    <select value={days} onChange={(e) => save({ retentionDays: Number(e.target.value) }, `Retention set to ${e.target.value} days`)} style={{ background: "var(--bg-input)", color: "var(--t1)", border: "1px solid var(--line-2)", borderRadius: 6, padding: "3px 6px" }}>
-                      {[7, 14, 30, 60, 90, 180, 365].map((d) => <option key={d} value={d}>{d} days</option>)}
-                    </select>
-                  </td></tr>
-                </tbody>
-              </table>
-              <div className="pb" style={{ color: "var(--t3)", fontSize: 12 }}>Data directory: <span className="mono">{status?.dataDir ?? "…"}</span></div>
-            </div>
-            <div className="panel">
-              <div className="ph">Policy</div>
-              <div className="pb">
-                <div className="perm"><div className="l">Screenshots<div className="d">Text only; images never written to disk</div></div><Pill color="var(--red)">Never</Pill></div>
-                <div className="perm"><div className="l">Network<div className="d">API bound to 127.0.0.1{status ? `:${status.port}` : ""}</div></div><Pill color="var(--green)">Local</Pill></div>
-                <RuleList label="Blocked apps" hint="Never captured, enforced in the engine and again before disk" values={p?.blockedApps ?? []} placeholder="Add app name, Enter" onChange={(v) => save({ blockedApps: v }, "Blocked apps updated")} />
-                <RuleList label="Blocked domains" hint="*.bank.com matches subdomains; bank.com matches both" values={p?.blockedDomains ?? []} placeholder="Add domain, Enter" onChange={(v) => save({ blockedDomains: v }, "Blocked domains updated")} />
-                <div className="perm"><div className="l">Encryption<div className="d">AES-256-GCM, per-install key on this device</div></div><Pill color="var(--green)">On</Pill></div>
-                <div className="perm" style={{ flexDirection: "column", alignItems: "stretch" }}>
-                  <div className="l">Local model<div className="d">Free written answers with Ollama on this device. Ask uses it automatically once a model is installed.</div></div>
-                  <ModelSetup />
-                </div>
-                <CloudAsk status={status} enabled={p?.cloudAskEnabled ?? false} onToggle={(v) => save({ cloudAskEnabled: v }, v ? "Cloud Ask enabled" : "Cloud Ask disabled")} />
-              </div>
-            </div>
-          </div>
+        <div className="pg settings-pg">
+          <h1>Data &amp; retention</h1>
+          <p className="sub">Everything Brainlogs stores lives on this device, encrypted. These rules are enforced locally and agents cannot change them.</p>
+
+          <Section title="Retention" hint="How long each kind of data is kept.">
+            <Row label="Raw captured text" hint="Window titles, URLs, on-screen text"><span className="val">{days} days</span><Pill color="var(--green)">Encrypted</Pill></Row>
+            <Row label="Embeddings" hint="Search index, deduplicated"><span className="val">{days} days</span><Pill color="var(--green)">Encrypted</Pill></Row>
+            <Row label="People, projects, commitments" hint="Kept; sources expire with the raw text"><span className="val">Kept</span><Pill color="var(--green)">Encrypted</Pill></Row>
+            <Row label="Retention window" hint="Raw text older than this is purged nightly">
+              <select className="sel" value={days} onChange={(e) => save({ retentionDays: Number(e.target.value) }, `Retention set to ${e.target.value} days`)}>
+                {[7, 14, 30, 60, 90, 180, 365].map((d) => <option key={d} value={d}>{d} days</option>)}
+              </select>
+            </Row>
+            <Row label="Data directory"><span className="val mono">{status?.dataDir ?? "…"}</span></Row>
+          </Section>
+
+          <Section title="Capture rules" hint="What is never recorded, enforced in the engine and again before anything is written.">
+            <Row label="Screenshots" hint="Text only; images are never written to disk"><Pill color="var(--red)">Never</Pill></Row>
+            <Row label="Network" hint={`API bound to 127.0.0.1${status ? `:${status.port}` : ""}; nothing leaves the device unless you turn on Cloud Ask`}><Pill color="var(--green)">Local only</Pill></Row>
+            <Row label="Blocked apps" hint="Never captured" stack>
+              <RuleList label="" hint="" values={p?.blockedApps ?? []} placeholder="Add app name, Enter" onChange={(v) => save({ blockedApps: v }, "Blocked apps updated")} />
+            </Row>
+            <Row label="Blocked domains" hint="*.bank.com matches subdomains; bank.com matches both" stack>
+              <RuleList label="" hint="" values={p?.blockedDomains ?? []} placeholder="Add domain, Enter" onChange={(v) => save({ blockedDomains: v }, "Blocked domains updated")} />
+            </Row>
+          </Section>
+
+          <Section title="Security" hint="Keys and encryption.">
+            <Row label="Encryption at rest" hint="AES-256-GCM with a per-install key kept on this device"><Pill color="var(--green)">On</Pill></Row>
+            <Row label="Agent access" hint="Coding agents connect over a local socket; their writes are held for your review and every read is audited"><button className="tb outl" onClick={() => go("audit")}>See audit log</button></Row>
+          </Section>
+
+          <Section title="Models" hint="Ask works from your timeline alone. A model adds written answers.">
+            <Row label="Local model" hint="Free, runs on this device with Ollama. Used automatically once installed." stack><ModelSetup /></Row>
+            <Row label="Cloud Ask" hint="" stack>
+              <CloudAsk status={status} enabled={p?.cloudAskEnabled ?? false} onToggle={(v) => save({ cloudAskEnabled: v }, v ? "Cloud Ask enabled" : "Cloud Ask disabled")} />
+            </Row>
+          </Section>
         </div>
       </div>
     </>

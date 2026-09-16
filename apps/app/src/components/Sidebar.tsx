@@ -7,7 +7,8 @@ import { useUpdater } from "../lib/updater";
 
 type TauriGlobal = { core?: { invoke: (cmd: string, args?: Record<string, unknown>) => Promise<unknown> } };
 const tauri = (): TauriGlobal | undefined => (window as unknown as { __TAURI__?: TauriGlobal }).__TAURI__;
-import { IcAgent, IcAudit, IcCheck, IcChev, IcMemory, IcPulse, IcSearch, IcShield } from "./Icons";
+import { IcAudit, IcCheck, IcChev, IcMemory, IcPulse, IcSearch, IcShield } from "./Icons";
+import { useAsync } from "../lib/useAsync";
 
 /** One line for the sidebar foot: paused beats blind beats engine-down beats active. */
 export function captureHealth(status: Status | null): { label: string; tone: "ok" | "off" | "bad" | "unknown" } {
@@ -23,6 +24,8 @@ export function Sidebar({ status, entities }: { status: Status | null; entities:
   const { page, go, openPalette, setFilter } = useStore();
   const health = captureHealth(status);
   const upd = useUpdater();
+  const facets = useAsync(() => api.facets(7), []);
+  const topScreens = (facets.data?.apps ?? []).slice(0, 6);
   const { toastMsg, bump } = useStore();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -90,7 +93,6 @@ export function Sidebar({ status, entities }: { status: Status | null; entities:
       <Item p="overview" icon={<IcPulse />} label="Overview" />
       <Item p="memory" icon={<IcMemory />} label="Memory" count={status ? compact(status.counts.events) : undefined} />
       <Item p="commitments" icon={<IcCheck />} label="Commitments" count={status?.counts.commitmentsOpen} />
-      <Item p="agents" icon={<IcAgent />} label="Agents" count={status?.agents.length} />
       {(() => {
         const people = entities.filter((e) => e.kind === "person" && looksLikePersonName(e.name));
         const projects = entities.filter((e) => e.kind === "repo" || e.kind === "project" || e.kind === "branch" || e.kind === "org");
@@ -108,9 +110,18 @@ export function Sidebar({ status, entities }: { status: Status | null; entities:
           ) : null;
         return (
           <>
+            {topScreens.length ? (
+              <div className="sbsec">
+                <div className="sbh">Top screens<span className="sbm">7 days</span></div>
+                {topScreens.map((a) => (
+                  <button key={a.name} className="item ent" data-app={a.name} title={`${a.name} · ${a.count} captures this week`} onClick={() => { setFilter({ kind: "query", q: "", app: a.name }); go("memory"); }}>
+                    <i className="dotc" style={{ background: "var(--t4)" }} /><span className="name">{a.name}</span><span className="cnt">{compact(a.count)}</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
             <Group title="People" items={people} />
-            <Group title="Projects" items={projects} />
-            {entities.length === 0 ? <div className="sbsec"><div className="sbh">People &amp; projects</div><div className="stat">Nothing extracted yet</div></div> : null}
+            {projects.length ? <Group title="Projects" items={projects.slice(0, 4)} /> : null}
           </>
         );
       })()}
@@ -125,9 +136,11 @@ export function Sidebar({ status, entities }: { status: Status | null; entities:
             {upd.phase === "downloading" ? "Downloading update…" : upd.phase === "ready" ? "Restarting…" : upd.phase === "error" ? `Update failed: ${upd.error ?? "retry"}` : `Update to ${upd.available.version} · restart`}
           </button>
         ) : null}
-        <div className="stat" id="capStat" data-tone={health.tone}><i className={health.tone === "ok" ? "" : health.tone} />{health.label} · all data on this device</div>
-        <div className="stat" style={{ paddingTop: 0 }}>
-          {status ? `${status.ollama ? "Local model" : "No local model"} · ${bytes(status.dbSizeBytes)} · ${status.retentionDays} days` : "Connecting…"}
+        <div className="stat" id="capStat" data-tone={health.tone}><i className={health.tone === "ok" ? "" : health.tone} /><span className="k">{health.label}</span></div>
+        <div className="kv">
+          <span className="k">Model</span><span className="v">{status ? (status.ollama ? status.modelName : "none") : "…"}</span>
+          <span className="k">Memory</span><span className="v">{status ? bytes(status.dbSizeBytes) : "…"}</span>
+          <span className="k">Retention</span><span className="v">{status ? `${status.retentionDays} days` : "…"}</span>
         </div>
       </div>
     </nav>

@@ -148,22 +148,6 @@ test("commitments grouped with a review queue that approves a proposed note", as
   await expect(page.locator("#toast")).toHaveText("Approved");
 });
 
-test("agents: session log, permission switch persists to policy", async ({ page }) => {
-  await open(page);
-  await page.keyboard.press("g");
-  await page.keyboard.press("a");
-  await expect(page.locator("#term .line").first()).toBeVisible();
-  await expect(page.locator("#term")).toContainText("brainlog.remember");
-  const sw = page.locator('.sw[aria-label="Allow sensitive"]');
-  await expect(sw).toHaveAttribute("aria-checked", "false");
-  await sw.click();
-  await expect(sw).toHaveAttribute("aria-checked", "true");
-  await page.reload();
-  await page.keyboard.press("g");
-  await page.keyboard.press("a");
-  await expect(page.locator('.sw[aria-label="Allow sensitive"]')).toHaveAttribute("aria-checked", "true");
-});
-
 test("audit log lists agent activity and denials; export link is present", async ({ page }) => {
   await open(page);
   await page.locator(".item[data-page=audit]").click();

@@ -9,11 +9,10 @@ import { Toast } from "./components/Toast";
 import { Overview } from "./views/Overview";
 import { Memory } from "./views/Memory";
 import { Commitments } from "./views/Commitments";
-import { Agents } from "./views/Agents";
 import { Audit } from "./views/Audit";
 import { Privacy } from "./views/Privacy";
 
-const G_MAP: Record<string, Page> = { p: "overview", m: "memory", c: "commitments", a: "agents" };
+const G_MAP: Record<string, Page> = { p: "overview", m: "memory", c: "commitments" };
 
 type TauriGlobal = { core?: { invoke: (cmd: string) => Promise<unknown> } };
 const tauri = (): TauriGlobal | undefined => (window as unknown as { __TAURI__?: TauriGlobal }).__TAURI__;
@@ -110,7 +109,6 @@ function Shell() {
         {page === "overview" && <Overview />}
         {page === "memory" && <Memory />}
         {page === "commitments" && <Commitments />}
-        {page === "agents" && <Agents status={status.data} />}
         {page === "audit" && <Audit />}
         {page === "privacy" && <Privacy status={status.data} />}
       </div>

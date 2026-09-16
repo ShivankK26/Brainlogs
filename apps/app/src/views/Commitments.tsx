@@ -60,6 +60,8 @@ export function Commitments() {
   const buckets = useMemo(() => bucketize(cm.data ?? [], now), [cm.data, now]);
   const [busy, setBusy] = useState<string | null>(null);
   const [showDismissed, setShowDismissed] = useState(false);
+  type Seg = "all" | "overdue" | "you" | "them" | "done" | "dismissed";
+  const [seg, setSeg] = useState<Seg>("all");
   const dismissed = useMemo(() => (cm.data ?? []).filter((c) => c.status === "dismissed").sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)), [cm.data]);
   const live = (cm.data ?? []).filter((c) => c.status !== "dismissed" && c.status !== "done");
   const overdueN = buckets.find((b) => b.key === "overdue")?.rows.length ?? 0;
@@ -93,13 +95,21 @@ export function Commitments() {
       <Header right={<button className="tb primary" id="reviewBtn" onClick={() => setReview(!reviewOpen)}>Review proposed ({n})</button>} />
       <div className={`body ${reviewOpen ? "" : "wide"}`}>
         <div className="list cmts">
-          <div className="cstrip">
-            <div className={`cs${overdueN ? " late" : ""}`}><b>{overdueN}</b><span>overdue</span></div>
-            <div className="cs"><b>{youN}</b><span>you owe</span></div>
-            <div className="cs"><b>{themN}</b><span>owed to you</span></div>
-            <div className="cs"><b>{doneN}</b><span>done, 14 days</span></div>
+          <div className="cstrip" role="tablist" aria-label="Filter commitments">
+            {([
+              ["all", live.length, "all open"],
+              ["overdue", overdueN, "overdue"],
+              ["you", youN, "you owe"],
+              ["them", themN, "owed to you"],
+              ["done", doneN, "done, 14 days"],
+              ["dismissed", dismissed.length, "dismissed"],
+            ] as Array<[Seg, number, string]>).map(([k, n, label]) => (
+              <button key={k} role="tab" aria-selected={seg === k} className={`cs${k === "overdue" && n ? " late" : ""}${seg === k ? " on" : ""}`} id={`cseg-${k}`} onClick={() => { setSeg(k); if (k === "dismissed") setShowDismissed(true); }}>
+                <b>{n}</b><span>{label}</span>
+              </button>
+            ))}
             <span className="sp" />
-            <span className="pill">{cm.loading ? "Loading…" : `${live.length} open`}</span>
+            <span className="pill">{cm.loading ? "Loading…" : seg === "all" ? `${live.length} open` : `filtered`}</span>
           </div>
           {cm.error ? <div className="err">{cm.error}</div> : null}
           {!cm.loading && buckets.length === 0 ? (
@@ -110,7 +120,7 @@ export function Commitments() {
             </div>
           ) : null}
           <div id="crows">
-            {buckets.map((b) => (
+            {buckets.filter((b) => seg === "all" || b.key === seg).map((b) => (
               <section key={b.key} className="cbucket">
                 <div className="grp">{b.label}<span className="cnt">{b.rows.length}</span><span className="hint">{b.hint}</span></div>
                 {b.rows.map((c) => {
@@ -148,7 +158,8 @@ export function Commitments() {
                 })}
               </section>
             ))}
-            {dismissed.length ? (
+            {seg !== "all" && seg !== "dismissed" && !buckets.some((b) => b.key === seg) && !cm.loading ? <div className="empty">Nothing in this bucket.</div> : null}
+            {dismissed.length && (seg === "all" || seg === "dismissed") ? (
               <section className="cbucket dismissed">
                 <button className="grp asbtn" id="dismissedToggle" onClick={() => setShowDismissed((v) => !v)}>
                   Dismissed<span className="cnt">{dismissed.length}</span><span className="hint">{showDismissed ? "hide" : "show"}</span>

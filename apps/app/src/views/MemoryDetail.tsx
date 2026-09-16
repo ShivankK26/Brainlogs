@@ -38,7 +38,7 @@ export function MemoryDetail({ id, commitments }: { id: string; commitments: Com
       <div className="dhd">
         {memId(e.id)}
         <span className="right">
-          <button className="tb" onClick={() => { navigator.clipboard?.writeText(e.id); toastMsg("Event id copied"); }}>Copy id</button>
+          <button className="tb primary" onClick={() => { navigator.clipboard?.writeText(e.id); toastMsg("Event id copied"); }}>Copy id</button>
         </span>
       </div>
       <div className="dbody">
