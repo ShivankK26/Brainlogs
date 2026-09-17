@@ -1,7 +1,6 @@
 ---
 import "../styles.css";
 const { title = "Brainlogs — It's your second brain.", description = "Brainlogs remembers everything you saw, read, and promised on your computer — and keeps all of it on your machine." } = Astro.props;
-const repo = "https://github.com/ShivankK26/Brainlogs";
 ---
 <!doctype html>
 <html lang="en">
@@ -28,7 +27,7 @@ const repo = "https://github.com/ShivankK26/Brainlogs";
   <div class="wrap">
     <a class="logo" href="/"><svg class="mk" viewBox="0 0 100 100" width="22" height="22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"><path d="M 24 20 H 50 A 13 13 0 0 1 50 46 H 24" opacity=".45"/><path d="M 24 46 H 56 A 18 18 0 0 1 56 82 H 24"/><path d="M 24 18 V 82"/></g><circle cx="82" cy="78" r="7.5" fill="#5E6AD2"/></svg>Brainlogs</a>
     <nav><a href="/#how">How it works</a><a href="/#search">Search</a><a href="/#agents">Agents</a><a href="/#privacy">Privacy</a><a href="/docs">Docs</a></nav>
-    <div class="r"><a class="btn" href={repo}>GitHub</a><a class="btn p" href="/#download">Download</a></div>
+    <div class="r"><a class="btn p" href="/#download">Download</a></div>
   </div>
 </header>
 <slot />
@@ -36,7 +35,7 @@ const repo = "https://github.com/ShivankK26/Brainlogs";
   <div class="wrap">
     <span class="logo"><svg class="mk" viewBox="0 0 100 100" width="22" height="22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"><path d="M 24 20 H 50 A 13 13 0 0 1 50 46 H 24" opacity=".45"/><path d="M 24 46 H 56 A 18 18 0 0 1 56 82 H 24"/><path d="M 24 18 V 82"/></g><circle cx="82" cy="78" r="7.5" fill="#5E6AD2"/></svg>Brainlogs</span>
     <span>It's your second brain.</span>
-    <div class="r"><a href="/docs">Docs</a><a href={repo}>GitHub</a><a href={`${repo}/releases`}>Changelog</a><a href={`${repo}/blob/main/SECURITY.md`}>Security</a><a href="/docs/privacy">Privacy</a></div>
+    <div class="r"><a href="/docs">Docs</a><a href="/docs/privacy">Privacy</a></div>
   </div>
 </footer>
 <script>

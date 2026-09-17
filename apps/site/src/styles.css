@@ -214,3 +214,5 @@ footer a:hover{color:var(--t1)}
   .hero .frame{animation-delay:.15s}
   @keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 }
+.btn.disabled{opacity:.55;cursor:not-allowed;pointer-events:none}
+.soon{margin:10px 0 0;font-size:13px;color:var(--t3);text-align:center}

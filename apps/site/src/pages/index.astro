@@ -1,7 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import ProductFrame from "../components/ProductFrame.astro";
-const releases = "https://github.com/ShivankK26/Brainlogs/releases/latest";
+// Downloads are temporarily disabled on the site; the buttons stay visible but inert.
 ---
 <Base>
 
@@ -11,7 +11,7 @@ const releases = "https://github.com/ShivankK26/Brainlogs/releases/latest";
     <span class="pill"><b>New</b> Memory for Claude Code and Cursor over MCP</span>
     <h1>It's your second brain.</h1>
     <p class="lede">Brainlogs remembers everything you saw, read, and promised on your computer — then answers questions about it. All of it stays on your machine.</p>
-    <div class="cta"><a class="btn p lg" href="#download">Download for macOS</a><a class="btn lg" href="#how">See how it works</a></div>
+    <div class="cta"><span class="btn p lg disabled" aria-disabled="true" title="Downloads open soon">Download for macOS</span><a class="btn lg" href="#how">See how it works</a></div>
     <div class="os">Also for Windows and Linux · Free for individuals</div>
 
     <ProductFrame />
@@ -145,7 +145,8 @@ const releases = "https://github.com/ShivankK26/Brainlogs/releases/latest";
   <div class="wrap">
     <h2>Start remembering.</h2>
     <p>Free for individuals. One download, no account, nothing leaves your machine.</p>
-    <div class="cta" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><a class="btn p lg" href={releases}>Download for macOS</a><a class="btn lg" href={releases}>Windows</a><a class="btn lg" href={releases}>Linux</a></div>
+    <div class="cta" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><span class="btn p lg disabled" aria-disabled="true" title="Downloads open soon">Download for macOS</span><span class="btn lg disabled" aria-disabled="true" title="Downloads open soon">Windows</span><span class="btn lg disabled" aria-disabled="true" title="Downloads open soon">Linux</span></div>
+    <p class="soon">Downloads open soon.</p>
     <div class="os" style="margin-top:14px;font-size:13px;color:var(--t3)">Open source core · MIT · Teams and enterprise policies coming</div>
   </div>
 </section>
