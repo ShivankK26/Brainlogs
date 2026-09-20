@@ -36,7 +36,8 @@
     "trayIcon": {
       "iconPath": "icons/tray.png",
       "iconAsTemplate": true
-    }
+    },
+    "macOSPrivateApi": true
   },
   "bundle": {
     "active": true,

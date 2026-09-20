@@ -171,10 +171,8 @@ fn recall_show(app: AppHandle, height: f64) -> Result<(), String> {
         let y = pos.y + RECALL_TOP;
         let _ = win.set_position(LogicalPosition::new(x, y));
     }
+    // show(), never set_focus(): the user keeps typing in whatever they were in.
     let _ = win.show();
-    // Never steal focus: the user keeps typing in whatever they were in.
-    #[cfg(target_os = "macos")]
-    let _ = win.set_ignore_cursor_events(false);
     Ok(())
 }
 
@@ -361,25 +359,24 @@ fn spawn_recall_window(app: &AppHandle, url: &str) {
             return;
         }
     };
-    let built = WebviewWindowBuilder::new(app, RECALL_WINDOW, WebviewUrl::External(parsed))
+    let mut builder = WebviewWindowBuilder::new(app, RECALL_WINDOW, WebviewUrl::External(parsed))
         .title("Brainlogs recall")
         .inner_size(RECALL_WIDTH, 200.0)
         .resizable(false)
         .decorations(false)
         .transparent(true)
         .always_on_top(true)
-        .skip_taskbar(true)
         .shadow(false)
         .focused(false)
-        .visible(false)
-        .build();
-    match built {
+        .visible(false);
+    #[cfg(not(target_os = "macos"))]
+    {
+        builder = builder.skip_taskbar(true);
+    }
+    match builder.build() {
         Ok(win) => {
-            // A panel that never takes focus, so typing continues in the app underneath.
-            #[cfg(target_os = "macos")]
-            {
-                let _ = win.set_visible_on_all_workspaces(true);
-            }
+            // Follows the user across spaces; it must never pull focus from the app underneath.
+            let _ = win.set_visible_on_all_workspaces(true);
             let _ = win.hide();
         }
         Err(e) => eprintln!("[brainlog] recall window: {e}"),
