@@ -182,7 +182,7 @@ jobs:
         run: |
           gh release download "$TAG" -p latest.json -O prev-latest.json 2>/dev/null || true
           node tooling/release/latest-json.mjs "$TAG" bundles prev-latest.json > bundles/latest.json && cat bundles/latest.json
-      - name: Create or update the draft release
+      - name: Create, fill and publish the release
         env:
           # A classic PAT with `repo` scope in RELEASE_TOKEN is used when set; the built-in token otherwise.
           GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
@@ -194,7 +194,10 @@ jobs:
               $([[ "$TAG" == *-* ]] && echo --prerelease)
           fi
           gh release upload "$TAG" bundles/* --clobber
-          gh release view "$TAG" --json assets --jq '.assets[].name'
+          # Publish it. A draft serves no downloads (the install script 404s) and the updater cannot
+          # see its latest.json, so leaving it drafted silently breaks both ways of getting the app.
+          gh release edit "$TAG" --draft=false $([[ "$TAG" == *-* ]] || echo --latest)
+          gh release view "$TAG" --json isDraft,assets --jq '"draft=\(.isDraft)", (.assets[].name)'
 
   npm:
     needs: verify
