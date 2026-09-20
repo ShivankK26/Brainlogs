@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.3 — 2026-09-20
+
+- The strip no longer recalls Brainlogs at itself. Its own windows, and the app's, are skipped: everything it would say is already on the screen behind it.
+
+
 ## 1.3.2 — 2026-09-20
 
 - **The strip stays awake.** It spoke once after 1.3.1 and then went quiet: macOS suspends a hidden window's clock, so a strip that hides itself never ticks again. It now parks as one transparent pixel that ignores the mouse instead of hiding, and the desktop shell nudges it whenever the front window changes, so it no longer depends on its own clock alone.

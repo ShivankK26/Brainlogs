@@ -15,6 +15,8 @@ const invoke = async (cmd: string, args?: Record<string, unknown>) => {
 };
 
 const POLL_MS = 1500;
+/** Brainlogs' own windows, including the strip itself. Recall about the recall window is noise. */
+const SELF = /^(brainlogs?|io\.brainlog\.desktop|brainlog-desktop)$/i;
 /** Eight seconds for a one-line card, two more per extra line, never longer than sixteen. */
 function showMs(r: Recall): number {
   const lines = (r.change?.summary ? 1 : 0) + Math.min(2, r.facts.length) + Math.min(2, r.owed.length);
@@ -65,6 +67,11 @@ export function RecallStrip() {
   const tick = useCallback(async () => {
     const front = (await invoke("current_window")) as Front | null | undefined;
     if (!front || !front.title) return;
+    if (SELF.test(front.app) || SELF.test(front.exe) || front.title.startsWith("Brainlogs")) {
+      lastKey.current = null;
+      hide();
+      return;
+    }
     if (screenIsShared(front)) {
       lastKey.current = null;
       hide();
