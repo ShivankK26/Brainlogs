@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.1 — 2026-09-20
+
+- The strip stays on screen long enough to be read: the eight-second timer scales with the number of lines, and hovering it stops the clock until the pointer leaves.
+- The rule that keeps the strip off a screen somebody else can see now lives in one place with tests behind it.
+- Releases publish themselves again. Every release since the updater landed was left as a draft, which serves no downloads and hides the update manifest, so both the installer and in-app updates were quietly broken.
+
+
 ## 1.3.0 — 2026-09-20
 
 - **The strip knows who you are talking to.** Open a chat and it shows how many conversations you have had, when the last one was, and every open promise in either direction with its due date. It quotes none of the conversation: those words are already on the screen, and a floating window is the wrong place to repeat them.
