@@ -1245,6 +1245,18 @@ pub(crate) fn foreground_window_info() -> Option<(String, String, String)> {
     }
 }
 
+/// Size of the focused window in points, where the platform can tell us. macOS only for now.
+pub(crate) fn foreground_window_size() -> Option<(f64, f64)> {
+    #[cfg(target_os = "macos")]
+    {
+        crate::capture_mac::front_window_size()
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        None
+    }
+}
+
 fn platform_accessibility_trusted() -> bool {
     #[cfg(target_os = "macos")]
     {

@@ -8,9 +8,10 @@
  *
  * Nothing here needs a model. Everything is string work over events already in the database.
  */
-import { and, desc, gte, like } from "drizzle-orm";
+import { and, desc, eq, gte, like } from "drizzle-orm";
 import { brainlogSchema as s, getDb, rowToEvent } from "@brainlog/core";
-import type { Event } from "@brainlog/types";
+import type { CommitmentStatus, Event } from "@brainlog/types";
+import { commitments } from "./graph-reads.js";
 import { normApp } from "./plan.js";
 import { visible, type Perms } from "./filters.js";
 
@@ -57,7 +58,21 @@ export type Recall = {
   /** Decisions, questions and promises found in this place's text. */
   facts: Array<{ kind: "decision" | "question" | "promise"; text: string; ts: string; eventId: string }>;
   people: string[];
+  /** Open promises in either direction with the person in front of you, or with a caller. */
+  owed: Owed[];
+  /** Who this place is with: the counterpart of a chat, or the names on screen in a call. */
+  withPeople: string[];
   eventIds: string[];
+};
+
+export type Owed = {
+  id: string;
+  text: string;
+  /** "you" — you owe them. "them" — they owe you. */
+  direction: "you" | "them";
+  who: string;
+  status: CommitmentStatus;
+  dueAt: string | null;
 };
 
 const BROWSER_SUFFIX = /\s+[-–—|]\s+(Google Chrome|Chrome|Arc|Safari|Firefox|Microsoft Edge|Brave|Zen|Chromium)\s*$/i;
@@ -284,6 +299,43 @@ export function factsFrom(events: Event[]): Recall["facts"] {
   return out;
 }
 
+const YOU = /^(you|me|i|myself|yourself|self)$/i;
+
+/** Open promises involving any of these names, in either direction, most urgent first. */
+export function owedWith(names: string[], perms: Perms, limit = 3): Owed[] {
+  const wanted = names.map(normKey).filter((n) => n.length >= 3);
+  if (!wanted.length) return [];
+  const hit = (party: string) => {
+    const n = normKey(party);
+    return !YOU.test(n) && wanted.some((w) => n === w || n.includes(w) || w.includes(n));
+  };
+  const out: Owed[] = [];
+  for (const c of commitments({}, perms)) {
+    if (c.status === "done" || c.status === "dismissed") continue;
+    const from = hit(c.fromParty);
+    const to = hit(c.toParty);
+    if (!from && !to) continue;
+    out.push({ id: c.id, text: clip(c.text, 120), direction: from ? "them" : "you", who: from ? c.fromParty : c.toParty, status: c.status, dueAt: c.dueAt });
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
+/** People the graph already knows whose names appear in this text. Used to read a call's roster. */
+export function peopleIn(text: string, limit = 6): string[] {
+  const body = normKey(text);
+  if (body.length < 3) return [];
+  const known = getDb().select().from(s.entities).where(eq(s.entities.kind, "person")).orderBy(desc(s.entities.mentionCount)).limit(400).all();
+  const out: string[] = [];
+  for (const e of known) {
+    const n = normKey(e.name);
+    if (n.length < 4 || !/\s/.test(n)) continue; // a single first name matches too much to be evidence
+    if (body.includes(n)) out.push(e.name);
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
 export type RecallDeps = { now?: Date; days?: number };
 
 /**
@@ -308,6 +360,14 @@ export function recall(w: WindowLike, perms: Perms, deps: RecallDeps = {}): Reca
 
   const people = [...new Set(events.flatMap((e) => (e.sensitivity === "third_party_private" ? [placeOf(e)?.label].filter((x): x is string => Boolean(x)) : [])))].slice(0, 4);
 
+  // Who you are with. A chat names its counterpart; a call has its roster on screen.
+  const withPeople = place.kind === "person" ? [place.label] : place.kind === "call" ? peopleIn(nowText || current?.text || "") : [];
+  const owed = withPeople.length ? owedWith(withPeople, perms) : [];
+
+  // A conversation is somebody else's words. We report that it happened and what it obliged, and
+  // leave the words themselves on their screen, where they were said.
+  const quotable = place.kind !== "person" && place.kind !== "call";
+
   return {
     place,
     visits: visits.length,
@@ -316,8 +376,10 @@ export function recall(w: WindowLike, perms: Perms, deps: RecallDeps = {}): Reca
     totalMs: visits.reduce((n, v) => n + v.ms, 0),
     previousVisit: previous,
     change,
-    facts: factsFrom(events),
+    facts: quotable ? factsFrom(events) : [],
     people,
+    owed,
+    withPeople,
     eventIds: events.slice(0, 40).map((e) => e.id),
   };
 }

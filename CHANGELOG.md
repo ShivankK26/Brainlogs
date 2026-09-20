@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.0 — 2026-09-20
+
+- **The strip knows who you are talking to.** Open a chat and it shows how many conversations you have had, when the last one was, and every open promise in either direction with its due date. It quotes none of the conversation: those words are already on the screen, and a floating window is the wrong place to repeat them.
+- **Calls get the same card** for everyone the roster on screen names, so you walk in knowing what is owed with the people in the room.
+- **Silence rules.** The strip stays hidden whenever the screen may not be private: a window filling its display, or a title announcing that you are sharing or presenting. Nothing appears over a shared screen.
+- The recall endpoint now reads commitments as well as the timeline, so it is gated on both permissions and audited as before (ADR 0015).
+
+
 ## 1.2.1 — 2026-09-20
 
 - The same document is now one place whether you open it in its own app or in a browser tab. A Notion or Linear page read in Chrome no longer counts as a stranger.

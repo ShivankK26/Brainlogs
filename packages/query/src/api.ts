@@ -96,7 +96,7 @@ export function createQueryApi(opts: QueryApiOptions) {
      */
     recallPlace(input: { app: string; windowTitle: string; url?: string | null; domain?: string | null; text?: string }): Promise<Recall | null> {
       return run(
-        { action: "query", scope: `recall ${short(input.windowTitle || input.app, 60)}`, needs: ["readTimeline"] },
+        { action: "query", scope: `recall ${short(input.windowTitle || input.app, 60)}`, needs: ["readTimeline", "readGraph"] },
         (perms) => recall(input, perms),
         (r) => (r ? `${r.place.kind} ${r.visits} visits${r.change ? " + change" : ""}` : "unknown place"),
       );

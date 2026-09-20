@@ -148,11 +148,35 @@ struct FrontWindow {
     app: String,
     title: String,
     exe: String,
+    /// The window fills its display. The strip stays silent there: it may not be a private screen.
+    fullscreen: bool,
 }
 
 #[tauri::command]
-fn current_window() -> Option<FrontWindow> {
-    capture::foreground_window_info().map(|(title, exe, app)| FrontWindow { app, title, exe })
+fn current_window(app: AppHandle) -> Option<FrontWindow> {
+    let (title, exe, name) = capture::foreground_window_info()?;
+    let fullscreen = front_is_fullscreen(&app);
+    Some(FrontWindow {
+        app: name,
+        title,
+        exe,
+        fullscreen,
+    })
+}
+
+/// True when the focused window covers its whole display — a presentation, a video, a shared screen.
+fn front_is_fullscreen(app: &AppHandle) -> bool {
+    let Some((w, h)) = capture::foreground_window_size() else {
+        return false;
+    };
+    let Some(win) = app.get_webview_window(RECALL_WINDOW) else {
+        return false;
+    };
+    let Ok(Some(mon)) = win.current_monitor().or_else(|_| win.primary_monitor()) else {
+        return false;
+    };
+    let size = mon.size().to_logical::<f64>(mon.scale_factor());
+    w >= size.width - 4.0 && h >= size.height - 4.0
 }
 
 /// Show the strip in the top-right of the screen it is on, sized to its content.

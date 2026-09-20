@@ -195,3 +195,16 @@ describe("lexical path", () => {
     expect(r.hits[0]!.highlights.length).toBeGreaterThan(0);
   });
 });
+
+describe("recall on a person", () => {
+  it("reports what is owed with them and quotes none of their words", async () => {
+    const api = createQueryApi({ actor: "user", deps });
+    const r = await api.recallPlace({ app: "Slack", windowTitle: "DM · Priya" });
+    expect(r?.place.kind).toBe("person");
+    expect(r?.place.label).toBe("Priya");
+    expect(r?.withPeople).toEqual(["Priya"]);
+    expect(r?.owed.map((o) => [o.direction, o.who, o.status])).toEqual([["you", "Priya", "overdue"]]);
+    expect(r?.facts).toEqual([]);
+    expect(r?.change).toBeNull();
+  });
+});

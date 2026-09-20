@@ -451,3 +451,6 @@ html.strip-root body { padding: 4px; }
 .strip .ln.warn .g { color: var(--amber); }
 .strip .ln.diff { background: rgba(76,195,138,.07); margin: 6px -14px; padding: 9px 14px; border-top: 1px solid rgba(76,195,138,.18); border-bottom: 1px solid rgba(76,195,138,.18); }
 .strip .ln.diff .g { color: var(--green); }
+.strip .ln.owe .g { color: var(--purple); }
+.strip .ln.owe em { font-style: normal; font: 10.5px var(--mono); color: var(--t4); white-space: nowrap; }
+.strip .ln.owe.warn em { color: var(--amber); }

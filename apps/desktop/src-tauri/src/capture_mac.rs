@@ -242,6 +242,49 @@ pub fn foreground_window_info() -> Option<(String, String, String)> {
     Some((title, bundle, app_name))
 }
 
+/// Size of the focused window in points, or None when it cannot be read. A window that fills its
+/// display is a presentation, a shared screen or a video, and the recall strip stays out of those.
+pub fn front_window_size() -> Option<(f64, f64)> {
+    let app = frontmost_app()?;
+    let pid = unsafe { app.processIdentifier() };
+    let ax_app = unsafe { AXUIElementCreateApplication(pid) };
+    if ax_app.is_null() {
+        return None;
+    }
+    unsafe {
+        let _ = AXUIElementSetMessagingTimeout(ax_app, 0.2);
+    }
+    let out = ax_attr_element(ax_app, "AXFocusedWindow").and_then(|win| {
+        let size = ax_copy_attr(win, "AXSize").and_then(|raw| {
+            let mut sz = CGSize::default();
+            let ok = unsafe {
+                AXValueGetType(raw) == K_AX_VALUE_CG_SIZE
+                    && AXValueGetValue(
+                        raw,
+                        K_AX_VALUE_CG_SIZE,
+                        &mut sz as *mut CGSize as *mut c_void,
+                    ) != 0
+            };
+            unsafe {
+                CFRelease(raw);
+            }
+            if ok && sz.width > 0.0 && sz.height > 0.0 {
+                Some((sz.width, sz.height))
+            } else {
+                None
+            }
+        });
+        unsafe {
+            CFRelease(win as CFTypeRef);
+        }
+        size
+    });
+    unsafe {
+        CFRelease(ax_app as CFTypeRef);
+    }
+    out
+}
+
 pub fn foreground_pid() -> Option<u32> {
     let app = frontmost_app()?;
     let pid = unsafe { app.processIdentifier() };
