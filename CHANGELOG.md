@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.2 — 2026-09-20
+
+- **The strip stays awake.** It spoke once after 1.3.1 and then went quiet: macOS suspends a hidden window's clock, so a strip that hides itself never ticks again. It now parks as one transparent pixel that ignores the mouse instead of hiding, and the desktop shell nudges it whenever the front window changes, so it no longer depends on its own clock alone.
+
+
 ## 1.3.1 — 2026-09-20
 
 - **The recall strip actually appears.** Its three calls — which window is in front, show, hide — were missing from the desktop app's IPC allow-list, so every poll since 1.2.0 was denied and the strip could never say anything. It now works on the machine as it always did in the tests.

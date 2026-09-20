@@ -45,7 +45,8 @@ pub(crate) fn toggle_main_debounced(app: &AppHandle) {
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, LogicalPosition, LogicalSize, Manager, State, WebviewUrl, WebviewWindowBuilder,
+    AppHandle, Emitter, LogicalPosition, LogicalSize, Manager, State, WebviewUrl,
+    WebviewWindowBuilder,
 };
 use tauri_plugin_autostart::MacosLauncher;
 
@@ -143,7 +144,7 @@ fn quit_app(app: AppHandle) -> Result<(), String> {
 }
 
 /// What the user is looking at right now, for the recall strip. Title only; no text is read here.
-#[derive(serde::Serialize)]
+#[derive(Clone, serde::Serialize)]
 struct FrontWindow {
     app: String,
     title: String,
@@ -187,6 +188,7 @@ fn recall_show(app: AppHandle, height: f64) -> Result<(), String> {
         .get_webview_window(RECALL_WINDOW)
         .ok_or_else(|| "recall window missing".to_string())?;
     let h = height.clamp(80.0, 520.0);
+    let _ = win.set_ignore_cursor_events(false);
     let _ = win.set_size(LogicalSize::new(RECALL_WIDTH, h));
     if let Ok(Some(mon)) = win.current_monitor().or_else(|_| win.primary_monitor()) {
         let scale = mon.scale_factor();
@@ -204,9 +206,52 @@ fn recall_show(app: AppHandle, height: f64) -> Result<(), String> {
 #[tauri::command]
 fn recall_hide(app: AppHandle) -> Result<(), String> {
     if let Some(win) = app.get_webview_window(RECALL_WINDOW) {
-        let _ = win.hide();
+        park_recall(&win);
     }
     Ok(())
+}
+
+/// Park the strip instead of hiding it.
+///
+/// macOS suspends a hidden webview's timers, so a strip that hides itself never ticks again and
+/// never notices the next window — which is exactly how 1.3.1 shipped a strip that spoke twice and
+/// then went quiet for good. One transparent pixel in the corner is invisible, ignores the mouse,
+/// and keeps its clock running.
+fn park_recall(win: &tauri::WebviewWindow) {
+    let _ = win.set_ignore_cursor_events(true);
+    let _ = win.set_size(LogicalSize::new(1.0, 1.0));
+    if let Ok(Some(mon)) = win.current_monitor().or_else(|_| win.primary_monitor()) {
+        let scale = mon.scale_factor();
+        let size = mon.size().to_logical::<f64>(scale);
+        let pos = mon.position().to_logical::<f64>(scale);
+        let _ = win.set_position(LogicalPosition::new(
+            pos.x + size.width - 2.0,
+            pos.y + RECALL_TOP,
+        ));
+    }
+    let _ = win.show();
+}
+
+/// Watch the front window from Rust and nudge the strip when it changes. The strip does its own
+/// polling too, but a nudge arrives even if the webview's timers were throttled, so the strip
+/// cannot fall asleep on a machine that decides to throttle it anyway.
+fn spawn_front_watcher(app: &AppHandle) {
+    let handle = app.clone();
+    std::thread::spawn(move || {
+        let mut last = String::new();
+        loop {
+            std::thread::sleep(std::time::Duration::from_millis(1500));
+            let Some((title, _exe, name)) = capture::foreground_window_info() else {
+                continue;
+            };
+            let probe = format!("{name}|{title}");
+            if probe == last {
+                continue;
+            }
+            last = probe.clone();
+            let _ = handle.emit_to(RECALL_WINDOW, "recall-front", probe);
+        }
+    });
 }
 
 #[tauri::command]
@@ -402,7 +447,7 @@ fn spawn_recall_window(app: &AppHandle, url: &str) {
         Ok(win) => {
             // Follows the user across spaces; it must never pull focus from the app underneath.
             let _ = win.set_visible_on_all_workspaces(true);
-            let _ = win.hide();
+            park_recall(&win);
         }
         Err(e) => eprintln!("[brainlog] recall window: {e}"),
     }
@@ -661,6 +706,7 @@ fn main() {
                     }
                     if ok {
                         spawn_recall_window(&handle, &strip_url);
+                        spawn_front_watcher(&handle);
                     }
                 });
             });

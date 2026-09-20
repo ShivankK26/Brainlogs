@@ -4,7 +4,10 @@ import { api } from "../lib/api";
 import type { Recall } from "../lib/types";
 
 type Front = { app: string; title: string; exe: string; fullscreen?: boolean };
-type Tauri = { core?: { invoke: (cmd: string, args?: Record<string, unknown>) => Promise<unknown> } };
+type Tauri = {
+  core?: { invoke: (cmd: string, args?: Record<string, unknown>) => Promise<unknown> };
+  event?: { listen: (name: string, cb: () => void) => Promise<() => void> };
+};
 const tauri = (): Tauri | undefined => (window as unknown as { __TAURI__?: Tauri }).__TAURI__;
 const invoke = async (cmd: string, args?: Record<string, unknown>) => {
   const t = tauri();
@@ -58,48 +61,56 @@ export function RecallStrip() {
     void invoke("recall_hide");
   }, []);
 
-  // Poll the front window; when the place changes, ask the core what it knows.
-  useEffect(() => {
-    let alive = true;
-    const tick = async () => {
-      const front = (await invoke("current_window")) as Front | null | undefined;
-      if (!alive) return;
-      if (!front || !front.title) return;
-      if (screenIsShared(front)) {
-        lastKey.current = null;
-        hide();
-        return;
-      }
-      const probe = `${front.app}|${front.title}`;
-      if (probe === lastKey.current) {
-        if (hideAt.current && Date.now() > hideAt.current) hide();
-        return;
-      }
-      lastKey.current = probe;
-      let got: Recall | null = null;
-      try {
-        const res = await api.recall({ app: front.app, title: front.title });
-        got = "place" in res && res.place ? (res as Recall) : null;
-      } catch {
-        got = null;
-      }
-      if (!alive) return;
-      // Speak only when there is something worth saying: a return visit, a change, or a fact.
-      const worth = got && (got.visits > 1 || got.change?.summary || got.facts.length > 0 || got.owed.length > 0);
-      if (!worth || !got || dismissed.current.has(got.place.key)) {
-        hide();
-        return;
-      }
-      setR(got);
-      hideAt.current = Date.now() + showMs(got);
-    };
-    void tick();
-    const id = window.setInterval(tick, POLL_MS);
-    return () => {
-      alive = false;
-      window.clearInterval(id);
-    };
+  // Ask what is in front, and when the place has changed ask the core what it knows about it.
+  const tick = useCallback(async () => {
+    const front = (await invoke("current_window")) as Front | null | undefined;
+    if (!front || !front.title) return;
+    if (screenIsShared(front)) {
+      lastKey.current = null;
+      hide();
+      return;
+    }
+    const probe = `${front.app}|${front.title}`;
+    if (probe === lastKey.current) {
+      if (hideAt.current && Date.now() > hideAt.current) hide();
+      return;
+    }
+    lastKey.current = probe;
+    let got: Recall | null = null;
+    try {
+      const res = await api.recall({ app: front.app, title: front.title });
+      got = "place" in res && res.place ? (res as Recall) : null;
+    } catch {
+      got = null;
+    }
+    // Speak only when there is something worth saying: a return visit, a change, or a fact.
+    const worth = got && (got.visits > 1 || got.change?.summary || got.facts.length > 0 || got.owed.length > 0);
+    if (!worth || !got || dismissed.current.has(got.place.key)) {
+      hide();
+      return;
+    }
+    setR(got);
+    hideAt.current = Date.now() + showMs(got);
   }, [hide]);
+
+  // Two ways in: the strip's own clock, and a nudge from the shell when the front window changes.
+  // The nudge matters because a webview that is not on screen can have its timers throttled, and a
+  // strip whose clock has stopped is a strip that never speaks again.
+  useEffect(() => {
+    void tick();
+    const id = window.setInterval(() => void tick(), POLL_MS);
+    let stop: (() => void) | undefined;
+    void tauri()
+      ?.event?.listen("recall-front", () => void tick())
+      .then((f) => {
+        stop = f;
+      })
+      .catch(() => undefined);
+    return () => {
+      window.clearInterval(id);
+      stop?.();
+    };
+  }, [tick]);
 
   // Size the window to the content, then show it.
   useEffect(() => {
