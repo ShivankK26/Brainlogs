@@ -12,7 +12,11 @@ const invoke = async (cmd: string, args?: Record<string, unknown>) => {
 };
 
 const POLL_MS = 1500;
-const SHOW_MS = 8000;
+/** Eight seconds for a one-line card, two more per extra line, never longer than sixteen. */
+function showMs(r: Recall): number {
+  const lines = (r.change?.summary ? 1 : 0) + Math.min(2, r.facts.length) + Math.min(2, r.owed.length);
+  return Math.min(16_000, 8_000 + 2_000 * Math.max(0, lines - 1));
+}
 
 function ago(ts: string | null, now: number): string {
   if (!ts) return "never";
@@ -87,7 +91,7 @@ export function RecallStrip() {
         return;
       }
       setR(got);
-      hideAt.current = Date.now() + SHOW_MS;
+      hideAt.current = Date.now() + showMs(got);
     };
     void tick();
     const id = window.setInterval(tick, POLL_MS);
@@ -130,7 +134,17 @@ export function RecallStrip() {
   const quiet = !r.change?.summary && facts.length === 0 && owed.length === 0;
 
   return (
-    <div className="strip" ref={box} data-kind={r.place.kind}>
+    <div
+      className="strip"
+      ref={box}
+      data-kind={r.place.kind}
+      onMouseEnter={() => {
+        hideAt.current = 0; // reading it should not race the clock
+      }}
+      onMouseLeave={() => {
+        hideAt.current = Date.now() + 4000;
+      }}
+    >
       <div className="edge" />
       <div className="sh">
         <span className="ic">{KIND_TAG[r.place.kind] ?? "APP"}</span>
