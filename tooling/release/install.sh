@@ -35,9 +35,20 @@ if [ -d "$DEST" ]; then
   echo "Replacing existing $DEST"
   rm -rf "$DEST"
 fi
+# A copy that reports success and then is not there has happened; check rather than trust, and
+# retry once before claiming the app is installed.
+installed() {
+  [ -x "$DEST/Contents/MacOS/brainlog-desktop" ] && [ -f "$DEST/Contents/Info.plist" ]
+}
 cp -R "$APP" /Applications/
+if ! installed; then
+  echo "The copy did not survive; trying once more."
+  rm -rf "$DEST"
+  cp -R "$APP" /Applications/
+fi
+installed || { echo "Install failed: $DEST is missing or incomplete." >&2; exit 1; }
 # curl downloads carry no quarantine attribute, but clear it anyway so first launch is silent.
 xattr -dr com.apple.quarantine "$DEST" 2>/dev/null || true
-echo "Installed $DEST"
+echo "Installed $DEST ($(/usr/bin/defaults read "$DEST/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null || echo "version unknown"))"
 echo "Opening Brainlogs. Grant Accessibility when macOS asks: System Settings → Privacy & Security → Accessibility."
 open "$DEST"

@@ -4,6 +4,7 @@
 
 - The strip stays on screen long enough to be read: the eight-second timer scales with the number of lines, and hovering it stops the clock until the pointer leaves.
 - The rule that keeps the strip off a screen somebody else can see now lives in one place with tests behind it.
+- The installer checks that the app it just copied is actually there, retries once, and fails loudly instead of reporting success over an empty folder.
 - Releases publish themselves again. Every release since the updater landed was left as a draft, which serves no downloads and hides the update manifest, so both the installer and in-app updates were quietly broken.
 
 
