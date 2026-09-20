@@ -448,6 +448,8 @@ export type PlaceHistory = {
   place: Place;
   visits: Array<Visit & { change: Change | null }>;
   facts: Recall["facts"];
+  /** Open promises with this person, or with the people a call names. Empty for other places. */
+  owed: Owed[];
 };
 
 /** One place and every visit to it, each annotated with what was different that time. */
@@ -468,5 +470,12 @@ export function placeHistory(key: string, perms: Perms, now = new Date(), days =
   const vs = visitsOf(events);
   const diffable = place.kind === "doc" || place.kind === "site" || place.kind === "repo";
   const annotated = vs.map((v, i) => ({ ...v, change: i === 0 || !diffable ? null : diffText(vs[i - 1]!.text, v.text) }));
-  return { place, visits: annotated.reverse(), facts: factsFrom(events) };
+  const quotable = place.kind !== "person" && place.kind !== "call";
+  const withPeople = place.kind === "person" ? [place.label] : place.kind === "call" ? peopleIn(vs[vs.length - 1]?.text ?? "") : [];
+  return {
+    place,
+    visits: annotated.reverse(),
+    facts: quotable ? factsFrom(events) : [],
+    owed: withPeople.length ? owedWith(withPeople, perms, 8) : [],
+  };
 }

@@ -49,8 +49,19 @@ export function PlaceDetail({ placeKey, onBack }: { placeKey: string; onBack: ()
                   ))}
                 </div>
                 <aside>
+                  {d.owed.length > 0 ? (
+                    <div className="panel"><div className="ph">What's owed</div><div className="pb">
+                      {d.owed.map((o) => (
+                        <div key={o.id} className="fact">
+                          <span className={`fk ${o.status === "overdue" ? "question" : "promise"}`}>{o.direction === "you" ? "you owe" : "owed to you"}</span>
+                          <span className="ft">{o.text}{o.dueAt ? ` · ${new Date(o.dueAt).toLocaleDateString()}` : ""}</span>
+                        </div>
+                      ))}
+                    </div></div>
+                  ) : null}
                   <div className="panel"><div className="ph">What's on the record</div><div className="pb">
-                    {d.facts.length === 0 ? <div className="muted">No decisions or open questions found in the captured text yet.</div> : null}
+                    {d.facts.length === 0 && d.place.kind === "person" ? <div className="muted">Conversations are not quoted here. What they obliged is above.</div> : null}
+                    {d.facts.length === 0 && d.place.kind !== "person" ? <div className="muted">No decisions or open questions found in the captured text yet.</div> : null}
                     {d.facts.map((f, i) => (
                       <div key={i} className="fact"><span className={`fk ${f.kind}`}>{FACT_LABEL[f.kind]}</span><span className="ft">{f.text}</span></div>
                     ))}
