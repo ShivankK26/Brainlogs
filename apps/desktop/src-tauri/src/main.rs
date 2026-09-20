@@ -16,7 +16,7 @@ mod shortcut_portal;
 
 use capture::{CaptureEngine, CaptureStatus};
 use std::sync::Arc;
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicI64, AtomicU64, Ordering};
 
 /// Last toggle in millis since an arbitrary epoch. The X11 grab and the
 /// portal binding can both deliver one press; the second arrival inside the
@@ -43,7 +43,7 @@ pub(crate) fn toggle_main_debounced(app: &AppHandle) {
     toggle_main(app);
 }
 use tauri::{
-    menu::{Menu, MenuItem},
+    menu::{Menu, MenuItem, PredefinedMenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     AppHandle, Emitter, LogicalPosition, LogicalSize, Manager, State, WebviewUrl,
     WebviewWindowBuilder,
@@ -151,6 +151,8 @@ struct FrontWindow {
     exe: String,
     /// The window fills its display. The strip stays silent there: it may not be a private screen.
     fullscreen: bool,
+    /// The user has paused the strip from the menu bar.
+    muted: bool,
 }
 
 #[tauri::command]
@@ -163,6 +165,7 @@ fn current_window(app: AppHandle) -> Option<FrontWindow> {
         title,
         exe,
         fullscreen,
+        muted: recall_muted(),
     })
 }
 
@@ -179,6 +182,75 @@ fn front_is_fullscreen(app: &AppHandle) -> bool {
     };
     let size = mon.size().to_logical::<f64>(mon.scale_factor());
     w >= size.width - 4.0 && h >= size.height - 4.0
+}
+
+/// Until when the strip stays quiet, as a unix timestamp. 0 means it is speaking; `RECALL_OFF`
+/// means it is off until the user turns it back on. Controlled from the menu bar.
+static RECALL_MUTED_UNTIL: AtomicI64 = AtomicI64::new(0);
+const RECALL_OFF: i64 = i64::MAX;
+
+fn recall_muted() -> bool {
+    let until = RECALL_MUTED_UNTIL.load(Ordering::Relaxed);
+    until == RECALL_OFF || until > chrono::Utc::now().timestamp()
+}
+
+/// What the menu bar and the strip both need to know: is it quiet, and until when.
+#[derive(Clone, serde::Serialize)]
+struct RecallState {
+    muted: bool,
+    /// None when it is speaking or switched off indefinitely.
+    until: Option<String>,
+}
+
+fn recall_state_now() -> RecallState {
+    let until = RECALL_MUTED_UNTIL.load(Ordering::Relaxed);
+    RecallState {
+        muted: recall_muted(),
+        until: if until == RECALL_OFF || until == 0 {
+            None
+        } else {
+            chrono::DateTime::from_timestamp(until, 0).map(|t| t.to_rfc3339())
+        },
+    }
+}
+
+/// Quiet for `minutes`, or until turned back on when `minutes` is None.
+fn set_recall_mute(app: &AppHandle, minutes: Option<i64>) -> RecallState {
+    let until = match minutes {
+        Some(m) if m > 0 => chrono::Utc::now().timestamp() + m * 60,
+        Some(_) => 0,
+        None => RECALL_OFF,
+    };
+    RECALL_MUTED_UNTIL.store(until, Ordering::Relaxed);
+    if let Some(win) = app.get_webview_window(RECALL_WINDOW) {
+        park_recall(&win);
+    }
+    recall_state_now()
+}
+
+#[tauri::command]
+fn recall_state() -> RecallState {
+    recall_state_now()
+}
+
+/// Silence the strip. `minutes` absent means until it is switched back on.
+#[tauri::command]
+fn recall_mute(app: AppHandle, minutes: Option<i64>) -> RecallState {
+    set_recall_mute(&app, minutes.or(Some(10)))
+}
+
+#[tauri::command]
+fn recall_unmute() -> RecallState {
+    RECALL_MUTED_UNTIL.store(0, Ordering::Relaxed);
+    recall_state_now()
+}
+
+/// Minutes left in the local day, so "for today" means what it says.
+fn minutes_left_today() -> i64 {
+    use chrono::Timelike;
+    let now = chrono::Local::now();
+    let used = now.hour() as i64 * 60 + now.minute() as i64;
+    (24 * 60 - used).max(1)
 }
 
 /// Show the strip in the top-right of the screen it is on, sized to its content.
@@ -245,7 +317,7 @@ fn spawn_front_watcher(app: &AppHandle) {
                 continue;
             };
             let probe = format!("{name}|{title}");
-            if probe == last {
+            if probe == last || recall_muted() {
                 continue;
             }
             last = probe.clone();
@@ -500,6 +572,9 @@ fn main() {
             current_window,
             recall_show,
             recall_hide,
+            recall_state,
+            recall_mute,
+            recall_unmute,
             pause_capture,
             resume_capture,
             core_base_url,
@@ -533,13 +608,39 @@ fn main() {
                 allow_widget_microphone(&win);
             }
 
+            // The menu bar is where the strip is controlled: it speaks over other apps, so the
+            // means of telling it to be quiet has to be somewhere that is always to hand.
             let show_i = MenuItem::with_id(app, "show", "Open Brainlogs", true, None::<&str>)?;
+            let r10_i = MenuItem::with_id(app, "recall_10", "Quiet for 10 minutes", true, None::<&str>)?;
+            let r60_i = MenuItem::with_id(app, "recall_60", "Quiet for an hour", true, None::<&str>)?;
+            let rday_i = MenuItem::with_id(app, "recall_today", "Quiet for the rest of today", true, None::<&str>)?;
+            let roff_i = MenuItem::with_id(app, "recall_off", "Turn the strip off", true, None::<&str>)?;
+            let ron_i = MenuItem::with_id(app, "recall_on", "Turn the strip back on", true, None::<&str>)?;
             let pause_i =
                 MenuItem::with_id(app, "pause", "Pause capture 1h", true, None::<&str>)?;
             let resume_i =
                 MenuItem::with_id(app, "resume", "Resume capture", true, None::<&str>)?;
             let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&show_i, &pause_i, &resume_i, &quit_i])?;
+            let sep1 = PredefinedMenuItem::separator(app)?;
+            let sep2 = PredefinedMenuItem::separator(app)?;
+            let sep3 = PredefinedMenuItem::separator(app)?;
+            let menu = Menu::with_items(
+                app,
+                &[
+                    &show_i,
+                    &sep1,
+                    &r10_i,
+                    &r60_i,
+                    &rday_i,
+                    &roff_i,
+                    &ron_i,
+                    &sep2,
+                    &pause_i,
+                    &resume_i,
+                    &sep3,
+                    &quit_i,
+                ],
+            )?;
 
             let engine_tray = engine_for_setup.clone();
             let _tray = TrayIconBuilder::new()
@@ -549,6 +650,21 @@ fn main() {
                 .icon_as_template(true)
                 .on_menu_event(move |app, event| match event.id.as_ref() {
                     "show" => show_main(app),
+                    "recall_10" => {
+                        set_recall_mute(app, Some(10));
+                    }
+                    "recall_60" => {
+                        set_recall_mute(app, Some(60));
+                    }
+                    "recall_today" => {
+                        set_recall_mute(app, Some(minutes_left_today()));
+                    }
+                    "recall_off" => {
+                        set_recall_mute(app, None);
+                    }
+                    "recall_on" => {
+                        RECALL_MUTED_UNTIL.store(0, Ordering::Relaxed);
+                    }
                     "pause" => {
                         engine_tray.pause_for_minutes(60);
                     }

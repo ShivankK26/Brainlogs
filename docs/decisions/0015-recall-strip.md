@@ -34,6 +34,20 @@ task switcher, hidden until it has something to say.
 - **A call** gets the same treatment for everyone the roster on screen names: who you are with, and
   what is owed with them. Calls are never diffed either — the screen is live by definition.
 
+### Switching it off (1.4.0)
+
+The strip draws over other applications, so the means of silencing it has to be somewhere that is
+always to hand and never behind the thing being silenced.
+
+- **The card itself** carries two controls: *quiet 10m*, which silences every place for ten
+  minutes, and a close button, which dismisses that one place for the session. Escape does the
+  same as close when the strip happens to have focus.
+- **The menu bar** holds the real switch: quiet for ten minutes, for an hour, for the rest of
+  today, off until turned back on, and on again. The state is one timestamp in the shell, read by
+  `current_window` on every poll, so a muted strip costs one comparison and asks the core nothing.
+- **Settings** repeats the switch and says when it will speak again, for anyone who turns it off
+  and later wonders why it is quiet.
+
 ### Silence rules
 
 The strip is a private note to one person, so it stays out of any moment where the screen is not

@@ -17,5 +17,8 @@ commands.allow = [
   # it can never appear, which is exactly what happened in 1.2.0 and 1.3.0.
   "current_window",
   "recall_show",
-  "recall_hide"
+  "recall_hide",
+  "recall_state",
+  "recall_mute",
+  "recall_unmute"
 ]

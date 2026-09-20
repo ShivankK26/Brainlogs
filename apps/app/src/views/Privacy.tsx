@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { api } from "../lib/api";
 import { useAsync } from "../lib/useAsync";
 import type { Status } from "../lib/types";
@@ -77,6 +77,45 @@ function CloudAsk({ status, enabled, onToggle }: { status: Status | null; enable
   );
 }
 
+type RecallState = { muted: boolean; until: string | null };
+type TauriCore = { core?: { invoke: (cmd: string, args?: Record<string, unknown>) => Promise<unknown> } };
+const shell = (): TauriCore | undefined => (window as unknown as { __TAURI__?: TauriCore }).__TAURI__;
+
+/**
+ * The strip speaks over other apps, so it must be switchable from somewhere obvious. The menu bar
+ * is the main switch; this repeats it for anyone who looks in settings instead.
+ */
+function StripControl() {
+  const [state, setState] = useState<RecallState | null>(null);
+  const call = useCallback(async (cmd: string, args?: Record<string, unknown>) => {
+    const t = shell();
+    if (!t?.core) return;
+    try {
+      setState((await t.core.invoke(cmd, args)) as RecallState);
+    } catch {
+      setState(null);
+    }
+  }, []);
+  useEffect(() => {
+    void call("recall_state");
+  }, [call]);
+  if (!shell()?.core) return <span className="val">Available in the desktop app</span>;
+  const until = state?.until ? new Date(state.until).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : null;
+  return (
+    <>
+      <span className="val">{state?.muted ? (until ? `Quiet until ${until}` : "Off") : "On"}</span>
+      {state?.muted ? (
+        <button className="tb primary" onClick={() => void call("recall_unmute")}>Turn on</button>
+      ) : (
+        <>
+          <button className="tb outl" onClick={() => void call("recall_mute", { minutes: 10 })}>Quiet 10 min</button>
+          <button className="tb outl" onClick={() => void call("recall_mute", { minutes: null })}>Turn off</button>
+        </>
+      )}
+    </>
+  );
+}
+
 function Section({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
   return (
     <section className="settings">
@@ -127,6 +166,10 @@ export function Privacy({ status }: { status: Status | null }) {
               </select>
             </Row>
             <Row label="Data directory"><span className="val mono">{status?.dataDir ?? "…"}</span></Row>
+          </Section>
+
+          <Section title="The recall strip" hint="The card that appears over your work with what Brainlogs already knows about the place you are in. The same switches are in the menu bar.">
+            <Row label="Strip" hint="Shows only on a place you have been before, and never over a shared or full screen"><StripControl /></Row>
           </Section>
 
           <Section title="Capture rules" hint="What is never recorded, enforced in the engine and again before anything is written.">

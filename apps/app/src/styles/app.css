@@ -441,7 +441,10 @@ html.strip-root body { padding: 4px; }
 .strip[data-kind="repo"] .sh .ic { background: rgba(242,153,74,.16); color: var(--amber); }
 .strip[data-kind="call"] .sh .ic { background: rgba(76,195,138,.16); color: var(--green); }
 .strip .sh .lb { font: 10.5px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--t4); }
-.strip .sh .x { margin-left: auto; font: 10px var(--mono); color: var(--t4); background: none; border: 0; }
+.strip .sh .x { font: 10px var(--mono); color: var(--t4); background: none; border: 0; padding: 2px 4px; border-radius: 5px; cursor: pointer; }
+.strip .sh .x:first-of-type { margin-left: auto; }
+.strip .sh .x:hover { color: var(--t1); background: rgba(255,255,255,.08); }
+.strip .sh .x.close { font-size: 11px; }
 .strip .body { padding: 8px 14px 14px; }
 .strip h3 { font-size: 15px; font-weight: 600; letter-spacing: -.015em; margin: 0 0 2px; }
 .strip .sub { font: 10.5px var(--mono); color: var(--t4); margin-bottom: 10px; }

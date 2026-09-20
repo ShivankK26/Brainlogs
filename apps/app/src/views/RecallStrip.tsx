@@ -3,7 +3,7 @@ import { screenIsShared } from "@brainlog/types";
 import { api } from "../lib/api";
 import type { Recall } from "../lib/types";
 
-type Front = { app: string; title: string; exe: string; fullscreen?: boolean };
+type Front = { app: string; title: string; exe: string; fullscreen?: boolean; muted?: boolean };
 type Tauri = {
   core?: { invoke: (cmd: string, args?: Record<string, unknown>) => Promise<unknown> };
   event?: { listen: (name: string, cb: () => void) => Promise<() => void> };
@@ -63,10 +63,27 @@ export function RecallStrip() {
     void invoke("recall_hide");
   }, []);
 
+  /** Close this card and say nothing more about this place until the app restarts. */
+  const close = useCallback((key: string) => {
+    dismissed.current.add(key);
+    hide();
+  }, [hide]);
+
+  /** Quiet everywhere for ten minutes. The same switch lives in the menu bar. */
+  const snooze = useCallback(() => {
+    void invoke("recall_mute", { minutes: 10 });
+    hide();
+  }, [hide]);
+
   // Ask what is in front, and when the place has changed ask the core what it knows about it.
   const tick = useCallback(async () => {
     const front = (await invoke("current_window")) as Front | null | undefined;
     if (!front || !front.title) return;
+    if (front.muted) {
+      lastKey.current = null;
+      hide();
+      return;
+    }
     if (SELF.test(front.app) || SELF.test(front.exe) || front.title.startsWith("Brainlogs")) {
       lastKey.current = null;
       hide();
@@ -128,14 +145,11 @@ export function RecallStrip() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && r) {
-        dismissed.current.add(r.place.key);
-        hide();
-      }
+      if (e.key === "Escape" && r) close(r.place.key);
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [r, hide]);
+  }, [r, close]);
 
   if (!r) return null;
   const now = Date.now();
@@ -167,7 +181,8 @@ export function RecallStrip() {
       <div className="sh">
         <span className="ic">{KIND_TAG[r.place.kind] ?? "APP"}</span>
         <span className="lb">{heading}</span>
-        <button className="x" onClick={() => { dismissed.current.add(r.place.key); hide(); }}>esc</button>
+        <button className="x" title="Quiet everywhere for ten minutes" onClick={snooze}>quiet 10m</button>
+        <button className="x close" title="Close this card (Esc)" aria-label="Close" onClick={() => close(r.place.key)}>✕</button>
       </div>
       <div className="body">
         <h3>{r.place.label}</h3>

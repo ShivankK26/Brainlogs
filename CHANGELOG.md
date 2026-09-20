@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.0 — 2026-09-20
+
+- **Close it, or tell it to be quiet.** Every card now has a close button, and a *quiet 10m* button beside it that silences the strip everywhere for ten minutes.
+- **A menu bar menu for the strip.** Quiet for ten minutes, for an hour, for the rest of today, off until you turn it back on, and on again. Capture's own pause and resume sit below it, separated, so the two are no longer easy to confuse.
+- Settings shows whether the strip is on and when it will speak again, and can switch it from there too.
+
+
 ## 1.3.3 — 2026-09-20
 
 - The strip no longer recalls Brainlogs at itself. Its own windows, and the app's, are skipped: everything it would say is already on the screen behind it.
