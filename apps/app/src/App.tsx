@@ -9,6 +9,7 @@ import { Toast } from "./components/Toast";
 import { Overview } from "./views/Overview";
 import { Memory } from "./views/Memory";
 import { Places } from "./views/Places";
+import { RecallStrip } from "./views/RecallStrip";
 import { Commitments } from "./views/Commitments";
 import { Audit } from "./views/Audit";
 import { Privacy } from "./views/Privacy";
@@ -121,6 +122,11 @@ function Shell() {
 }
 
 export function App() {
+  // The desktop shell opens the same bundle with ?strip=1 for the always-on-top recall window.
+  if (new URLSearchParams(window.location.search).has("strip")) {
+    document.documentElement.classList.add("strip-root");
+    return <RecallStrip />;
+  }
   return (
     <StoreProvider>
       <Shell />

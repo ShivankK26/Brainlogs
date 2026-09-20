@@ -1186,7 +1186,7 @@ fn idle_seconds() -> u32 {
     }
 }
 
-fn foreground_window_info() -> Option<(String, String, String)> {
+pub(crate) fn foreground_window_info() -> Option<(String, String, String)> {
     #[cfg(windows)]
     {
         use windows::Win32::Foundation::{CloseHandle, HWND, MAX_PATH};

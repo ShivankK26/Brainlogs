@@ -45,7 +45,7 @@ pub(crate) fn toggle_main_debounced(app: &AppHandle) {
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Manager, State,
+    AppHandle, LogicalPosition, LogicalSize, Manager, State, WebviewUrl, WebviewWindowBuilder,
 };
 use tauri_plugin_autostart::MacosLauncher;
 
@@ -139,6 +139,50 @@ fn hide_widget(app: AppHandle) -> Result<(), String> {
 fn quit_app(app: AppHandle) -> Result<(), String> {
     core::stop_core_if_owned();
     app.exit(0);
+    Ok(())
+}
+
+/// What the user is looking at right now, for the recall strip. Title only; no text is read here.
+#[derive(serde::Serialize)]
+struct FrontWindow {
+    app: String,
+    title: String,
+    exe: String,
+}
+
+#[tauri::command]
+fn current_window() -> Option<FrontWindow> {
+    capture::foreground_window_info().map(|(title, exe, app)| FrontWindow { app, title, exe })
+}
+
+/// Show the strip in the top-right of the screen it is on, sized to its content.
+#[tauri::command]
+fn recall_show(app: AppHandle, height: f64) -> Result<(), String> {
+    let win = app
+        .get_webview_window(RECALL_WINDOW)
+        .ok_or_else(|| "recall window missing".to_string())?;
+    let h = height.clamp(80.0, 520.0);
+    let _ = win.set_size(LogicalSize::new(RECALL_WIDTH, h));
+    if let Ok(Some(mon)) = win.current_monitor().or_else(|_| win.primary_monitor()) {
+        let scale = mon.scale_factor();
+        let size = mon.size().to_logical::<f64>(scale);
+        let pos = mon.position().to_logical::<f64>(scale);
+        let x = pos.x + size.width - RECALL_WIDTH - RECALL_MARGIN;
+        let y = pos.y + RECALL_TOP;
+        let _ = win.set_position(LogicalPosition::new(x, y));
+    }
+    let _ = win.show();
+    // Never steal focus: the user keeps typing in whatever they were in.
+    #[cfg(target_os = "macos")]
+    let _ = win.set_ignore_cursor_events(false);
+    Ok(())
+}
+
+#[tauri::command]
+fn recall_hide(app: AppHandle) -> Result<(), String> {
+    if let Some(win) = app.get_webview_window(RECALL_WINDOW) {
+        let _ = win.hide();
+    }
     Ok(())
 }
 
@@ -299,6 +343,49 @@ It may still be warming up.</div>
     )
 }
 
+const RECALL_WINDOW: &str = "recall";
+const RECALL_WIDTH: f64 = 384.0;
+const RECALL_MARGIN: f64 = 22.0;
+const RECALL_TOP: f64 = 46.0;
+
+/// The recall strip: borderless, transparent, always on top, never in the taskbar, and hidden
+/// until it has something to say. It loads the same UI bundle with `?strip=1`.
+fn spawn_recall_window(app: &AppHandle, url: &str) {
+    if app.get_webview_window(RECALL_WINDOW).is_some() {
+        return;
+    }
+    let parsed = match url.parse::<tauri::Url>() {
+        Ok(u) => u,
+        Err(e) => {
+            eprintln!("[brainlog] recall url: {e}");
+            return;
+        }
+    };
+    let built = WebviewWindowBuilder::new(app, RECALL_WINDOW, WebviewUrl::External(parsed))
+        .title("Brainlogs recall")
+        .inner_size(RECALL_WIDTH, 200.0)
+        .resizable(false)
+        .decorations(false)
+        .transparent(true)
+        .always_on_top(true)
+        .skip_taskbar(true)
+        .shadow(false)
+        .focused(false)
+        .visible(false)
+        .build();
+    match built {
+        Ok(win) => {
+            // A panel that never takes focus, so typing continues in the app underneath.
+            #[cfg(target_os = "macos")]
+            {
+                let _ = win.set_visible_on_all_workspaces(true);
+            }
+            let _ = win.hide();
+        }
+        Err(e) => eprintln!("[brainlog] recall window: {e}"),
+    }
+}
+
 fn main() {
     // WebKitGTK's dmabuf renderer dies with a fatal Wayland protocol error
     // (`wp_linux_drm_syncobj` "Missing acquire timeline") on stacks with
@@ -343,6 +430,9 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             capture_status,
+            current_window,
+            recall_show,
+            recall_hide,
             pause_capture,
             resume_capture,
             core_base_url,
@@ -536,6 +626,7 @@ fn main() {
                     error_url()
                 };
                 let handle = app_handle.clone();
+                let strip_url = format!("{}/?strip=1&v=20260920", core::core_url());
                 let _ = app_handle.run_on_main_thread(move || {
                     if let Some(win) = handle.get_webview_window("main") {
                         if let Ok(url) = target.parse::<tauri::Url>() {
@@ -545,6 +636,9 @@ fn main() {
                                 .eval(&format!(r#"window.location.replace("{}");"#, target));
                         }
                         allow_widget_microphone(&win);
+                    }
+                    if ok {
+                        spawn_recall_window(&handle, &strip_url);
                     }
                 });
             });

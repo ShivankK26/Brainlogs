@@ -3,7 +3,8 @@
   "identifier": "default",
   "description": "Default capabilities for Brainlogs widget (local core UI)",
   "windows": [
-    "main"
+    "main",
+    "recall"
   ],
   "remote": {
     "urls": [
@@ -33,6 +34,8 @@
     "notification:default",
     "allow-widget-commands",
     "updater:default",
-    "process:default"
+    "process:default",
+    "core:webview:allow-set-webview-position",
+    "core:webview:allow-set-webview-size"
   ]
 }

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0 — 2026-09-20
+
+- **The recall strip.** A small window that follows whatever app you're in and tells you what Brainlogs already knows about it: how many times you've been here, what changed since your last visit, and the decisions or open questions on the record. It never takes focus, hides itself after eight seconds, and stays silent on a page it has nothing to say about. Escape dismisses it for that place (ADR 0015).
+
 ## 1.1.0 — 2026-09-20
 
 - **Places.** Brainlogs now recognises the things you return to — documents, people, repositories, sites — and groups everything it knows around them instead of around the clock. A new Places screen lists them with visit counts and a seven-day sparkline; opening one shows every visit.
