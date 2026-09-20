@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { screenIsShared } from "@brainlog/types";
 import { api } from "../lib/api";
 import type { Recall } from "../lib/types";
 
@@ -23,15 +24,6 @@ function ago(ts: string | null, now: number): string {
   const d = Math.round(h / 24);
   return d === 1 ? "yesterday" : `${d} days ago`;
 }
-/**
- * Silence rules (ADR 0015). The strip is a private note to one person, so it stays out of any
- * moment where the screen is not private: a shared screen, a presentation, a full-screen window.
- */
-const SHARING = /\b(is sharing|are sharing|sharing your screen|screen sharing|stop share|stop sharing|presenting to|you're presenting|slideshow|presenter view)\b/i;
-function silent(front: Front): boolean {
-  return Boolean(front.fullscreen) || SHARING.test(front.title);
-}
-
 function due(o: { status: string; dueAt: string | null }): string {
   if (o.status === "overdue") return "overdue";
   if (!o.dueAt) return o.status;
@@ -69,7 +61,7 @@ export function RecallStrip() {
       const front = (await invoke("current_window")) as Front | null | undefined;
       if (!alive) return;
       if (!front || !front.title) return;
-      if (silent(front)) {
+      if (screenIsShared(front)) {
         lastKey.current = null;
         hide();
         return;

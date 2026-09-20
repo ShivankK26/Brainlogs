@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   AuditEntry,
+  screenIsShared,
   Commitment,
   DEFAULT_AGENT_PERMISSIONS,
   DEFAULT_POLICY,
@@ -83,5 +84,16 @@ describe("SpoolRecord", () => {
   it("passes through unknown engine fields", () => {
     const r = SpoolRecord.parse({ ts, source: "ax", app: "Slack", text: "hi", future_field: 1 });
     expect((r as Record<string, unknown>).future_field).toBe(1);
+  });
+});
+
+describe("screenIsShared", () => {
+  it("keeps the strip out of any moment the screen is not private", () => {
+    expect(screenIsShared({ title: "Job Hunting 2026", fullscreen: false })).toBe(false);
+    expect(screenIsShared({ title: "Job Hunting 2026", fullscreen: true })).toBe(true);
+    expect(screenIsShared({ title: "Zoom Meeting — you are sharing your screen" })).toBe(true);
+    expect(screenIsShared({ title: "Meet — presenting to 4 others" })).toBe(true);
+    expect(screenIsShared({ title: "Keynote — presenter view" })).toBe(true);
+    expect(screenIsShared({ title: "Sharing economy — Wikipedia" })).toBe(false);
   });
 });
