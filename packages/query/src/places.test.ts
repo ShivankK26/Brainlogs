@@ -109,4 +109,10 @@ describe("facts", () => {
     const longB = `a16z speedrun talent network ${"x".repeat(80)} tail two`;
     expect(diffText(longA, longB)!.summary).not.toMatch(/became/);
   });
+  it("keeps a person one person while the chat window narrates the call", () => {
+    const titles = ["\u200eTanu Baby -  voice call", "Tanu Baby — typing…", "(3) Tanu Baby", "Tanu Baby · online", "Tanu Baby"];
+    const keys = new Set(titles.map((windowTitle) => placeOf({ app: "\u200eWhatsApp", windowTitle })?.key));
+    expect([...keys]).toEqual(["person:tanu baby"]);
+    expect(placeOf({ app: "WhatsApp", windowTitle: "Tanu Baby -  voice call" })?.label).toBe("Tanu Baby");
+  });
 });

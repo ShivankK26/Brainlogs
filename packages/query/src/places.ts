@@ -90,6 +90,21 @@ const TERMINAL = /^(iterm2?|terminal|warp|alacritty|kitty|ghostty|hyper|wezterm)
 const DOC_APPS = /^(notion|obsidian|linear|figma|craft|bear|evernote|onenote|typora|logseq|notability|goodnotes|pages|numbers|keynote|word|excel|powerpoint)$/i;
 const CHAT_APPS = /\b(whatsapp|slack|discord|telegram|signal|messages|imessage|teams|messenger)\b/i;
 const CHAT_TITLE = /^(?:dm|direct message)\s*[·|:—-]\s*(.+)$|^(.+?)\s*[·|:—-]\s*(?:dm|direct message)$/i;
+/**
+ * What a chat window appends to a name while you are in it: the call state, the typing indicator,
+ * the presence line. "Tanu — voice call" and "Tanu" are the same person, and only the name is one.
+ */
+const CHAT_STATE = /\s*[-–—|·•:]?\s*(?:\((?:you|online)\)|typing…?|is typing…?|online|offline|last seen[^|·]*|(?:voice|video|group)? ?calling…?|(?:incoming |outgoing |missed )?(?:voice|video) ?call(?:\.\.\.|…)?|ringing…?|connecting…?|on a call|in a call|end-to-end encrypted)\s*$/i;
+
+function chatName(title: string): string {
+  let out = title;
+  for (let i = 0; i < 4; i++) {
+    const next = out.replace(CHAT_STATE, "").trim();
+    if (next === out) break;
+    out = next;
+  }
+  return out.replace(/[|·—–-]\s*$/, "").trim();
+}
 const REPO_PAIR = /([A-Za-z0-9][\w.-]{0,38})\/([A-Za-z][\w.-]{0,60})/;
 /** Titles that identify nothing and must never become a place. */
 const JUNK = new Set(["", "new tab", "untitled", "home", "loading", "loading…", "app", "apps", "inbox", "google", "search", "settings", "preferences", "menu", "window", "messages", "messaging", "chats", "startpage", "blank", "about:blank"]);
@@ -124,13 +139,13 @@ export type WindowLike = { app: string; windowTitle: string; url?: string | null
  * be the same place. The domain, when present, only upgrades the *kind* to doc, repo or call.
  */
 export function placeOf(w: WindowLike): Place | null {
-  const app = normApp(w.app || "");
+  const app = normApp((w.app || "").replace(INVISIBLE, "").trim());
   const title = placeTitle(w.windowTitle || "");
   const domain = (w.domain ?? "").toLowerCase().replace(/^www\./, "");
 
   if (CHAT_APPS.test(app)) {
     const dm = title.match(CHAT_TITLE);
-    const who = placeTitle((dm?.[1] ?? dm?.[2] ?? title) ?? "").replace(CHAT_APPS, "").replace(/[|·—-]\s*$/, "").trim();
+    const who = chatName(placeTitle((dm?.[1] ?? dm?.[2] ?? title) ?? "").replace(CHAT_APPS, "").replace(/[|·—-]\s*$/, "").trim());
     if (!junk(who) && who.length <= 60) return { key: `person:${normKey(who)}`, kind: "person", label: who, where: app.toLowerCase() };
     return null; // a chat window with no readable counterpart is not a place
   }
