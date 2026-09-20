@@ -1,6 +1,6 @@
 [[permission]]
 identifier = "allow-widget-commands"
-description = "Allow Brainlogs widget IPC (hide, quit, pin, mode, capture)"
+description = "Allow Brainlogs widget and recall-strip IPC (hide, quit, pin, mode, capture, front window)"
 commands.allow = [
   "hide_widget",
   "quit_app",
@@ -12,5 +12,10 @@ commands.allow = [
   "pause_capture",
   "resume_capture",
   "open_accessibility_settings",
-  "prompt_accessibility"
+  "prompt_accessibility",
+  # The recall strip. Without these three the strip's every poll is denied by the capability and
+  # it can never appear, which is exactly what happened in 1.2.0 and 1.3.0.
+  "current_window",
+  "recall_show",
+  "recall_hide"
 ]

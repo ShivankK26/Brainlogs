@@ -40,6 +40,8 @@ export type Status = {
     pausedUntil: string | null;
     /** null: the desktop engine has never reported (CLI-only install or app not running). */
     engineRunning: boolean | null;
+    /** Seconds since the recall strip last polled the front window. null: it is not running. */
+    recallPollAgeS?: number | null;
     /** false: macOS Accessibility not granted, so window text cannot be read. null: unknown. */
     accessibility: boolean | null;
     lastTextAt: string | null;

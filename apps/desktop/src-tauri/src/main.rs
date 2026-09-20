@@ -154,6 +154,7 @@ struct FrontWindow {
 
 #[tauri::command]
 fn current_window(app: AppHandle) -> Option<FrontWindow> {
+    capture::note_recall_poll();
     let (title, exe, name) = capture::foreground_window_info()?;
     let fullscreen = front_is_fullscreen(&app);
     Some(FrontWindow {

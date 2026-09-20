@@ -45,7 +45,7 @@ function readControl(): Record<string, unknown> {
 }
 
 /** What the desktop capture engine last reported (apps/desktop capture.rs::write_status_file). */
-type EngineStatus = { ts?: string; version?: string; accessibility?: boolean; capture_method?: string; last_obs?: string | null; last_text_at?: string | null };
+type EngineStatus = { ts?: string; version?: string; accessibility?: boolean; capture_method?: string; last_obs?: string | null; last_text_at?: string | null; recall_poll_age_s?: number | null };
 
 function readEngineStatus(): EngineStatus | null {
   try {
@@ -114,6 +114,8 @@ export async function status() {
       accessibility: engine && engine.ts && Date.now() - Date.parse(engine.ts) < ENGINE_STALE_MS ? (engine.accessibility ?? null) : null,
       lastTextAt: engine?.last_text_at ?? null,
       engineVersion: engine?.version ?? null,
+      // Seconds since the recall strip last asked what window is in front; null means it is silent.
+      recallPollAgeS: engine?.recall_poll_age_s ?? null,
     },
     cloudAsk: { enabled: policy.cloudAskEnabled, hasKey: anthropicKeySource() !== null, keySource: anthropicKeySource(), keyHint: anthropicKeyHint(), model: CLOUD_ASK_MODEL },
     retentionDays: policy.retentionDays,

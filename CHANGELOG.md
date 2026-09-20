@@ -2,6 +2,8 @@
 
 ## 1.3.1 — 2026-09-20
 
+- **The recall strip actually appears.** Its three calls — which window is in front, show, hide — were missing from the desktop app's IPC allow-list, so every poll since 1.2.0 was denied and the strip could never say anything. It now works on the machine as it always did in the tests.
+- Whether the strip is polling is written into the engine status, so a silent strip is visible instead of merely absent.
 - The strip stays on screen long enough to be read: the eight-second timer scales with the number of lines, and hovering it stops the clock until the pointer leaves.
 - The rule that keeps the strip off a screen somebody else can see now lives in one place with tests behind it.
 - The installer checks that the app it just copied is actually there, retries once, and fails loudly instead of reporting success over an empty folder.

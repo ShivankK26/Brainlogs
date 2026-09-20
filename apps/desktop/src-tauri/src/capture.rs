@@ -807,6 +807,9 @@ impl CaptureEngine {
             "last_obs": last_obs,
             "last_text_at": last_text_at,
             "paused_until": paused_until,
+            // Seconds since the recall strip last asked what window is in front. Null means the
+            // strip is not polling: it never loaded, or its IPC is being denied.
+            "recall_poll_age_s": recall_poll_age_s(),
         });
         let path = self.data_dir.join("capture-status.json");
         let tmp = self.data_dir.join("capture-status.json.tmp");
@@ -1242,6 +1245,23 @@ pub(crate) fn foreground_window_info() -> Option<(String, String, String)> {
     #[cfg(all(not(windows), not(target_os = "macos"), not(target_os = "linux")))]
     {
         None
+    }
+}
+
+/// When the recall strip last asked for the front window. A strip that cannot poll is a strip the
+/// user never sees, and that failure was invisible until it was written down (1.3.1).
+static RECALL_POLL_AT: std::sync::atomic::AtomicI64 = std::sync::atomic::AtomicI64::new(0);
+
+pub(crate) fn note_recall_poll() {
+    RECALL_POLL_AT.store(Utc::now().timestamp(), std::sync::atomic::Ordering::Relaxed);
+}
+
+fn recall_poll_age_s() -> Option<i64> {
+    let at = RECALL_POLL_AT.load(std::sync::atomic::Ordering::Relaxed);
+    if at == 0 {
+        None
+    } else {
+        Some((Utc::now().timestamp() - at).max(0))
     }
 }
 
