@@ -16,6 +16,22 @@ test("workspace menu opens with version, update check and quit", async ({ page }
   await expect(page.locator("#wsMenu")).toHaveCount(0);
 });
 
+test("places: cards group what you return to, and one place shows its visits", async ({ page }) => {
+  await open(page);
+  await page.locator(".item[data-page=places]").click();
+  await expect(page.locator(".pcard").first()).toBeVisible();
+  const first = page.locator(".pcard").first();
+  const label = (await first.locator(".n").textContent())!;
+  // kind filters narrow the grid
+  const chips = page.locator(".pchip");
+  await expect(chips.first()).toContainText("All");
+  await first.click();
+  await expect(page.locator(".pg h1")).toHaveText(label);
+  await expect(page.locator(".visit").first()).toBeVisible();
+  await page.locator(".tb.outl", { hasText: "All places" }).click();
+  await expect(page.locator(".pcard").first()).toBeVisible();
+});
+
 test("pulse renders KPIs from real data", async ({ page }) => {
   await open(page);
   await expect(page.locator(".kp .v").first()).not.toHaveText("—");

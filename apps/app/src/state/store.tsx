@@ -1,15 +1,16 @@
 import { createContext, useCallback, useContext, useMemo, useReducer, type ReactNode } from "react";
 
-export type Page = "overview" | "memory" | "commitments" | "audit" | "privacy";
-export const PAGE_TITLE: Record<Page, string> = { overview: "Overview", memory: "Memory", commitments: "Commitments", audit: "Audit log", privacy: "Data & retention" };
+export type Page = "overview" | "places" | "memory" | "commitments" | "audit" | "privacy";
+export const PAGE_TITLE: Record<Page, string> = { overview: "Overview", places: "Places", memory: "Memory", commitments: "Commitments", audit: "Audit log", privacy: "Data & retention" };
 
 /** A memory filter is free text (search), a question (answer card + cited moments), or an explicit set of event ids (evidence for a narrative sentence). */
 export type QueryFilter = { kind: "query"; q: string; app?: string; domain?: string; person?: string; repo?: string; from?: string; to?: string };
 export type Filter = { kind: "text"; q: string } | { kind: "ask"; q: string } | QueryFilter | { kind: "ids"; ids: string[]; label: string } | null;
 
-type State = { page: Page; filter: Filter; selected: string | null; paletteOpen: boolean; toast: string | null; reviewOpen: boolean; version: number; userInitials: string };
+type State = { page: Page; filter: Filter; selected: string | null; placeKey: string | null; paletteOpen: boolean; toast: string | null; reviewOpen: boolean; version: number; userInitials: string };
 type Action =
   | { type: "go"; page: Page }
+  | { type: "place"; key: string | null }
   | { type: "filter"; filter: Filter }
   | { type: "select"; id: string | null }
   | { type: "palette"; open: boolean }
@@ -21,7 +22,9 @@ type Action =
 function reducer(s: State, a: Action): State {
   switch (a.type) {
     case "go":
-      return { ...s, page: a.page, paletteOpen: false };
+      return { ...s, page: a.page, paletteOpen: false, ...(a.page === "places" ? {} : { placeKey: s.placeKey }) };
+    case "place":
+      return { ...s, placeKey: a.key, page: "places", paletteOpen: false };
     case "filter":
       return { ...s, filter: a.filter, selected: null };
     case "select":
@@ -39,10 +42,12 @@ function reducer(s: State, a: Action): State {
   }
 }
 
-const initial: State = { page: "overview", filter: null, selected: null, paletteOpen: false, toast: null, reviewOpen: false, version: 0, userInitials: "" };
+const initial: State = { page: "overview", filter: null, selected: null, placeKey: null, paletteOpen: false, toast: null, reviewOpen: false, version: 0, userInitials: "" };
 
 type Store = State & {
   go: (page: Page) => void;
+  /** Open the Places screen, optionally focused on one place. */
+  openPlace: (key: string | null) => void;
   setFilter: (f: Filter) => void;
   select: (id: string | null) => void;
   openPalette: () => void;
@@ -66,6 +71,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const actions = useMemo(
     () => ({
       go: (page: Page) => dispatch({ type: "go", page }),
+      openPlace: (key: string | null) => dispatch({ type: "place", key }),
       setFilter: (filter: Filter) => dispatch({ type: "filter", filter }),
       select: (id: string | null) => dispatch({ type: "select", id }),
       openPalette: () => dispatch({ type: "palette", open: true }),

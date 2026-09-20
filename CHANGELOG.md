@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0 — 2026-09-20
+
+- **Places.** Brainlogs now recognises the things you return to — documents, people, repositories, sites — and groups everything it knows around them instead of around the clock. A new Places screen lists them with visit counts and a seven-day sparkline; opening one shows every visit.
+- **What changed since you were last here.** Because capture is text and not screenshots, two visits to the same page can be compared directly. A visit that differs from the one before shows a plain sentence: “*Enterprise $499/mo* became *Enterprise contact us*”. No model, no network (ADR 0014).
+- Decisions, open questions and promises found in a place's text are listed beside its history.
+- New read-only endpoints `/api/v1/recall`, `/api/v1/places` and `/api/v1/places/:key`, gated and audited like every other read.
+
 ## 1.0.24 — 2026-09-16
 
 - Sidebar: the repositories and branches group is titled "Top screens" (the separate app list added in 1.0.23 is removed).

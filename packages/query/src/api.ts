@@ -8,6 +8,7 @@ import { ask, type AskDeps } from "./ask.js";
 import { listNotes, listProposedEdges, propose, review } from "./notes.js";
 import { entitiesForEvents, stats, topEntities } from "./store.js";
 import { pulse, type PulseResult } from "./pulse.js";
+import { placeHistory, places, recall, type PlaceHistory, type PlaceKind, type PlaceSummary, type Recall } from "./places.js";
 import { IsoDate, type Entity } from "@brainlog/types";
 import {
   AskRequest,
@@ -88,6 +89,25 @@ export function createQueryApi(opts: QueryApiOptions) {
         },
         (r) => `${r.events.length} events`,
       );
+    },
+    /**
+     * What Brainlogs knows about the window in front of the user: visits, what changed since the
+     * last one, decisions and open questions. Read-only and cheap enough to call on every switch.
+     */
+    recallPlace(input: { app: string; windowTitle: string; url?: string | null; domain?: string | null; text?: string }): Promise<Recall | null> {
+      return run(
+        { action: "query", scope: `recall ${short(input.windowTitle || input.app, 60)}`, needs: ["readTimeline"] },
+        (perms) => recall(input, perms),
+        (r) => (r ? `${r.place.kind} ${r.visits} visits${r.change ? " + change" : ""}` : "unknown place"),
+      );
+    },
+    /** Every place seen recently, newest first. */
+    places(input: { days?: number; kind?: PlaceKind; limit?: number } = {}): Promise<PlaceSummary[]> {
+      return run({ action: "query", scope: `places${input.kind ? ` kind=${input.kind}` : ""}`, needs: ["readTimeline"] }, (perms) => places(input, perms), (r) => `${r.length} places`);
+    },
+    /** One place and every visit to it, each annotated with what changed. */
+    placeHistory(input: { key: string }): Promise<PlaceHistory | null> {
+      return run({ action: "query", scope: `place ${short(input.key, 60)}`, needs: ["readTimeline"] }, (perms) => placeHistory(input.key, perms), (r) => (r ? `${r.visits.length} visits` : "not found"));
     },
     pulse(input: { date?: string } = {}): Promise<PulseResult> {
       const date = IsoDate.parse(input.date ?? new Date().toISOString().slice(0, 10));

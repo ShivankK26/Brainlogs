@@ -150,6 +150,22 @@ export async function handleBrainlogRoute(_req: IncomingMessage, ctx: Ctx): Prom
   const p = path.slice("/api/v1".length);
   try {
     if (method === "GET" && p === "/status") return reply(200, await status()), true;
+    // Recall: what we know about the window in front of the user. Called by the strip on every switch.
+    if (method === "GET" && p === "/recall") {
+      const app = query.get("app") ?? "";
+      const windowTitle = query.get("title") ?? "";
+      if (!app && !windowTitle) return reply(400, { error: "app or title is required" }), true;
+      const r = await api().recallPlace({ app, windowTitle, url: query.get("url"), domain: query.get("domain") });
+      return reply(200, r ?? { place: null }), true;
+    }
+    if (method === "GET" && p === "/places") {
+      const kind = query.get("kind");
+      return reply(200, await api().places({ days: Number(query.get("days") ?? 30), limit: Number(query.get("limit") ?? 60), ...(kind ? { kind: kind as never } : {}) })), true;
+    }
+    if (method === "GET" && p.startsWith("/places/")) {
+      const r = await api().placeHistory({ key: decodeURIComponent(p.slice("/places/".length)) });
+      return reply(r ? 200 : 404, r ?? { error: "no such place" }), true;
+    }
     // Local model setup (Ollama): status, start the daemon, pull the recommended model.
     if (method === "GET" && p === "/models") return reply(200, await modelStatus()), true;
     if (method === "POST" && p === "/models/start") {

@@ -88,6 +88,7 @@ export function Sidebar({ status, entities }: { status: Status | null; entities:
         <IcSearch />Search or jump to<kbd>⌘K</kbd>
       </button>
       <Item p="overview" icon={<IcPulse />} label="Overview" />
+      <Item p="places" icon={<IcMemory />} label="Places" />
       <Item p="memory" icon={<IcMemory />} label="Memory" count={status ? compact(status.counts.events) : undefined} />
       <Item p="commitments" icon={<IcCheck />} label="Commitments" count={status?.counts.commitmentsOpen} />
       {(() => {

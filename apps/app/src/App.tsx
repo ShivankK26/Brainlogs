@@ -8,11 +8,12 @@ import { Palette } from "./components/Palette";
 import { Toast } from "./components/Toast";
 import { Overview } from "./views/Overview";
 import { Memory } from "./views/Memory";
+import { Places } from "./views/Places";
 import { Commitments } from "./views/Commitments";
 import { Audit } from "./views/Audit";
 import { Privacy } from "./views/Privacy";
 
-const G_MAP: Record<string, Page> = { p: "overview", m: "memory", c: "commitments" };
+const G_MAP: Record<string, Page> = { p: "overview", m: "memory", c: "commitments", l: "places" };
 
 type TauriGlobal = { core?: { invoke: (cmd: string) => Promise<unknown> } };
 const tauri = (): TauriGlobal | undefined => (window as unknown as { __TAURI__?: TauriGlobal }).__TAURI__;
@@ -107,6 +108,7 @@ function Shell() {
       <div className={`main${status.data && (status.data.capture.accessibility === false || status.data.capture.engineRunning === false) ? " has-banner" : ""}`}>
         <CaptureBanner status={status.data} />
         {page === "overview" && <Overview />}
+        {page === "places" && <Places />}
         {page === "memory" && <Memory />}
         {page === "commitments" && <Commitments />}
         {page === "audit" && <Audit />}

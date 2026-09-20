@@ -7,3 +7,4 @@ export { ollamaChat, claudeChat, CLOUD_ASK_MODEL, type ChatFn, type AskDeps } fr
 export { plan, parseScope, detectIntent, clusterMoments, compose, renderText, looksLikePersonName, type Plan, type Intent, type Scope, type Structured, type AskMoment, type MomentKind } from "./plan.js";
 export { PolicyDeniedError } from "@brainlog/policy";
 export { pulse, sessionize, weekBounds, type PulseResult } from "./pulse.js";
+export { placeOf, placeTitle, visitsOf, diffText, factsFrom, recall, places, placeHistory, type Place, type PlaceKind, type PlaceSummary, type PlaceHistory, type Recall, type Visit, type Change } from "./places.js";
