@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.1 — 2026-09-20
+
+- Clicking the Brainlogs icon in the menu bar opens its menu. The strip's controls were there in 1.4.0 but only on a right-click, which is not a thing anyone tries. Opening the window is the first item in the menu.
+
+
 ## 1.4.0 — 2026-09-20
 
 - **Close it, or tell it to be quiet.** Every card now has a close button, and a *quiet 10m* button beside it that silences the strip everywhere for ten minutes.

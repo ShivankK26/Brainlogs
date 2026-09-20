@@ -44,7 +44,7 @@ pub(crate) fn toggle_main_debounced(app: &AppHandle) {
 }
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem},
-    tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+    tray::TrayIconBuilder,
     AppHandle, Emitter, LogicalPosition, LogicalSize, Manager, State, WebviewUrl,
     WebviewWindowBuilder,
 };
@@ -645,6 +645,9 @@ fn main() {
             let engine_tray = engine_for_setup.clone();
             let _tray = TrayIconBuilder::new()
                 .menu(&menu)
+                // A plain click opens the menu. The controls for something that draws over your
+                // work should not be hidden behind a right-click nobody thinks to try.
+                .show_menu_on_left_click(true)
                 .tooltip("Brainlogs")
                 .icon(tauri::image::Image::from_bytes(include_bytes!("../icons/tray.png"))?)
                 .icon_as_template(true)
@@ -676,16 +679,6 @@ fn main() {
                         app.exit(0);
                     }
                     _ => {}
-                })
-                .on_tray_icon_event(|tray, event| {
-                    if let TrayIconEvent::Click {
-                        button: MouseButton::Left,
-                        button_state: MouseButtonState::Up,
-                        ..
-                    } = event
-                    {
-                        toggle_main(tray.app_handle());
-                    }
                 })
                 .build(app)?;
 
