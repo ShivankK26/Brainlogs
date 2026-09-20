@@ -71,6 +71,8 @@ const DOC_HOSTS = /(^|\.)(notion\.so|docs\.google\.com|sheets\.google\.com|slide
 const CODE_HOSTS = /(^|\.)(github\.com|gitlab\.com|bitbucket\.org)$/i;
 const CALL_HOSTS = /(^|\.)(meet\.google\.com|zoom\.us|teams\.microsoft\.com|webex\.com|whereby\.com)$/i;
 const TERMINAL = /^(iterm2?|terminal|warp|alacritty|kitty|ghostty|hyper|wezterm)$/i;
+/** Native apps whose windows are documents. The same page in the app and in a browser is one place. */
+const DOC_APPS = /^(notion|obsidian|linear|figma|craft|bear|evernote|onenote|typora|logseq|notability|goodnotes|pages|numbers|keynote|word|excel|powerpoint)$/i;
 const CHAT_APPS = /\b(whatsapp|slack|discord|telegram|signal|messages|imessage|teams|messenger)\b/i;
 const CHAT_TITLE = /^(?:dm|direct message)\s*[·|:—-]\s*(.+)$|^(.+?)\s*[·|:—-]\s*(?:dm|direct message)$/i;
 const REPO_PAIR = /([A-Za-z0-9][\w.-]{0,38})\/([A-Za-z][\w.-]{0,60})/;
@@ -116,6 +118,13 @@ export function placeOf(w: WindowLike): Place | null {
     const who = placeTitle((dm?.[1] ?? dm?.[2] ?? title) ?? "").replace(CHAT_APPS, "").replace(/[|·—-]\s*$/, "").trim();
     if (!junk(who) && who.length <= 60) return { key: `person:${normKey(who)}`, kind: "person", label: who, where: app.toLowerCase() };
     return null; // a chat window with no readable counterpart is not a place
+  }
+
+  if (DOC_APPS.test(app) && !domain) {
+    if (junk(title)) return null;
+    const label = title.replace(/\s*[-–—|·]\s*(Notion|Obsidian|Linear|Figma|Craft)\s*$/i, "").trim();
+    if (junk(label)) return null;
+    return { key: `page:${normKey(label)}`, kind: "doc", label, where: app.toLowerCase() };
   }
 
   if (BROWSER.test(app) || domain) {
@@ -233,10 +242,15 @@ export function diffText(before: string, after: string): Change | null {
   const removed = lines(before).filter((l) => !aSet.has(l));
   if (added.length === 0 && removed.length === 0) return null;
 
-  const edits = pairEdits(added, removed);
+  // Churn, not an edit: a page that moved this much is better described than quoted.
+  const churn = added.length + removed.length > 12;
+  const edits = churn ? [] : pairEdits(added, removed);
+  const usable = edits.filter(([before, after]) => clip(before, 60) !== clip(after, 60));
   let summary: string | null = null;
-  if (edits.length === 1 && added.length <= 2 && removed.length <= 2) {
-    summary = `“${clip(edits[0]![0], 60)}” became “${clip(edits[0]![1], 60)}”.`;
+  if (usable.length === 1 && added.length <= 2 && removed.length <= 2) {
+    summary = `“${clip(usable[0]![0], 60)}” became “${clip(usable[0]![1], 60)}”.`;
+  } else if (churn) {
+    summary = `Substantially rewritten since your last visit: ${added.length} lines added, ${removed.length} gone.`;
   } else if (added.length && !removed.length) {
     summary = added.length === 1 ? `New since your last visit: “${clip(added[0]!)}”.` : `${added.length} new lines since your last visit, starting “${clip(added[0]!, 60)}”.`;
   } else if (removed.length && !added.length) {
@@ -286,8 +300,11 @@ export function recall(w: WindowLike, perms: Perms, deps: RecallDeps = {}): Reca
   const current = visits[visits.length - 1] ?? null;
   const previous = visits.length >= 2 ? visits[visits.length - 2]! : null;
 
+  // Only stable surfaces are worth diffing. A terminal scrolls, a chat appends, a call is live:
+  // reporting "34 lines removed" there is noise dressed up as insight.
+  const diffable = place.kind === "doc" || place.kind === "site" || place.kind === "repo";
   const nowText = (w.text ?? current?.text ?? "").trim();
-  const change = previous && nowText ? diffText(previous.text, nowText) : null;
+  const change = diffable && previous && nowText ? diffText(previous.text, nowText) : null;
 
   const people = [...new Set(events.flatMap((e) => (e.sensitivity === "third_party_private" ? [placeOf(e)?.label].filter((x): x is string => Boolean(x)) : [])))].slice(0, 4);
 
@@ -372,6 +389,7 @@ export function placeHistory(key: string, perms: Perms, now = new Date(), days =
   }
   if (!place) return null;
   const vs = visitsOf(events);
-  const annotated = vs.map((v, i) => ({ ...v, change: i === 0 ? null : diffText(vs[i - 1]!.text, v.text) }));
+  const diffable = place.kind === "doc" || place.kind === "site" || place.kind === "repo";
+  const annotated = vs.map((v, i) => ({ ...v, change: i === 0 || !diffable ? null : diffText(vs[i - 1]!.text, v.text) }));
   return { place, visits: annotated.reverse(), facts: factsFrom(events) };
 }

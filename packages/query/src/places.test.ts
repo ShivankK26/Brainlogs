@@ -95,4 +95,18 @@ describe("facts", () => {
     expect(placeOf({ app: "WhatsApp", windowTitle: "\u200e" })).toBeNull();
     expect(placeOf({ app: "Google Chrome", windowTitle: "New tab" })).toBeNull();
   });
+  it("treats a document as one place whether it is in the native app or a browser tab", () => {
+    const inApp = placeOf({ app: "Notion", windowTitle: "Job Hunting 2026" })!;
+    const inTab = placeOf({ app: "Google Chrome", windowTitle: "Job Hunting 2026 - Google Chrome", domain: "www.notion.so" })!;
+    expect(inApp.key).toBe(inTab.key);
+    expect([inApp.kind, inTab.kind]).toEqual(["doc", "doc"]);
+  });
+  it("describes churn instead of quoting it, and never pairs two identical clips", () => {
+    const before = Array.from({ length: 20 }, (_, i) => `old line number ${i} with some text`).join("\n");
+    const after = Array.from({ length: 20 }, (_, i) => `new line number ${i} with other text`).join("\n");
+    expect(diffText(before, after)!.summary).toMatch(/^Substantially rewritten since your last visit: 20 lines added, 20 gone\.$/);
+    const longA = `a16z speedrun talent network ${"x".repeat(80)} tail one`;
+    const longB = `a16z speedrun talent network ${"x".repeat(80)} tail two`;
+    expect(diffText(longA, longB)!.summary).not.toMatch(/became/);
+  });
 });

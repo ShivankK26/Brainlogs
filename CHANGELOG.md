@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.1 — 2026-09-20
+
+- The same document is now one place whether you open it in its own app or in a browser tab. A Notion or Linear page read in Chrome no longer counts as a stranger.
+- "What changed" stays quiet where change means nothing. Terminals, chats and calls scroll by design, so they are no longer diffed, and a page that moved by more than a dozen lines is described as substantially rewritten instead of quoting one line at random.
+- A change sentence is never printed when the before and after read identically once shortened.
+
 ## 1.2.0 — 2026-09-20
 
 - **The recall strip.** A small window that follows whatever app you're in and tells you what Brainlogs already knows about it: how many times you've been here, what changed since your last visit, and the decisions or open questions on the record. It never takes focus, hides itself after eight seconds, and stays silent on a page it has nothing to say about. Escape dismisses it for that place (ADR 0015).
