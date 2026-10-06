@@ -63,6 +63,7 @@ pnpm --filter @brainlog/site build     # static output in apps/site/dist (Lighth
 - Data directory: see `docs/decisions/0004-env-prefix-and-data-dirs.md`.
 
 Full statement: `docs/privacy.md`. Architecture: `docs/architecture.md`. Decisions: `docs/decisions/`.
+Working notes, bugs and their causes, the release runbook and the backlog: `memory/`.
 
 ## License
 
